@@ -84,7 +84,6 @@ export function AIScreen() {
 
   return (
     <div class="screen ai-screen">
-      <div class="aurora" aria-hidden="true" />
       <header class="ai-head">
         <h1 class="brand">{brand.appName}</h1>
         <p class="greet">
@@ -175,8 +174,22 @@ function Bubble({ m, today, tasks }: { m: ChatItem & { retry?: { text: string; r
     );
   const linked = m.results?.length ? m.results : null;
   return (
-    <div class={`bubble ${m.role}${m.error ? ' error' : ''}`}>
-      <p>{m.text}</p>
+    <div class={`bubble ${m.role}${m.error ? ' error' : ''}${m.fresh ? ' fresh' : ''}`}>
+      {m.fresh && m.role === 'assistant' ? (
+        <p aria-label={m.text}>
+          {m.text.split(/(\s+)/).map((w, i) =>
+            /\s/.test(w) ? (
+              w
+            ) : (
+              <span class="word" style={{ animationDelay: `${i * 28}ms` }} aria-hidden="true" key={i}>
+                {w}
+              </span>
+            ),
+          )}
+        </p>
+      ) : (
+        <p>{m.text}</p>
+      )}
       {linked && (
         <ul class="bubble-results">
           {linked.map((r) => (

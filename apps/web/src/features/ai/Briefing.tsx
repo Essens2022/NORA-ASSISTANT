@@ -30,6 +30,7 @@ export function Briefing({ tasks, today }: { tasks: Record<string, Task>; today:
 
       {next && (
         <button type="button" class="brief-next" onClick={() => setState({ openTaskId: next.id })}>
+          <Countdown iso={next.start_at!} />
           <span class="brief-next-label">{tr('ai.next_up')}</span>
           <span class="brief-next-title">{next.title}</span>
           <span class="brief-next-when">
@@ -76,5 +77,19 @@ export function Briefing({ tasks, today }: { tasks: Record<string, Task>; today:
         </div>
       )}
     </section>
+  );
+}
+
+/** Ring that empties as the next task approaches (full = 3 h or more away). */
+function Countdown({ iso }: { iso: string }) {
+  const mins = Math.max(0, (Date.parse(iso) - Date.now()) / 60000);
+  const frac = Math.min(1, mins / 180);
+  const C = 2 * Math.PI * 18;
+  return (
+    <svg class="countdown" viewBox="0 0 44 44" aria-hidden="true">
+      <circle cx="22" cy="22" r="18" class="cd-track" />
+      <circle cx="22" cy="22" r="18" class="cd-fill" style={{ strokeDasharray: C, strokeDashoffset: C * (1 - frac) }} />
+      <circle cx="22" cy="22" r="4" class="cd-core" />
+    </svg>
   );
 }

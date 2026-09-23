@@ -15,6 +15,8 @@ export interface ChatItem {
   results?: AssistantReply['results'];
   task_ids?: string[];
   retry?: { text: string; requestId: string };
+  /** Arrived during this session – animated in. */
+  fresh?: boolean;
 }
 
 export interface Toast {

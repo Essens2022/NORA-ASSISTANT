@@ -49,7 +49,7 @@ beforeAll(async () => {
     res.end(readFileSync(target));
   });
   await new Promise<void>((r) => server.listen(0, r));
-  browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium' });
+  browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
 }, 60_000);
 
 afterAll(async () => {
@@ -57,8 +57,8 @@ afterAll(async () => {
   server?.close();
 });
 
-async function open(theme: 'light' | 'dark') {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'ro-RO', timezoneId: TZ, colorScheme: theme });
+async function open(theme: 'light' | 'dark', b: Browser = browser, video = false) {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: video ? 1 : 2, locale: 'ro-RO', timezoneId: TZ, colorScheme: theme, permissions: ['microphone'], ...(video ? { recordVideo: { dir: SHOTS, size: { width: 390, height: 844 } } } : {}) });
   const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
   const jwt = `${b64({ alg: 'HS256' })}.${b64({ sub: USER, exp: 4102444800 })}.x`;
   const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', expires_in: 3600, expires_at: 4102444800, user: { id: USER, email: 'ion@example.com', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '' } };
@@ -70,7 +70,10 @@ async function open(theme: 'light' | 'dark') {
   await ctx.route('**/functions/v1/api/**', async (r) => {
     const path = new URL(r.request().url()).pathname.replace(/^.*\/api/, '');
     let body: unknown = { ok: true };
-    if (path === '/v1/bootstrap') {
+    if (path === '/v1/voice') {
+      await new Promise((res) => setTimeout(res, 1800)); // let the "thinking" state show
+      body = { heard: false, reason: 'no_speech', reply_text: '' };
+    } else if (path === '/v1/bootstrap') {
       body = {
         profile,
         onboarded_at: '2026-01-01',
@@ -90,7 +93,7 @@ async function open(theme: 'light' | 'dark') {
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(`http://127.0.0.1:${(server.address() as { port: number }).port}`);
   await page.getByRole('button', { name: 'Vorbește cu NORA' }).waitFor();
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(1600);
   return ctx;
 }
 
@@ -98,6 +101,7 @@ it('renders the showcase in light and dark', async () => {
   for (const theme of ['light', 'dark'] as const) {
     const ctx = await open(theme);
     await page.screenshot({ path: join(SHOTS, `showcase-home-${theme}.png`) });
+    expect(await page.evaluate(() => !!document.querySelector('.organism-canvas') && !document.querySelector('.organism.fallback'))).toBe(true);
     await page.getByRole('button', { name: 'Activitate' }).click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, `showcase-activity-${theme}.png`) });
@@ -105,3 +109,22 @@ it('renders the showcase in light and dark', async () => {
   }
   expect(errors).toEqual([]);
 }, 60_000);
+
+
+it('records the living orb: idle → listening (fake microphone) → thinking', async () => {
+  const b = await chromium.launch({
+    executablePath: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium',
+    args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+  });
+  const ctx = await open('dark', b, true);
+  await page.waitForTimeout(2500); // idle breathing
+  await page.getByRole('button', { name: 'Vorbește cu NORA' }).click();
+  await page.waitForTimeout(3500); // listening to the fake microphone tone
+  await page.getByRole('button', { name: 'Oprește ascultarea' }).click().catch(() => {});
+  await page.waitForTimeout(2200); // thinking
+  const video = page.video();
+  await ctx.close();
+  await b.close();
+  expect(await video?.path()).toBeTruthy();
+  console.log('VIDEO', await video?.path());
+}, 90_000);

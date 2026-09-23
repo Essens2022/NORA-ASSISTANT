@@ -128,7 +128,7 @@ function applyReply(pendingId: string, res: { reply: AssistantReply; conversatio
     conversationId: res.conversation_id,
     awaiting: res.reply.awaiting,
     replyLang: res.reply.lang,
-    messages: s.messages.map((m) => (m.id === pendingId ? { id: pendingId, role: 'assistant', text: res.reply.text, results: res.reply.results, task_ids: res.reply.task_ids } : m)),
+    messages: s.messages.map((m) => (m.id === pendingId ? { id: pendingId, role: 'assistant', text: res.reply.text, results: res.reply.results, task_ids: res.reply.task_ids, fresh: true } : m)),
   }));
 }
 

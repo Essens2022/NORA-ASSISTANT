@@ -1246,8 +1246,9 @@ textarea.input {
   margin-top: 12px;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr;
-  grid-template-areas: 'label' 'title' 'when';
+  grid-template-columns: 44px 1fr;
+  grid-template-areas: 'ring label' 'ring title' 'ring when';
+  column-gap: 12px;
   gap: 2px 12px;
   align-items: baseline;
   text-align: left;
@@ -1489,7 +1490,7 @@ textarea.input {
   color: var(--violet);
 }
 .conversation {
-  max-height: 34dvh;
+  max-height: 28dvh;
   padding: 12px 0;
 }
 .bubble.user {
@@ -1508,4 +1509,191 @@ textarea.input {
 .composer-send {
   background: var(--violet);
   color: #fff;
+}
+
+/* ---------- living layer: GPU organism, aurora, motion ---------- */
+.aurora-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0;
+  animation: appear 1.2s ease-out 0.1s forwards;
+}
+.aurora-canvas.aurora-css {
+  background:
+    radial-gradient(60% 45% at 15% 0%, color-mix(in srgb, var(--violet) 22%, transparent), transparent 70%),
+    radial-gradient(50% 40% at 90% 10%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%);
+}
+.app {
+  position: relative;
+  isolation: isolate;
+}
+.ai-screen .aurora {
+  display: none;
+}
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+.orb {
+  width: 124px;
+  height: 124px;
+  overflow: visible;
+}
+.organism {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 230px;
+  height: 230px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.organism-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.organism.fallback .orb-core {
+  inset: 50px;
+  animation: breathe 4.5s ease-in-out infinite;
+}
+.orb-icon {
+  z-index: 1;
+  opacity: 0.92;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.voice-processing .orb-icon {
+  opacity: 0;
+}
+.voice-listening .orb-icon {
+  transform: scale(0.9);
+}
+.voice {
+  margin: 20px 0 14px;
+}
+.voice-state {
+  margin-top: 24px;
+  letter-spacing: 0.01em;
+}
+
+/* NORA's words form one after another */
+.bubble.fresh .word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(4px);
+  animation: word-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes word-in {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+/* countdown ring on "next" */
+.countdown {
+  grid-area: ring;
+  width: 44px;
+  height: 44px;
+  align-self: center;
+  transform: rotate(-90deg);
+}
+.cd-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 4;
+}
+.cd-fill {
+  fill: none;
+  stroke: var(--violet);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease;
+}
+.cd-core {
+  fill: var(--gold);
+  animation: breathe 2.4s ease-in-out infinite;
+  transform-origin: 22px 22px;
+}
+
+/* staggered entrance – the screen assembles itself */
+.briefing,
+.brief-next,
+.timeline,
+.brief-attention,
+.conversation,
+.voice,
+.composer {
+  animation: rise-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.brief-next {
+  animation-delay: 0.08s;
+}
+.timeline {
+  animation-delay: 0.14s;
+}
+.brief-attention {
+  animation-delay: 0.2s;
+}
+.conversation {
+  animation-delay: 0.12s;
+}
+.voice {
+  animation-delay: 0.18s;
+}
+.composer {
+  animation-delay: 0.24s;
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+.tl-dot.next {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  50% {
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--gold) 10%, transparent);
+  }
+}
+.briefing {
+  background: color-mix(in srgb, var(--glass) 88%, transparent);
+}
+
+/* compact home so the composer is always visible */
+.briefing {
+  padding: 14px 14px 10px;
+}
+.brief-summary {
+  font-size: 1.375rem;
+}
+.brief-next {
+  margin-top: 10px;
+  padding: 8px 12px;
+}
+.timeline {
+  margin-top: 10px;
+}
+.brief-attention {
+  margin-top: 8px;
+  padding-top: 6px;
+}
+.ai-screen .conversation {
+  max-height: 22dvh;
+  min-height: 90px;
+}
+.voice {
+  margin: 12px 0 10px;
+}
+.voice-state {
+  margin-top: 22px;
 }

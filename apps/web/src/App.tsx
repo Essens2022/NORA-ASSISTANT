@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { ComponentType } from 'preact';
 import { Nav, Toasts } from './components/Nav.tsx';
+import { Aurora } from './components/Aurora.tsx';
 import { AIScreen } from './features/ai/AIScreen.tsx';
 import { ActivityScreen } from './features/activity/ActivityScreen.tsx';
 import { SignIn } from './features/auth/SignIn.tsx';
@@ -37,6 +38,7 @@ export function App() {
 
   return (
     <div class="app">
+      <Aurora />
       <a class="skip" href="#main">
         {tr('nav.ai')}
       </a>
