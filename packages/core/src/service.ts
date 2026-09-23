@@ -225,7 +225,7 @@ export class TaskService {
     if (this.prefs.followups) {
       add.push({ kind: 'followup', fire_at: new Date(until.getTime() + 60 * 60000).toISOString(), sound: this.prefs.sound === 'silent' ? 'silent' : 'normal' });
     }
-    await this.store.replaceReminders(task.id, add, ['main', 'departure', 'snooze', 'followup']);
+    await this.store.replaceReminders(task.id, add, ['main', 'departure', 'snooze', 'followup', 'nudge']);
     const saved = ['reminded', 'missed'].includes(task.status) ? await this.store.patchTask(task.id, { status: 'acknowledged' }) : task;
     await this.store.logEvent(task.id, 'snoozed', { until: until.toISOString() });
     return saved;
@@ -242,7 +242,7 @@ export class TaskService {
     }
     const retryAt = new Date(this.now().getTime() + followupRetryMinutes(count - 1) * 60000);
     const saved = await this.store.patchTask(task.id, { followup_count: count, status: 'acknowledged' });
-    await this.store.replaceReminders(task.id, [{ kind: 'followup', fire_at: retryAt.toISOString(), sound: this.prefs.sound }], ['followup', 'snooze']);
+    await this.store.replaceReminders(task.id, [{ kind: 'followup', fire_at: retryAt.toISOString(), sound: this.prefs.sound }], ['followup', 'snooze', 'nudge']);
     await this.store.logEvent(task.id, 'snoozed', { until: retryAt.toISOString(), reason: 'followup_not_yet' });
     return { task: saved, retryAt };
   }

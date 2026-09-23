@@ -13,6 +13,7 @@ import {
   EMPTY_STATE,
   isOpen,
   nextOccurrence,
+  nudgePlan,
   TaskService,
   toZoned,
   type ConversationState,
@@ -76,9 +77,15 @@ async function sendDue(): Promise<{ claimed: number; sent: number; skipped: numb
         skipped++;
         continue;
       }
+      // A nudge only makes sense if the user still hasn't reacted to the reminder.
+      if (r.kind === 'nudge' && task.status !== 'reminded') {
+        await admin.from('reminders').update({ status: 'cancelled', last_error: 'already_acknowledged' }).eq('id', r.id);
+        skipped++;
+        continue;
+      }
       const lang = (profile.conv_lang ?? profile.ui_lang) as Lang;
       const today = toZoned(new Date(), profile.timezone).date;
-      const payload = buildNotification(r, task, lang, profile.prefs, today);
+      const payload = buildNotification(r, task, lang, profile.prefs, today, { name: profile.display_name });
 
       const delivery = vapid ? await pushToUser(admin, r.user_id, payload, vapid) : { sent: 0, devices: 0 };
       if (r.kind === 'followup') await askInConversation(r.user_id, task.id, payload.chat ?? payload.title);
@@ -90,8 +97,11 @@ async function sendDue(): Promise<{ claimed: number; sent: number; skipped: numb
       if (delivery.sent > 0) sent++;
       else failed++;
 
-      if (r.kind !== 'prep' && r.kind !== 'followup' && canTransition(task.status, 'remind')) {
+      if (r.kind !== 'prep' && r.kind !== 'followup' && r.kind !== 'nudge' && canTransition(task.status, 'remind')) {
         await store.patchTask(task.id, { status: 'reminded' });
+        // no reaction → NORA calls again
+        const nudges = nudgePlan(r.kind, task.priority, profile.prefs, new Date());
+        if (nudges.length) await store.replaceReminders(task.id, nudges, ['nudge']);
       }
       await store.logEvent(task.id, r.kind === 'followup' ? 'followup_sent' : 'reminder_sent', { kind: r.kind, devices: delivery.devices, delivered: delivery.sent });
     } catch (err) {

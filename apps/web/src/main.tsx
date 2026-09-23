@@ -6,6 +6,9 @@ import { registerServiceWorker } from './services/push.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
 import { getState, setState, type Tab } from './state/store.ts';
 import { applyTheme } from './utils/theme.ts';
+import { playChime } from './utils/chime.ts';
+import { tr } from './i18n/index.ts';
+import { toast } from './state/store.ts';
 import './styles.css';
 
 applyTheme();
@@ -49,7 +52,17 @@ document.addEventListener('visibilitychange', () => {
 
 // Messages from the service worker (notification buttons while the app is open)
 navigator.serviceWorker?.addEventListener('message', (e) => {
-  const d = e.data as { type?: string; action?: string; task_id?: string };
+  const d = e.data as { type?: string; action?: string; task_id?: string; title?: string; body?: string; sound?: string };
+  if (d?.type === 'reminder') {
+    // NORA is open: play her chime and show the reminder right here as well
+    if (d.sound !== 'silent' && !document.hidden) playChime(d.sound === 'important' ? 'important' : 'normal');
+    if (d.task_id) {
+      const id = d.task_id;
+      toast(`${d.title ?? ''}${d.body ? ` – ${d.body}` : ''}`, { label: tr('common.done'), run: () => void completeTask(id, false) }, 9000);
+    }
+    void refreshTasks();
+    return;
+  }
   if (d?.type !== 'notification' || !d.task_id) return;
   if (d.action === 'open') setState({ openTaskId: d.task_id, tab: 'activity' });
   else if (d.action === 'done') void completeTask(d.task_id, false);

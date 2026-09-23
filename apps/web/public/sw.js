@@ -62,19 +62,26 @@ self.addEventListener('push', (event) => {
   }
   const important = data.sound === 'important';
   event.waitUntil(
-    self.registration.showNotification(data.title || 'NORA', {
+    (async () => {
+    // If NORA is open, let the app play its own chime and show the reminder inline too.
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    clients.forEach((c) => c.postMessage({ type: 'reminder', title: data.title, body: data.body, task_id: data.task_id, kind: data.kind, sound: data.sound }));
+    await self.registration.showNotification(data.title || 'NORA', {
       body: data.body || '',
       tag: data.tag || undefined,
       renotify: true,
       silent: data.sound === 'silent',
-      requireInteraction: important || data.kind === 'departure',
+      // stays on screen until the user reacts – NORA doesn't let it slip by
+      requireInteraction: !!data.sticky || important,
       icon: '/icon-192.png',
       badge: '/badge.png',
       lang: data.lang,
-      vibrate: important ? [200, 100, 200, 100, 300] : [150, 80, 150],
+      // NORA's signature: two short taps and a longer one ("ta-ta-taaa")
+      vibrate: data.sound === 'silent' ? [] : important ? [120, 70, 120, 70, 420, 250, 120, 70, 120, 70, 420] : [120, 70, 120, 70, 380],
       data: { token: data.token, task_id: data.task_id, kind: data.kind },
       actions: (data.actions || []).slice(0, 2).map((a) => ({ action: a.action, title: a.title })),
-    }),
+    });
+    })(),
   );
 });
 

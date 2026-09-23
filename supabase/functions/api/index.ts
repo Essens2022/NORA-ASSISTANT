@@ -238,7 +238,13 @@ async function taskAction(ctx: Ctx, id: string, action: string) {
 }
 
 async function taskDetail(ctx: Ctx, id: string) {
-  const task = await loadTask(ctx, id);
+  let task = await loadTask(ctx, id);
+  if (task.status === 'reminded') {
+    // the user looked at it: stop calling again
+    task = await ctx.store.patchTask(id, { status: 'acknowledged' });
+    await ctx.store.replaceReminders(id, [], ['nudge']);
+    await ctx.store.logEvent(id, 'acknowledged');
+  }
   const [{ data: reminders }, { data: events }] = await Promise.all([
     ctx.db.from('reminders').select('id, kind, fire_at, status, sent_at').eq('task_id', id).in('status', ['pending', 'sent']).order('fire_at'),
     ctx.db.from('task_events').select('type, data, created_at').eq('task_id', id).order('created_at', { ascending: false }).limit(30),
@@ -393,6 +399,7 @@ async function notifyAction(req: Request, rid: string) {
     }
     case 'open':
       if (task.status === 'reminded') await store.patchTask(task.id, { status: 'acknowledged' });
+      await store.replaceReminders(task.id, [], ['nudge']);
       await store.logEvent(task.id, 'opened');
       break;
     default:

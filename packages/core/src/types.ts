@@ -74,7 +74,7 @@ export interface Task {
   metadata: Record<string, unknown>;
 }
 
-export type ReminderKind = 'prep' | 'departure' | 'main' | 'followup' | 'snooze';
+export type ReminderKind = 'prep' | 'departure' | 'main' | 'followup' | 'snooze' | 'nudge';
 export type ReminderStatus = 'pending' | 'sent' | 'cancelled' | 'failed';
 
 export interface Reminder {

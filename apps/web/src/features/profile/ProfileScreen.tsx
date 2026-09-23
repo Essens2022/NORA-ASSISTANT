@@ -10,6 +10,7 @@ import { saveVoice, savedVoice, tts } from '../../services/voice/tts.ts';
 import { updateProfile } from '../../state/actions.ts';
 import { toast, useStore } from '../../state/store.ts';
 import { applyTheme, currentTheme, type Theme } from '../../utils/theme.ts';
+import { playChime } from '../../utils/chime.ts';
 
 const LOCALES = ['en-US', 'en-GB', 'ro-RO', 'it-IT', 'ru-RU', 'de-DE', 'fr-FR', 'es-ES', 'pt-PT', 'pl-PL', 'uk-UA'];
 
@@ -90,8 +91,14 @@ export function ProfileScreen() {
             { value: 'normal', label: tr('prof.sound_normal') },
             { value: 'important', label: tr('prof.sound_important') },
           ]}
-          onChange={(v) => void setPref('sound', v)}
+          onChange={(v) => {
+            void setPref('sound', v);
+            if (v !== 'silent') playChime(v === 'important' ? 'important' : 'normal');
+          }}
         />
+        <Button small icon="speaker" onClick={() => playChime(p.sound === 'important' ? 'important' : 'normal')} disabled={p.sound === 'silent'}>
+          {tr('prof.sound_preview')}
+        </Button>
       </Section>
 
       <Section title={tr('prof.reminders')} id="reminders">
