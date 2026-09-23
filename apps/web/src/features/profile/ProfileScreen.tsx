@@ -8,7 +8,7 @@ import { signOut } from '../../services/auth.ts';
 import { disablePushOnThisDevice, enablePush, pushStatus, type PushStatus } from '../../services/push.ts';
 import { saveVoice, savedVoice, tts } from '../../services/voice/tts.ts';
 import { updateProfile } from '../../state/actions.ts';
-import { toast, useStore } from '../../state/store.ts';
+import { toast, useStore, toastError } from '../../state/store.ts';
 import { applyTheme, currentTheme, type Theme } from '../../utils/theme.ts';
 import { playChime } from '../../utils/chime.ts';
 
@@ -257,7 +257,7 @@ function PushControl() {
               try {
                 setStatus(await enablePush(lang));
               } catch {
-                toast(tr('common.error'));
+                toastError(tr('common.error'));
               }
               setBusy(false);
             }}
@@ -284,7 +284,7 @@ function PushControl() {
               const r = await api<{ sent: number }>('/v1/push/test', { method: 'POST' });
               toast(r.sent ? tr('prof.notif_test_sent') : tr('prof.notif_test_none'));
             } catch {
-              toast(tr('common.error'));
+              toastError(tr('common.error'));
             }
           }}
         >
@@ -302,7 +302,7 @@ function MemoryList() {
   const [confirmAll, setConfirmAll] = useState(false);
   const load = () =>
     api<{ items: MemoryItem[] }>('/v1/memory')
-      .then((r) => setItems(r.items))
+      .then((r) => setItems(Array.isArray(r.items) ? r.items : []))
       .catch(() => setItems([]));
   useEffect(() => void load(), []);
 
@@ -325,7 +325,7 @@ function MemoryList() {
                       setEditing(null);
                       void load();
                     } catch {
-                      toast(tr('err.save_failed'));
+                      toastError(tr('err.save_failed'));
                     }
                   }}
                 >
@@ -359,7 +359,7 @@ function MemoryList() {
                       class="icon-btn"
                       aria-label={`${tr('common.delete')}: ${m.value}`}
                       onClick={async () => {
-                        await api(`/v1/memory/${m.id}`, { method: 'DELETE' }).catch(() => toast(tr('err.save_failed')));
+                        await api(`/v1/memory/${m.id}`, { method: 'DELETE' }).catch(() => toastError(tr('err.save_failed')));
                         void load();
                       }}
                     >
@@ -387,7 +387,7 @@ function MemoryList() {
         onCancel={() => setConfirmAll(false)}
         onConfirm={async () => {
           setConfirmAll(false);
-          await api('/v1/memory', { method: 'DELETE' }).catch(() => toast(tr('err.save_failed')));
+          await api('/v1/memory', { method: 'DELETE' }).catch(() => toastError(tr('err.save_failed')));
           void load();
         }}
       />
@@ -434,7 +434,7 @@ function PrivacyControls() {
             a.click();
             setTimeout(() => URL.revokeObjectURL(url), 5000);
           } catch {
-            toast(tr('common.error'));
+            toastError(tr('common.error'));
           }
           setBusy(false);
         }}
@@ -466,7 +466,7 @@ function PrivacyControls() {
             }
             await signOut();
           } catch {
-            toast(tr('common.error'));
+            toastError(tr('common.error'));
           }
         }}
       >

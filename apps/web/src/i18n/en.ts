@@ -83,6 +83,8 @@ export const en = {
   'act.inbox': 'No date',
   'act.completed': 'Completed',
   'act.empty': 'Nothing urgent. Tell NORA what you want to remember.',
+  'act.empty_title': 'Nothing urgent',
+  'act.empty_hint': 'Tell NORA what you don\'t want to forget.',
   'act.show_completed': 'Show completed',
   'act.hide_completed': 'Hide completed',
   'act.missing_time': 'Missing time',

@@ -4,7 +4,7 @@ import { TaskCard } from '../../components/TaskCard.tsx';
 import { Button, EmptyState } from '../../components/ui.tsx';
 import { tr, type MessageKey } from '../../i18n/index.ts';
 import { loadCompleted } from '../../state/actions.ts';
-import { setState, toast, useStore } from '../../state/store.ts';
+import { setState, toast, useStore, toastError } from '../../state/store.ts';
 import { todayLocal } from '../../utils/time.ts';
 import { NewTaskSheet } from '../task/TaskDetail.tsx';
 
@@ -39,7 +39,7 @@ export function ActivityScreen() {
       try {
         await loadCompleted();
       } catch {
-        toast(tr('err.network'));
+        toastError(tr('err.network'));
       }
       setLoadingDone(false);
     }
@@ -63,11 +63,19 @@ export function ActivityScreen() {
       </header>
 
       {bootstrapped && openCount === 0 && (
-        <EmptyState text={tr('act.empty')}>
+        <EmptyState title={tr('act.empty_title')} text={tr('act.empty_hint')}>
           <Button variant="primary" icon="mic" onClick={() => setState({ tab: 'ai' })}>
             {tr('ai.mic')}
           </Button>
         </EmptyState>
+      )}
+
+      {!bootstrapped && openCount === 0 && (
+        <div class="skeleton-list" aria-busy="true" aria-label="…">
+          <div class="skeleton skeleton-row" />
+          <div class="skeleton skeleton-row" />
+          <div class="skeleton skeleton-row" />
+        </div>
       )}
 
       {sections.map(([key, label, showDate]) =>

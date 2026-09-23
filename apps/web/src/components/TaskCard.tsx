@@ -34,7 +34,7 @@ export function TaskCard({ task, today, showDate = false }: { task: Task; today:
               {task.recurrence && <Icon name="repeat" size={13} />}
               {meta.join(' · ')}
               {flag && (
-                <span class="flag">
+                <span class={`flag${task.status === 'missed' ? ' missed' : ''}`}>
                   <Icon name="alert" size={13} /> {flag}
                 </span>
               )}

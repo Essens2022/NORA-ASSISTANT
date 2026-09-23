@@ -211,10 +211,13 @@ export function Confirm(props: { open: boolean; title: string; body?: string; co
   );
 }
 
-export function EmptyState({ text, children }: { text: string; children?: ComponentChildren }) {
+export function EmptyState({ title, text, icon = 'check', children }: { title?: string; text: string; icon?: IconName; children?: ComponentChildren }) {
   return (
     <div class="empty">
-      <div class="empty-mark" aria-hidden="true" />
+      <div class="empty-mark" aria-hidden="true">
+        <Icon name={icon} size={22} />
+      </div>
+      {title && <p class="empty-title">{title}</p>}
       <p>{text}</p>
       {children}
     </div>

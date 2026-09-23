@@ -7,7 +7,7 @@ import { auth } from '../services/auth.ts';
 import { syncSubscription } from '../services/push.ts';
 import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.ts';
 import { savedVoice, tts } from '../services/voice/tts.ts';
-import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem } from './store.ts';
+import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 
 // ----------------------------------------------------------------------------
 // Session & bootstrap
@@ -205,7 +205,7 @@ async function listen(followUp = false): Promise<'denied' | 'unsupported' | 'bus
   recorder = null;
   if (!result) {
     setState({ voice: 'idle' });
-    if (reason === 'no_speech' && !followUp) toast(tr('ai.nothing_heard'));
+    if (reason === 'no_speech' && !followUp) toastInfo(tr('ai.nothing_heard'));
     return null;
   }
   setState({ voice: 'processing' });
@@ -222,7 +222,7 @@ async function listen(followUp = false): Promise<'denied' | 'unsupported' | 'bus
     const res = await api<{ heard: boolean; transcript?: string; reply_text?: string; reply?: AssistantReply; conversation_id?: string; tasks?: Task[] }>('/v1/voice', { form, timeoutMs: 40_000, requestId });
     if (!res.heard || !res.reply) {
       setState((st) => ({ voice: 'idle', messages: st.messages.filter((m) => m.id !== pendingId) }));
-      toast(tr('ai.nothing_heard'));
+      toastInfo(tr('ai.nothing_heard'));
       return null;
     }
     setState((st) => {
@@ -260,10 +260,10 @@ async function taskOp(id: string, op: 'complete' | 'cancel' | 'reopen', optimist
   try {
     const res = await sendOrQueue<{ task: Task }>(`/v1/tasks/${id}/${op}`, 'POST');
     if (res?.task) upsertTasks([res.task]);
-    else if (res === null) toast(tr('common.offline'));
+    else if (res === null) toastInfo(tr('common.offline'));
   } catch {
     upsertTasks([before]);
-    toast(tr('err.save_failed'));
+    toastError(tr('err.save_failed'));
   }
 }
 
@@ -282,7 +282,7 @@ export async function snoozeTask(id: string, preset: string | number) {
     if (res?.task) upsertTasks([res.task]);
     return res?.until ?? null;
   } catch {
-    toast(tr('err.save_failed'));
+    toastError(tr('err.save_failed'));
     return null;
   }
 }
@@ -295,7 +295,7 @@ export async function updateTask(id: string, changes: Record<string, unknown>): 
     return true;
   } catch {
     if (before) upsertTasks([before]);
-    toast(tr('err.save_failed'));
+    toastError(tr('err.save_failed'));
     return false;
   }
 }
@@ -308,7 +308,7 @@ export async function deleteTask(id: string) {
     await sendOrQueue(`/v1/tasks/${id}`, 'DELETE');
   } catch {
     if (before) upsertTasks([before]);
-    toast(tr('err.save_failed'));
+    toastError(tr('err.save_failed'));
   }
 }
 
@@ -318,7 +318,7 @@ export async function createTask(fields: Record<string, unknown>): Promise<Task 
     upsertTasks([res.task]);
     return res.task;
   } catch {
-    toast(tr('err.save_failed'));
+    toastError(tr('err.save_failed'));
     return null;
   }
 }
@@ -342,7 +342,7 @@ export async function updateProfile(patch: Partial<Omit<Profile, 'prefs' | 'id'>
   } catch {
     setState({ profile: before });
     await applyProfile(before);
-    toast(tr('err.save_failed'));
+    toastError(tr('err.save_failed'));
     return false;
   }
 }

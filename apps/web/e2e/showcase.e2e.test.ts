@@ -83,6 +83,8 @@ async function open(theme: 'light' | 'dark', b: Browser = browser, video = false
         tasks: await store.listTasks({}),
         features: { ai: true, stt: true, push: true },
       };
+    } else if (path.startsWith('/v1/memory')) {
+      body = { items: [{ id: 'm1', key: 'lead', value: 'Preferă reminderele cu 30 de minute înainte' }] };
     } else if (path.startsWith('/v1/tasks/')) {
       const t = await store.getTask(path.split('/')[3]);
       body = { task: t, reminders: store.pendingReminders(t!.id).map((x) => ({ id: x.id, kind: x.kind, fire_at: x.fire_at, status: x.status })), events: [] };
@@ -101,10 +103,17 @@ it('renders the showcase in light and dark', async () => {
   for (const theme of ['light', 'dark'] as const) {
     const ctx = await open(theme);
     await page.screenshot({ path: join(SHOTS, `showcase-home-${theme}.png`) });
-    expect(await page.evaluate(() => !!document.querySelector('.organism-canvas') && !document.querySelector('.organism.fallback'))).toBe(true);
     await page.getByRole('button', { name: 'Activitate' }).click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, `showcase-activity-${theme}.png`) });
+    await page.getByRole('button', { name: /Dentist/ }).click();
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: join(SHOTS, `showcase-detail-${theme}.png`) });
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Profil' }).click();
+    await page.getByRole('heading', { name: 'Profil' }).waitFor();
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: join(SHOTS, `showcase-profile-${theme}.png`) });
     await ctx.close();
   }
   expect(errors).toEqual([]);

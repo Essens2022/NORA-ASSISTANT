@@ -50,7 +50,10 @@ export function Toasts() {
   return (
     <div class="toasts" role="status" aria-live="polite">
       {toasts.map((t) => (
-        <div class="toast" key={t.id}>
+        <div class={`toast ${t.kind}`} key={t.id}>
+          <span class="toast-icon" aria-hidden="true">
+            <Icon name={t.kind === 'error' ? 'alert' : t.kind === 'info' ? 'bell' : 'check'} size={18} />
+          </span>
           <span>{t.text}</span>
           {t.action && (
             <button type="button" class="toast-action" onClick={t.action.run}>

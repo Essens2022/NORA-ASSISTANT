@@ -85,6 +85,8 @@ export const ru: Record<MessageKey, string> = {
   'act.inbox': 'Без даты',
   'act.completed': 'Выполнено',
   'act.empty': 'Ничего срочного. Скажи NORA, что не хочешь забыть.',
+  'act.empty_title': 'Ничего срочного',
+  'act.empty_hint': 'Скажи NORA, что не хочешь забыть.',
   'act.show_completed': 'Показать выполненные',
   'act.hide_completed': 'Скрыть выполненные',
   'act.missing_time': 'Нет времени',

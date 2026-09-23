@@ -7,7 +7,7 @@ import { brand } from '../../config/brand.ts';
 import { Briefing } from './Briefing.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
-import { setState, toast, useStore, type ChatItem } from '../../state/store.ts';
+import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
 import { nowLocal, todayLocal } from '../../utils/time.ts';
 
@@ -65,8 +65,8 @@ export function AIScreen() {
       }
     }
     const err = await toggleVoice();
-    if (err === 'denied') toast(tr('ai.mic_denied'), undefined, 6000);
-    else if (err) toast(tr('ai.mic_unsupported'), undefined, 6000);
+    if (err === 'denied') toastError(tr('ai.mic_denied'), 6000);
+    else if (err) toastInfo(tr('ai.mic_unsupported'), 6000);
   };
 
   const submit = async (e: Event) => {

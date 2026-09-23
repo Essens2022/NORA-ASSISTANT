@@ -85,6 +85,8 @@ export const it: Record<MessageKey, string> = {
   'act.inbox': 'Senza data',
   'act.completed': 'Completate',
   'act.empty': 'Niente di urgente. Di’ a NORA cosa non vuoi dimenticare.',
+  'act.empty_title': 'Niente di urgente',
+  'act.empty_hint': 'Di’ a NORA cosa non vuoi dimenticare.',
   'act.show_completed': 'Mostra completate',
   'act.hide_completed': 'Nascondi completate',
   'act.missing_time': 'Manca l’ora',

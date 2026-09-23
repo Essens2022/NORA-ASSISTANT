@@ -22,6 +22,7 @@ export interface ChatItem {
 export interface Toast {
   id: number;
   text: string;
+  kind: 'success' | 'error' | 'info';
   action?: { label: string; run: () => void };
 }
 
@@ -174,8 +175,11 @@ export function loadCachedTasks(userId: string): Task[] {
 }
 
 let toastSeq = 0;
-export function toast(text: string, action?: Toast['action'], ms = 3500) {
+export function toast(text: string, action?: Toast['action'], ms = 3000, kind: Toast['kind'] = 'success') {
   const id = ++toastSeq;
-  setState((s) => ({ toasts: [...s.toasts.slice(-2), { id, text, action }] }));
+  setState((s) => ({ toasts: [...s.toasts.slice(-2), { id, text, action, kind }] }));
   setTimeout(() => setState((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) })), ms);
 }
+
+export const toastError = (text: string, ms = 4000) => toast(text, undefined, ms, 'error');
+export const toastInfo = (text: string, ms = 3000) => toast(text, undefined, ms, 'info');

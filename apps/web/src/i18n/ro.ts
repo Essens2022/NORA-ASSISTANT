@@ -85,6 +85,8 @@ export const ro: Record<MessageKey, string> = {
   'act.inbox': 'Fără dată',
   'act.completed': 'Finalizate',
   'act.empty': 'Nu ai nimic urgent. Spune-i Norei ce vrei să nu uiți.',
+  'act.empty_title': 'Nu ai nimic urgent',
+  'act.empty_hint': 'Spune-i Norei ce vrei să nu uiți.',
   'act.show_completed': 'Arată finalizatele',
   'act.hide_completed': 'Ascunde finalizatele',
   'act.missing_time': 'Lipsește ora',
