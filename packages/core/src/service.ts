@@ -53,6 +53,14 @@ export class TaskService {
     return { start_at, status };
   }
 
+  /** Re-plan reminders after preference / timezone changes. */
+  async replan(task: Task): Promise<Task> {
+    const patch = this.derive(task);
+    const saved = patch.start_at !== task.start_at ? await this.store.patchTask(task.id, { start_at: patch.start_at }) : task;
+    await this.plan(saved);
+    return saved;
+  }
+
   private async plan(task: Task): Promise<void> {
     const planned = planReminders(task, this.prefs, this.now());
     await this.store.replaceReminders(task.id, planned);

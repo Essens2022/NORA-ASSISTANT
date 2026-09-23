@@ -1,0 +1,10 @@
+# Supabase CLI config for NORA (local dev: `supabase start`).
+project_id = "nora"
+
+[functions.api]
+# the function verifies the user's JWT itself (and serves a few public routes)
+verify_jwt = false
+
+[functions.dispatch]
+# called by pg_cron with x-cron-secret
+verify_jwt = false

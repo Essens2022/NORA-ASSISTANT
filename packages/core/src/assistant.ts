@@ -7,7 +7,7 @@
 // saved data. Queries are answered from the database, never from the model.
 
 import type { AIAction, AIPlan, AIProvider, AskField, ChatMessage } from './ai.ts';
-import { buildMessages, validatePlan } from './ai.ts';
+import { buildMessages, clarifiedFields, validatePlan } from './ai.ts';
 import { classifyReply, detectLang, parseDate, parseDuration, parseTime } from './parse.ts';
 import { departureTime, snoozeUntil } from './reminders.ts';
 import { describeRule, formatWhen, joinList, t, taskLine } from './replies.ts';
@@ -287,7 +287,7 @@ export class Assistant {
         case 'update_task': {
           const task = await resolve(action.ref);
           if (task === 'ambiguous' || !task) return this.done(c, t(c.lang, 'not_found'), c.touched);
-          const clarified = (Object.keys(action.changes) as string[]).flatMap((k) => (k === 'date' ? ['date'] : k === 'time' ? ['time'] : k === 'travel_min' ? ['travel'] : k === 'location' ? ['location'] : [])) as TaskField[];
+          const clarified = clarifiedFields(action.changes);
           const before = task;
           const saved = await c.svc.update(task, action.changes, clarified);
           c.touched.push(saved.id);

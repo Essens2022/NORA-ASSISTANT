@@ -10,3 +10,4 @@ export * from './service.ts';
 export * from './assistant.ts';
 export * from './stt.ts';
 export * from './memoryStore.ts';
+export * from './notify.ts';

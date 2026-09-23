@@ -93,6 +93,17 @@ function normTime(v: unknown): string | null | undefined {
   return isValidTime(s) ? s : undefined;
 }
 
+/** Which open questions a set of changes answers. */
+export function clarifiedFields(changes: AITaskFields): TaskField[] {
+  const out: TaskField[] = [];
+  if (changes.title) out.push('title');
+  if (changes.date) out.push('date');
+  if (changes.time || changes.time_window) out.push('time');
+  if (changes.travel_min) out.push('travel');
+  if (changes.location) out.push('location');
+  return out;
+}
+
 export function validateTaskFields(raw: unknown, errors: string[]): AITaskFields {
   const o = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const f: AITaskFields = {};
