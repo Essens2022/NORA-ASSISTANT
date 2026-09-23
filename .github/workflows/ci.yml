@@ -1,0 +1,26 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Unit & conversation tests (core, web push)
+        run: npm test
+      - name: Typecheck core + web
+        run: npm run typecheck
+      - name: Typecheck edge functions (Deno)
+        run: npm run functions:check
+      - name: Install Chromium for e2e
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end UI tests
+        run: CHROMIUM_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())") npm run test:e2e

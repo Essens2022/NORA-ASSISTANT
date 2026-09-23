@@ -7,3 +7,4 @@ dist
 supabase/.temp
 supabase/.branches
 supabase/functions/_shared/core
+apps/web/e2e-shots
