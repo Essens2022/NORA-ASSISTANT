@@ -1,9 +1,10 @@
-import { activityBucket, type Task } from '@nora/core';
+import type { Task } from '@nora/core';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Sheet } from '../../components/ui.tsx';
 import { VoiceButton } from '../../components/VoiceButton.tsx';
 import { brand } from '../../config/brand.ts';
+import { Briefing } from './Briefing.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
 import { setState, toast, useStore, type ChatItem } from '../../state/store.ts';
@@ -12,15 +13,6 @@ import { nowLocal, todayLocal } from '../../utils/time.ts';
 
 const DRAFT_KEY = 'nora.draft';
 const MIC_EXPLAINED = 'nora.mic_explained';
-
-function nextUp(tasks: Record<string, Task>, today: string): Task | null {
-  const nowIso = new Date().toISOString();
-  return (
-    Object.values(tasks)
-      .filter((t) => (activityBucket(t, today) === 'today' || activityBucket(t, today) === 'upcoming') && t.start_at && t.start_at >= nowIso)
-      .sort((a, b) => a.start_at!.localeCompare(b.start_at!))[0] ?? null
-  );
-}
 
 export function AIScreen() {
   const { messages, voice, level, tasks, profile, online, features } = useStore((s) => ({
@@ -42,7 +34,6 @@ export function AIScreen() {
   const [explainMic, setExplainMic] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const today = todayLocal();
-  const next = nextUp(tasks, today);
 
   useEffect(() => {
     try {
@@ -93,6 +84,7 @@ export function AIScreen() {
 
   return (
     <div class="screen ai-screen">
+      <div class="aurora" aria-hidden="true" />
       <header class="ai-head">
         <h1 class="brand">{brand.appName}</h1>
         <p class="greet">
@@ -101,16 +93,7 @@ export function AIScreen() {
         </p>
       </header>
 
-      {next && (
-        <button type="button" class="next-up" onClick={() => setState({ openTaskId: next.id })}>
-          <span class="next-label">{tr('ai.next_up')}</span>
-          <span class="next-title">{next.title}</span>
-          <span class="next-when">
-            {next.due_date !== today && next.due_date ? `${relativeDay(next.due_date, today)} ` : ''}
-            {next.due_time ? formatTime(next.due_time) : ''}
-          </span>
-        </button>
-      )}
+      <Briefing tasks={tasks} today={today} />
 
       <div class="conversation" ref={listRef} aria-live="polite" aria-relevant="additions">
         {messages.length === 0 ? (

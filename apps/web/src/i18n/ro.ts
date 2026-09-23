@@ -70,6 +70,13 @@ export const ro: Record<MessageKey, string> = {
   'ai.empty': 'Ce vrei să țin minte pentru tine?',
   'ai.examples': 'Mâine la 9 trebuie să sun contabilul|Marți la 10 am dentist|Cumpără lapte',
   'ai.cancelled_turn': 'Anulat',
+  'ai.briefing': 'Ziua ta',
+  'ai.brief_free': 'Ziua ta e liberă.',
+  'ai.brief.one': 'Azi ai un singur lucru.',
+  'ai.brief.few': 'Azi ai {n} lucruri.',
+  'ai.brief.many': 'Azi ai {n} de lucruri.',
+  'ai.brief.other': 'Azi ai {n} de lucruri.',
+  'ai.needs_you': 'Așteaptă răspunsul tău',
 
   'act.title': 'Activitate',
   'act.today': 'Azi',

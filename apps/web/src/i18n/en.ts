@@ -68,6 +68,13 @@ export const en = {
   'ai.empty': 'What should I remember for you?',
   'ai.examples': "Tomorrow at 9 I need to call the accountant|Dentist on Tuesday at 10|Buy milk",
   'ai.cancelled_turn': 'Cancelled',
+  'ai.briefing': 'Your day',
+  'ai.brief_free': 'Your day is clear.',
+  'ai.brief.one': 'One thing today.',
+  'ai.brief.few': '{n} things today.',
+  'ai.brief.many': '{n} things today.',
+  'ai.brief.other': '{n} things today.',
+  'ai.needs_you': 'Waiting for you',
 
   'act.title': 'Activity',
   'act.today': 'Today',

@@ -70,6 +70,13 @@ export const it: Record<MessageKey, string> = {
   'ai.empty': 'Cosa vuoi che ricordi per te?',
   'ai.examples': 'Domani alle 9 devo chiamare il commercialista|Dentista martedì alle 10|Comprare il latte',
   'ai.cancelled_turn': 'Annullato',
+  'ai.briefing': 'La tua giornata',
+  'ai.brief_free': 'La giornata è libera.',
+  'ai.brief.one': 'Oggi hai una sola cosa.',
+  'ai.brief.few': 'Oggi hai {n} cose.',
+  'ai.brief.many': 'Oggi hai {n} cose.',
+  'ai.brief.other': 'Oggi hai {n} cose.',
+  'ai.needs_you': 'Aspetta una tua risposta',
 
   'act.title': 'Attività',
   'act.today': 'Oggi',

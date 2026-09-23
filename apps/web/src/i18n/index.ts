@@ -55,6 +55,23 @@ export function tr(key: MessageKey, vars: Record<string, string | number> = {}):
   return s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 }
 
+/** Plural-aware message: looks up `${base}.one|few|many|other` with Intl.PluralRules. */
+export function tp(base: string, n: number, vars: Record<string, string | number> = {}): string {
+  const cat = new Intl.PluralRules(current).select(n);
+  const key = (`${base}.${cat}` in dict ? `${base}.${cat}` : `${base}.other`) as MessageKey;
+  return tr(key, { n, ...vars });
+}
+
+/** "in 2 hours" / "peste 2 ore" / "tra 2 ore" / "через 2 часа". */
+export function relativeFromNow(iso: string): string {
+  const mins = Math.round((Date.parse(iso) - Date.now()) / 60000);
+  const rtf = new Intl.RelativeTimeFormat(current, { numeric: 'auto' });
+  if (Math.abs(mins) < 60) return rtf.format(mins, 'minute');
+  const hours = Math.round(mins / 60);
+  if (Math.abs(hours) < 24) return rtf.format(hours, 'hour');
+  return rtf.format(Math.round(hours / 24), 'day');
+}
+
 const dateFmt = new Map<string, Intl.DateTimeFormat>();
 function fmt(opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   const key = `${locale}|${hour12}|${JSON.stringify(opts)}`;

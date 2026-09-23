@@ -70,6 +70,13 @@ export const ru: Record<MessageKey, string> = {
   'ai.empty': 'Что мне запомнить для тебя?',
   'ai.examples': 'Завтра в 9 позвонить бухгалтеру|Во вторник в 10 к стоматологу|Купить молоко',
   'ai.cancelled_turn': 'Отменено',
+  'ai.briefing': 'Твой день',
+  'ai.brief_free': 'День свободен.',
+  'ai.brief.one': 'Сегодня {n} дело.',
+  'ai.brief.few': 'Сегодня {n} дела.',
+  'ai.brief.many': 'Сегодня {n} дел.',
+  'ai.brief.other': 'Сегодня {n} дела.',
+  'ai.needs_you': 'Ждёт твоего ответа',
 
   'act.title': 'Дела',
   'act.today': 'Сегодня',
