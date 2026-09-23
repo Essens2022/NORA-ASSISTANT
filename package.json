@@ -1,0 +1,16 @@
+{
+  "name": "nora",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p packages/core && tsc -p apps/web --noEmit",
+    "dev": "npm -w apps/web run dev",
+    "build": "npm -w apps/web run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
