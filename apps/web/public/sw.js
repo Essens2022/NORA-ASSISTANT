@@ -1,5 +1,5 @@
 /* NORA service worker: app-shell caching + push notifications with actions. */
-const VERSION = 'nora-v1';
+const VERSION = 'nora-v2';
 const params = new URL(self.location.href).searchParams;
 const API = params.get('api') || '';
 const ANON = params.get('key') || '';
@@ -115,14 +115,15 @@ async function focusApp(url, message) {
 
 self.addEventListener('notificationclick', (event) => {
   const n = event.notification;
-  const { token, task_id } = n.data || {};
+  const { token, task_id, kind } = n.data || {};
   n.close();
   const action = event.action || 'open';
   event.waitUntil(
     (async () => {
       if (action === 'open') {
         await act(token, 'open');
-        await focusApp(`${BASE}?task=${encodeURIComponent(task_id || '')}`, { type: 'notification', action: 'open', task_id });
+        const alert = ['main', 'departure', 'snooze', 'nudge'].includes(kind) ? '&alert=1' : '';
+        await focusApp(`${BASE}?task=${encodeURIComponent(task_id || '')}${alert}`, { type: 'notification', action: 'open', task_id, kind });
         return;
       }
       const ok = await act(token, action);

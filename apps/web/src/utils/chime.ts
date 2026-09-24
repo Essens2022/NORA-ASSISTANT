@@ -43,3 +43,14 @@ export function playChime(level: 'normal' | 'important' = 'normal') {
     /* audio not available – the visual reminder still shows */
   }
 }
+
+/** Resume Web Audio inside a user gesture (iOS starts it suspended). */
+export function unlockAudio() {
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    ctx ??= new Ctx();
+    if (ctx.state === 'suspended') void ctx.resume();
+  } catch {
+    /* no audio */
+  }
+}

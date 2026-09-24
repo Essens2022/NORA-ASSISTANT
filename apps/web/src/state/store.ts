@@ -48,6 +48,8 @@ export interface AppState {
   replyLang: Lang | null;
   /** OAuth hand-off screen shown in the in-app browser (see services/auth.ts) */
   handoff: 'working' | 'handed' | 'failed' | null;
+  /** task shown in the full-screen reminder moment */
+  alertTaskId: string | null;
 }
 
 const initial: AppState = {
@@ -71,6 +73,7 @@ const initial: AppState = {
   features: { ai: true, stt: true, push: true },
   replyLang: null,
   handoff: null,
+  alertTaskId: null,
 };
 
 let state: AppState = initial;

@@ -6,6 +6,7 @@ import { ActivityScreen } from './features/activity/ActivityScreen.tsx';
 import { SignIn } from './features/auth/SignIn.tsx';
 import { Onboarding } from './features/onboarding/Onboarding.tsx';
 import { TaskDetailHost } from './features/task/TaskDetail.tsx';
+import { ReminderAlert } from './features/alert/ReminderAlert.tsx';
 import { tr } from './i18n/index.ts';
 import { useStore } from './state/store.ts';
 
@@ -54,6 +55,7 @@ export function App() {
       </main>
       <Nav />
       <TaskDetailHost />
+      <ReminderAlert />
       <Toasts />
     </div>
   );

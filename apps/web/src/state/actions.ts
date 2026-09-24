@@ -6,7 +6,7 @@ import { api, ApiError, flushQueue, newRequestId, sendOrQueue, track } from '../
 import { auth } from '../services/auth.ts';
 import { syncSubscription } from '../services/push.ts';
 import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.ts';
-import { savedVoice, tts } from '../services/voice/tts.ts';
+import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
 import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 
 // ----------------------------------------------------------------------------
@@ -177,6 +177,7 @@ export async function speak(text: string, lang: Lang) {
 }
 
 export async function toggleVoice(): Promise<'denied' | 'unsupported' | 'busy' | null> {
+  primeSpeech(); // still inside the tap: lets the reply be spoken later on iOS
   const s = getState();
   if (s.voice === 'listening') {
     recorder?.stop('manual');

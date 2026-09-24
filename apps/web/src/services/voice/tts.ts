@@ -46,7 +46,11 @@ export class BrowserTTS implements TTSProvider {
   async speak(text: string, lang: Lang, opts: { voiceURI?: string | null; signal?: AbortSignal } = {}) {
     if (!this.available() || !text.trim()) return;
     const synth = window.speechSynthesis;
-    synth.cancel();
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+      await new Promise((r) => setTimeout(r, 80)); // Safari drops an utterance queued right after cancel()
+    }
+    synth.resume(); // Safari can be left paused after the page was in the background
     const list = await loadVoices();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = BCP47[lang];
@@ -75,6 +79,23 @@ export class BrowserTTS implements TTSProvider {
 }
 
 export const tts: TTSProvider = new BrowserTTS();
+
+let primed = false;
+/**
+ * iOS only lets a page speak after it has spoken once inside a user gesture; NORA's
+ * replies arrive seconds after the tap, so speak a silent utterance on the first touch.
+ */
+export function primeSpeech() {
+  if (primed || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  primed = true;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+  } catch {
+    primed = false;
+  }
+}
 
 export const VOICE_KEY = 'nora.voice';
 export function savedVoice(lang: Lang): string | null {
