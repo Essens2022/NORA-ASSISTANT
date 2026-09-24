@@ -150,6 +150,12 @@ export function Section({ title, children, id }: { title: string; children: Comp
 }
 
 /** Bottom sheet dialog: focus moves in, Escape / backdrop closes, focus returns. */
+// A Confirm nested inside a task sheet is a second Sheet stacked on the first.
+// Without this, both instances' own document-level keydown listener fire on one
+// Escape (closing both at once) and the inner one closing removes 'no-scroll'
+// while the outer sheet is still open. Only the topmost sheet may act.
+let sheetStack: Array<() => void> = [];
+
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ComponentChildren }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -157,7 +163,10 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
     const prev = document.activeElement as HTMLElement | null;
     const el = ref.current;
     el?.querySelector<HTMLElement>('button, input, select, textarea, [tabindex]')?.focus();
+    sheetStack.push(onClose);
+    const isTop = () => sheetStack[sheetStack.length - 1] === onClose;
     const onKey = (e: KeyboardEvent) => {
+      if (!isTop()) return;
       if (e.key === 'Escape') onClose();
       if (e.key === 'Tab' && el) {
         const f = [...el.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, textarea, a[href]')];
@@ -177,7 +186,9 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
     document.body.classList.add('no-scroll');
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.classList.remove('no-scroll');
+      sheetStack = sheetStack.filter((fn) => fn !== onClose);
+      // only the last sheet closing may let the page scroll again
+      if (!sheetStack.length) document.body.classList.remove('no-scroll');
       prev?.focus?.();
     };
   }, [open]);

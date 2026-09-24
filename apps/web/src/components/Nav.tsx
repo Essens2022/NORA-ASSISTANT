@@ -14,7 +14,7 @@ export function Nav() {
     attention: Object.values(s.tasks).filter((t) => t.status === 'needs_clarification' || t.status === 'missed').length,
   }));
   return (
-    <nav class="nav" aria-label="Main">
+    <nav class="nav" aria-label={tr('nav.label')}>
       {TABS.map((t) => (
         <button
           type="button"
@@ -23,6 +23,9 @@ export function Nav() {
           aria-current={tab === t.id ? 'page' : undefined}
           onClick={() => {
             setState({ tab: t.id });
+            // Activity/Profile share the page's scroll position – switching tabs
+            // must never land mid-page with the header hidden.
+            scrollTo(0, 0);
             try {
               history.replaceState(null, '', t.id === 'ai' ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}${t.id}`);
             } catch {

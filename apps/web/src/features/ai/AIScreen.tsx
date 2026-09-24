@@ -46,7 +46,8 @@ export function AIScreen() {
 
   useLayoutEffect(() => {
     const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    // nothing to scroll to yet – leave the empty-state heading at the top, not centred off-screen
+    if (el && messages.length) el.scrollTop = el.scrollHeight;
   }, [messages.length, messages[messages.length - 1]?.pending]);
 
   useEffect(() => () => cancelVoice(), []);
@@ -92,25 +93,29 @@ export function AIScreen() {
         </p>
       </header>
 
-      <Briefing tasks={tasks} today={today} />
+      {/* briefing + chat scroll here; the voice button and composer below are always
+          on screen, never pushed off or hidden behind each other on a short phone */}
+      <div class="ai-scroll" ref={listRef}>
+        <Briefing tasks={tasks} today={today} />
 
-      <div class="conversation" ref={listRef} aria-live="polite" aria-relevant="additions">
-        {messages.length === 0 ? (
-          <div class="ai-empty">
-            <p>{tr('ai.empty')}</p>
-            <ul class="examples">
-              {examples.map((ex) => (
-                <li key={ex}>
-                  <button type="button" onClick={() => setDraft(ex)}>
-                    “{ex}”
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
-        )}
+        <div class="conversation" aria-live="polite" aria-relevant="additions">
+          {messages.length === 0 ? (
+            <div class="ai-empty">
+              <p>{tr('ai.empty')}</p>
+              <ul class="examples">
+                {examples.map((ex) => (
+                  <li key={ex}>
+                    <button type="button" onClick={() => setDraft(ex)}>
+                      “{ex}”
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
+          )}
+        </div>
       </div>
 
       {!online && <p class="offline-note">{tr('ai.offline')}</p>}

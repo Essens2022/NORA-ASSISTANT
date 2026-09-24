@@ -2,7 +2,7 @@ import { LANGS, type Lang, type MemoryItem, type Preferences, type SoundLevel } 
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Confirm, Input, Section, Segmented, Select, Toggle } from '../../components/ui.tsx';
-import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tr } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr } from '../../i18n/index.ts';
 import { api, deviceTimezone, isManualTimezone, setManualTimezone } from '../../services/api.ts';
 import { signOut } from '../../services/auth.ts';
 import { disablePushOnThisDevice, enablePush, isPushOptedOut, pushStatus, type PushStatus } from '../../services/push.ts';
@@ -111,7 +111,7 @@ export function ProfileScreen() {
         <Select<string>
           label={tr('prof.buffer')}
           value={String(p.travel_buffer_min)}
-          options={[0, 10, 15, 30, 45, 60].map((n) => ({ value: String(n), label: `${n} min` }))}
+          options={[0, 10, 15, 30, 45, 60].map((n) => ({ value: String(n), label: tr('common.n_min', { n }) }))}
           onChange={(v) => void setPref('travel_buffer_min', Number(v))}
         />
         <Toggle label={tr('prof.day_before')} checked={p.day_before} onChange={(v) => void setPref('day_before', v)} />
@@ -122,7 +122,7 @@ export function ProfileScreen() {
           <Select<string>
             label={tr('prof.max_followups')}
             value={String(p.max_followups)}
-            options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: tr('prof.times_n', { n }) }))}
+            options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: tp('prof.times', n) }))}
             onChange={(v) => void setPref('max_followups', Number(v))}
           />
         )}
@@ -355,7 +355,9 @@ function MemoryList() {
                     }
                   }}
                 >
-                  <Input label={m.key.replace(/_/g, ' ')} value={value} onValue={setValue} maxLength={300} />
+                  {/* m.key is an internal identifier (e.g. "reminder_style"), never translated – the
+                      generic section label reads correctly in every language instead */}
+                  <Input label={tr('prof.memory')} value={value} onValue={setValue} maxLength={300} />
                   <div class="actions-row">
                     <Button small onClick={() => setEditing(null)}>
                       {tr('common.cancel')}

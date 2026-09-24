@@ -71,7 +71,7 @@ export function ActivityScreen() {
       )}
 
       {!bootstrapped && openCount === 0 && (
-        <div class="skeleton-list" aria-busy="true" aria-label="…">
+        <div class="skeleton-list" aria-busy="true" aria-label={tr('common.loading')}>
           <div class="skeleton skeleton-row" />
           <div class="skeleton skeleton-row" />
           <div class="skeleton skeleton-row" />

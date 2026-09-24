@@ -131,7 +131,7 @@ function TaskDetail({ task }: { task: Task }) {
                   <Icon name="car" size={16} /> {tr('task.travel')}
                 </dt>
                 <dd>
-                  {task.travel_min} min · {tr('task.leave_at', { time: formatTime(dep) })}
+                  {tr('common.n_min', { n: task.travel_min! })} · {tr('task.leave_at', { time: formatTime(dep) })}
                 </dd>
               </div>
             )}
