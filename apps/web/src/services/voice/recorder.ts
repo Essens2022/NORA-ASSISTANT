@@ -52,6 +52,10 @@ export class VoiceRecorder {
   private chunks: Blob[] = [];
   private startedAt = 0;
   private stopReason: StopReason = 'manual';
+  // stop()/cancel() called while start() is still awaiting getUserMedia() is otherwise
+  // a no-op (there's no MediaRecorder yet to stop) – this flag makes start() honour it
+  // the moment the stream arrives, instead of recording anyway.
+  private cancelledBeforeStart = false;
   private resolveDone!: (r: { result: RecordingResult | null; reason: StopReason }) => void;
   readonly done: Promise<{ result: RecordingResult | null; reason: StopReason }>;
 
@@ -66,6 +70,11 @@ export class VoiceRecorder {
     } catch (err) {
       const name = (err as DOMException)?.name;
       throw new MicUnavailableError(name === 'NotAllowedError' || name === 'SecurityError' ? 'denied' : name === 'NotReadableError' ? 'busy' : 'unsupported');
+    }
+    if (this.cancelledBeforeStart) {
+      this.stopReason = 'cancelled';
+      this.finish();
+      return;
     }
     const mime = pickMime();
     this.recorder = new MediaRecorder(this.stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : undefined);
@@ -134,7 +143,11 @@ export class VoiceRecorder {
   private speechMs = 0;
 
   stop(reason: StopReason = 'manual') {
-    if (!this.recorder || this.recorder.state === 'inactive') return;
+    if (!this.recorder || this.recorder.state === 'inactive') {
+      // start() hasn't installed the MediaRecorder yet (still awaiting mic permission)
+      if (!this.recorder) this.cancelledBeforeStart = true;
+      return;
+    }
     this.stopReason = reason;
     cancelAnimationFrame(this.raf);
     this.recorder.stop();

@@ -56,7 +56,6 @@ export interface AssistantReply {
   /** What NORA is waiting for, so the UI can keep the mic open. */
   awaiting: PendingQuestion['field'] | null;
   path: 'fast' | 'ai' | 'error';
-  error?: string;
 }
 
 export interface HandleOptions {
@@ -98,13 +97,16 @@ export class Assistant {
     } catch (err) {
       this.log('assistant_error', { error: String(err), requestId: opts.requestId });
       const saveFailed = String(err).includes('store:');
-      reply = { text: t(ctx.lang, saveFailed ? 'save_failed' : 'error'), lang: ctx.lang, task_ids: [], awaiting: null, path: 'error', error: String(err) };
+      // no `error` on the reply itself: raw store/AI errors never reach the client or the saved transcript
+      reply = { text: t(ctx.lang, saveFailed ? 'save_failed' : 'error'), lang: ctx.lang, task_ids: [], awaiting: null, path: 'error' };
     }
     state.lang = reply.lang;
     if (reply.path !== 'error') await this.store.saveState(opts.conversationId, state);
     await this.store.appendMessages(opts.conversationId, [
       { role: 'user', content: text },
-      { role: 'assistant', content: reply.text, request_id: opts.requestId, meta: { reply } },
+      // an error reply keeps no request_id: findReply() must not hand a transient
+      // failure back forever when the client retries the same request
+      { role: 'assistant', content: reply.text, request_id: reply.path === 'error' ? null : opts.requestId, meta: { reply } },
     ]);
     return reply;
   }

@@ -302,6 +302,10 @@ export function prefetchMemory() {
     .then((r) => (memoryCache = Array.isArray(r.items) ? r.items : []))
     .catch(() => memoryCache);
 }
+/** Sign-out (or switching accounts without a reload) must not leak the previous user's memory. */
+export function clearMemoryCache() {
+  memoryCache = null;
+}
 
 function MemoryList() {
   const [items, setItemsState] = useState<MemoryItem[] | null>(memoryCache);

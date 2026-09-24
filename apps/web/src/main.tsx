@@ -46,17 +46,24 @@ void registerServiceWorker();
 
 if (deepTask) {
   const stop = setInterval(() => {
-    if (getState().tasks[deepTask]) {
-      setState(deepAlert ? { alertTaskId: deepTask } : { openTaskId: deepTask, tab: 'activity' });
+    const t = getState().tasks[deepTask];
+    if (!t) return;
+    // a stale/already-answered reminder link must never take the full screen
+    if (deepAlert && t.status !== 'reminded') {
       clearInterval(stop);
+      return;
     }
+    setState(deepAlert ? { alertTaskId: deepTask } : { openTaskId: deepTask, tab: 'activity' });
+    clearInterval(stop);
   }, 200);
   setTimeout(() => clearInterval(stop), 10_000);
 }
 
 window.addEventListener('online', () => {
   setState({ online: true });
-  void flushQueue().then(() => refreshTasks());
+  // bootstrap() may have failed while offline and left the app with no profile at all
+  if (getState().userId && !getState().profile) void bootstrap();
+  else void flushQueue().then(() => refreshTasks());
 });
 window.addEventListener('offline', () => setState({ online: false }));
 
@@ -71,12 +78,11 @@ document.addEventListener('visibilitychange', () => {
 navigator.serviceWorker?.addEventListener('message', (e) => {
   const d = e.data as { type?: string; action?: string; task_id?: string; title?: string; body?: string; sound?: string; kind?: string };
   if (d?.type === 'reminder') {
-    // NORA is open: play her chime and show the reminder right here as well
     // NORA is open: the reminder takes the whole screen (with sound and voice)
     const id = d.task_id;
     if (id && (d.kind === 'main' || d.kind === 'departure' || d.kind === 'snooze' || d.kind === 'nudge')) {
       void refreshTasks().then(() => {
-        if (getState().tasks[id]) setState({ alertTaskId: id });
+        if (getState().tasks[id]?.status === 'reminded') setState({ alertTaskId: id });
       });
       return;
     }
@@ -86,7 +92,15 @@ navigator.serviceWorker?.addEventListener('message', (e) => {
     return;
   }
   if (d?.type !== 'notification' || !d.task_id) return;
-  if (d.action === 'open') setState(['main', 'departure', 'snooze', 'nudge'].includes(d.kind ?? '') ? { alertTaskId: d.task_id } : { openTaskId: d.task_id, tab: 'activity' });
+  if (d.action === 'open') {
+    const id = d.task_id;
+    if (['main', 'departure', 'snooze', 'nudge'].includes(d.kind ?? '')) {
+      // fetch fresh state first: a stale/already-answered reminder must never take the screen
+      void refreshTasks().then(() => {
+        if (getState().tasks[id]?.status === 'reminded') setState({ alertTaskId: id });
+      });
+    } else setState({ openTaskId: id, tab: 'activity' });
+  }
   else if (d.action === 'done') void completeTask(d.task_id, false);
   else if (d.action === 'snooze') void snoozeTask(d.task_id, 15);
   else void refreshTasks();

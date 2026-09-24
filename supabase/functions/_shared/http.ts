@@ -26,6 +26,20 @@ export function log(event: string, data: Record<string, unknown> = {}) {
   console.log(JSON.stringify({ t: new Date().toISOString(), event, ...data }));
 }
 
+/**
+ * Fire a lazy Supabase query builder (or any thenable) without blocking the response.
+ * `void someBuilder` alone never runs the request: supabase-js builders only send
+ * once something calls `.then()`. `EdgeRuntime.waitUntil` keeps the isolate alive
+ * long enough to finish after the response is sent, where the runtime supports it.
+ */
+export function background(p: PromiseLike<unknown>, event = 'background_task_failed') {
+  const settled = Promise.resolve(p).then(
+    () => {},
+    (err) => log(event, { error: String(err).slice(0, 300) }),
+  );
+  (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } }).EdgeRuntime?.waitUntil(settled);
+}
+
 export async function readJson<T = Record<string, unknown>>(req: Request): Promise<T> {
   try {
     return (await req.json()) as T;

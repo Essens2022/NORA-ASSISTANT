@@ -7,7 +7,6 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
-  addDays,
   buildNotification,
   canTransition,
   EMPTY_STATE,
@@ -90,6 +89,9 @@ async function sendDue(): Promise<{ claimed: number; sent: number; skipped: numb
       const delivery = vapid ? await pushToUser(admin, r.user_id, payload, vapid) : { sent: 0, devices: 0 };
       if (r.kind === 'followup') await askInConversation(r.user_id, task.id, payload.chat ?? payload.title);
 
+      // From here the reminder counts as handled: a failure below (task or reminders
+      // row changed concurrently, a transient write error…) must never put it back
+      // to 'pending' and re-send an already-delivered push.
       await admin
         .from('reminders')
         .update({ status: delivery.sent > 0 || r.kind === 'followup' ? 'sent' : 'failed', sent_at: new Date().toISOString(), last_error: delivery.sent ? null : delivery.devices ? 'push_failed' : 'no_device' })
@@ -97,17 +99,27 @@ async function sendDue(): Promise<{ claimed: number; sent: number; skipped: numb
       if (delivery.sent > 0) sent++;
       else failed++;
 
-      if (r.kind !== 'prep' && r.kind !== 'followup' && r.kind !== 'nudge' && canTransition(task.status, 'remind')) {
-        await store.patchTask(task.id, { status: 'reminded' });
-        // no reaction → NORA calls again
-        const nudges = nudgePlan(r.kind, task.priority, profile.prefs, new Date());
-        if (nudges.length) await store.replaceReminders(task.id, nudges, ['nudge']);
+      try {
+        if (r.kind !== 'prep' && r.kind !== 'followup' && r.kind !== 'nudge' && canTransition(task.status, 'remind')) {
+          await store.patchTask(task.id, { status: 'reminded' });
+          // no reaction → NORA calls again, but only when the push actually reached a device
+          if (delivery.sent > 0) {
+            const nudges = nudgePlan(r.kind, task.priority, profile.prefs, new Date());
+            if (nudges.length) await store.replaceReminders(task.id, nudges, ['nudge']);
+          }
+        }
+        await store.logEvent(task.id, r.kind === 'followup' ? 'followup_sent' : 'reminder_sent', { kind: r.kind, devices: delivery.devices, delivered: delivery.sent });
+      } catch (err) {
+        log('dispatch_followup_error', { reminder: r.id, error: String(err).slice(0, 300) });
       }
-      await store.logEvent(task.id, r.kind === 'followup' ? 'followup_sent' : 'reminder_sent', { kind: r.kind, devices: delivery.devices, delivered: delivery.sent });
     } catch (err) {
       failed++;
       log('dispatch_error', { reminder: r.id, error: String(err).slice(0, 300) });
-      await admin.from('reminders').update({ status: r.attempts >= 3 ? 'failed' : 'pending', last_error: String(err).slice(0, 200) }).eq('id', r.id);
+      try {
+        await admin.from('reminders').update({ status: r.attempts >= 3 ? 'failed' : 'pending', last_error: String(err).slice(0, 200) }).eq('id', r.id);
+      } catch (err2) {
+        log('dispatch_error_write_failed', { reminder: r.id, error: String(err2).slice(0, 300) });
+      }
     }
   }
   return { claimed: reminders.length, sent, skipped, failed };
@@ -126,27 +138,33 @@ async function sweepOverdue(): Promise<{ missed: number; advanced: number }> {
   let advanced = 0;
   const profiles = new Map<string, Profile>();
   for (const row of rows ?? []) {
-    const store = new SupabaseStore(admin, row.user_id);
-    const { count } = await admin.from('reminders').select('id', { count: 'exact', head: true }).eq('task_id', row.id).eq('status', 'pending');
-    if (count) continue; // a follow-up is still coming
-    const task = (await store.getTask(row.id))!;
-    if (task.recurrence && task.due_date) {
-      const profile = await profileOf(profiles, task.user_id);
-      if (!profile) continue;
-      const today = toZoned(new Date(), profile.timezone).date;
-      const next = nextOccurrence(task.recurrence, (task.metadata?.rrule_anchor as string) ?? task.due_date, addDays(today, -1));
-      if (next) {
-        const svc = new TaskService(store, profile);
-        await store.logEvent(task.id, 'missed', { date: task.due_date, recurring: true });
-        const moved = await store.patchTask(task.id, { due_date: next, status: 'scheduled', followup_count: 0 });
-        await svc.replan(moved);
-        advanced++;
-        continue;
+    try {
+      const store = new SupabaseStore(admin, row.user_id);
+      const { count } = await admin.from('reminders').select('id', { count: 'exact', head: true }).eq('task_id', row.id).eq('status', 'pending');
+      if (count) continue; // a follow-up is still coming
+      const task = (await store.getTask(row.id))!;
+      if (task.recurrence && task.due_date) {
+        const profile = await profileOf(profiles, task.user_id);
+        if (!profile) continue;
+        // strictly after the missed occurrence itself, so this always moves forward
+        // (passing "today" here can return today again and re-run every 10 min)
+        const next = nextOccurrence(task.recurrence, (task.metadata?.rrule_anchor as string) ?? task.due_date, task.due_date);
+        if (next) {
+          const svc = new TaskService(store, profile);
+          await store.logEvent(task.id, 'missed', { date: task.due_date, recurring: true });
+          const moved = await store.patchTask(task.id, { due_date: next, status: 'scheduled', followup_count: 0 });
+          await svc.replan(moved);
+          advanced++;
+          continue;
+        }
       }
+      await store.patchTask(task.id, { status: 'missed' });
+      await store.logEvent(task.id, 'missed', { reason: 'no_action' });
+      missed++;
+    } catch (err) {
+      // one bad row (bad timezone, malformed rrule…) must never take down the sweep for everyone else
+      log('sweep_error', { task: row.id, error: String(err).slice(0, 300) });
     }
-    await store.patchTask(task.id, { status: 'missed' });
-    await store.logEvent(task.id, 'missed', { reason: 'no_action' });
-    missed++;
   }
   return { missed, advanced };
 }

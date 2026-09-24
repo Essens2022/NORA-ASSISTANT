@@ -7,7 +7,8 @@ import { auth } from '../services/auth.ts';
 import { syncSubscription } from '../services/push.ts';
 import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.ts';
 import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
-import { prefetchMemory } from '../features/profile/ProfileScreen.tsx';
+import { clearMemoryCache, prefetchMemory } from '../features/profile/ProfileScreen.tsx';
+import { clearDetailCache } from '../features/task/TaskDetail.tsx';
 import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 
 // ----------------------------------------------------------------------------
@@ -33,7 +34,18 @@ export function initAuth() {
         void bootstrap();
       } else setState({ authReady: true });
     } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-      if (prev) resetState();
+      if (prev) {
+        resetState();
+        // module-level caches keyed only by task/memory id, not by user – a switch of
+        // accounts on the same device without a reload must not leak the previous one
+        clearMemoryCache();
+        clearDetailCache();
+        try {
+          localStorage.removeItem('nora.draft');
+        } catch {
+          /* ignore */
+        }
+      }
       setState({ authReady: true });
     }
   });
@@ -74,7 +86,8 @@ export async function bootstrap() {
     void syncSubscription(b.profile.ui_lang).catch(() => {});
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      await auth?.signOut();
+      // this device's token is invalid – sign out here only, never revoke the user's other devices
+      await auth?.signOut({ scope: 'local' });
       return;
     }
     // offline: keep cached tasks, retry when back online
@@ -177,6 +190,11 @@ export function retryMessage(item: ChatItem & { retry?: { text: string; requestI
 // ----------------------------------------------------------------------------
 
 let recorder: VoiceRecorder | null = null;
+// Bumped whenever the current voice turn is superseded (mic tapped again, cancelled,
+// navigated away): every async step below checks it and bails out instead of racing
+// with whatever comes after it – this is what stops a second recorder from starting
+// while the first is still winding down, and stops the mic reopening on another tab.
+let voiceToken = 0;
 
 export function stopSpeaking() {
   speakAbort?.abort();
@@ -201,26 +219,32 @@ export async function toggleVoice(): Promise<'denied' | 'unsupported' | 'busy' |
     return null;
   }
   if (s.voice === 'speaking') {
+    voiceToken++; // supersede the turn that asked the question – its own follow-up listen must not fire too
     stopSpeaking();
   }
   if (s.voice === 'processing') return null;
-  return listen();
+  return listen(false, ++voiceToken);
 }
 
-async function listen(followUp = false): Promise<'denied' | 'unsupported' | 'busy' | null> {
+async function listen(followUp = false, token = ++voiceToken): Promise<'denied' | 'unsupported' | 'busy' | null> {
   const rec = new VoiceRecorder({ onLevel: (level) => setState({ level }) });
   recorder = rec;
   try {
     await rec.start();
   } catch (err) {
-    recorder = null;
-    setState({ voice: 'idle' });
+    if (recorder === rec) recorder = null;
+    if (token === voiceToken) setState({ voice: 'idle' });
     return err instanceof MicUnavailableError ? err.reason : 'unsupported';
+  }
+  if (token !== voiceToken) {
+    rec.cancel(); // superseded while we were waiting for mic permission
+    return null;
   }
   setState({ voice: 'listening' });
   track('voice_start');
   const { result, reason } = await rec.done;
-  recorder = null;
+  if (recorder === rec) recorder = null;
+  if (token !== voiceToken) return null; // cancelled or replaced while recording
   if (!result) {
     setState({ voice: 'idle' });
     if (reason === 'no_speech' && !followUp) toastInfo(tr('ai.nothing_heard'));
@@ -238,6 +262,7 @@ async function listen(followUp = false): Promise<'denied' | 'unsupported' | 'bus
     form.append('request_id', requestId);
     if (getState().conversationId) form.append('conversation_id', getState().conversationId!);
     const res = await api<{ heard: boolean; transcript?: string; reply_text?: string; reply?: AssistantReply; conversation_id?: string; tasks?: Task[] }>('/v1/voice', { form, timeoutMs: 40_000, requestId });
+    if (token !== voiceToken) return null; // the user moved on while NORA was thinking
     if (!res.heard || !res.reply) {
       setState((st) => ({ voice: 'idle', messages: st.messages.filter((m) => m.id !== pendingId) }));
       toastInfo(tr('ai.nothing_heard'));
@@ -252,16 +277,18 @@ async function listen(followUp = false): Promise<'denied' | 'unsupported' | 'bus
     applyReply(pendingId, { reply: res.reply, conversation_id: res.conversation_id!, tasks: res.tasks ?? [] });
     track('voice_roundtrip_ms', Math.round(performance.now() - started), { path: res.reply.path });
     await speak(res.reply.text, res.reply.lang);
+    if (token !== voiceToken) return null;
     // NORA asked a question → keep the conversation going hands-free
-    if (res.reply.awaiting && getState().voice === 'idle') return listen(true);
+    if (res.reply.awaiting && getState().voice === 'idle') return listen(true, token);
     setState({ voice: 'idle' });
   } catch (err) {
-    setState((st) => ({ voice: 'idle', messages: st.messages.map((m) => (m.id === pendingId ? { ...m, pending: false, error: true, text: errorText(err) } : m)) }));
+    if (token === voiceToken) setState((st) => ({ voice: 'idle', messages: st.messages.map((m) => (m.id === pendingId ? { ...m, pending: false, error: true, text: errorText(err) } : m)) }));
   }
   return null;
 }
 
 export function cancelVoice() {
+  voiceToken++; // invalidate any in-flight listen()/speak() continuation, wherever the user navigated
   recorder?.cancel();
   stopSpeaking();
   setState({ voice: 'idle' });

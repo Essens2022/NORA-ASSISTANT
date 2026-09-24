@@ -6,6 +6,7 @@ import { Onboarding } from './features/onboarding/Onboarding.tsx';
 import { ProfileScreen } from './features/profile/ProfileScreen.tsx';
 import { TaskDetailHost } from './features/task/TaskDetail.tsx';
 import { ReminderAlert } from './features/alert/ReminderAlert.tsx';
+import { bootstrap } from './state/actions.ts';
 import { tr } from './i18n/index.ts';
 import { useStore } from './state/store.ts';
 
@@ -25,6 +26,8 @@ export function App() {
   if (!authReady) return <Splash />;
   if (!userId) return <SignIn />;
   if (!bootstrapped && !profile) return <Splash />;
+  // no cached profile to fall back on – never render an empty app shell
+  if (bootstrapped && !profile) return <BootstrapFailed />;
   if (profile && !onboardedAt) return <Onboarding />;
 
   return (
@@ -58,6 +61,22 @@ function Splash() {
   );
 }
 
+/** bootstrap() failed and there is no cached profile: never leave the app shell empty. */
+function BootstrapFailed() {
+  return (
+    <div class="auth handoff" role="alert">
+      <h1 class="brand big">NORA</h1>
+      <div class="auth-card">
+        <h2>{tr('common.error')}</h2>
+        <p class="muted">{tr('ai.offline')}</p>
+        <button type="button" class="btn-google" onClick={() => void bootstrap()}>
+          <span>{tr('common.retry')}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** Shown in the in-app browser after Google sign-in from the installed app. */
 function Handoff({ state }: { state: 'working' | 'handed' | 'failed' }) {
   return (
@@ -76,6 +95,12 @@ function Handoff({ state }: { state: 'working' | 'handed' | 'failed' }) {
           <h2>{tr('auth.oauth_failed')}</h2>
           <p class="muted">{tr('auth.handoff_failed_body')}</p>
         </div>
+      )}
+      {state !== 'working' && (
+        // a stalled/expired hand-off must never trap the user on this screen forever
+        <button type="button" class="auth-alt" onClick={() => (location.href = location.origin + location.pathname)}>
+          {tr('common.continue')}
+        </button>
       )}
     </div>
   );

@@ -65,7 +65,8 @@ export async function signInWith(provider: 'google' | 'apple') {
 // ----------------------------------------------------------------------------
 
 const HANDOFF_KEY = 'nora.handoff';
-const HANDOFF_TTL_MS = 5 * 60_000;
+// generous: 2FA / "create account" on the provider's side can take a while
+const HANDOFF_TTL_MS = 30 * 60_000;
 
 export function isStandalone(): boolean {
   return matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
@@ -96,7 +97,7 @@ function clearHandoff() {
 async function rpc<T>(fn: string, body: Record<string, string>, accessToken?: string): Promise<T> {
   const headers: Record<string, string> = { apikey: config.supabaseAnonKey, 'Content-Type': 'application/json' };
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
-  const res = await fetch(`${config.supabaseUrl}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(body) });
+  const res = await fetch(`${config.supabaseUrl}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(15_000) });
   if (!res.ok) throw new Error(`rpc_${fn}_${res.status}`);
   const text = await res.text();
   return (text ? JSON.parse(text) : null) as T;
@@ -114,7 +115,9 @@ export async function completeHandoff(): Promise<'none' | 'own' | 'handed' | 'fa
   if (!nonce || !auth) return 'none';
   url.searchParams.delete('handoff');
   history.replaceState(null, '', url.pathname + url.search + url.hash);
-  if (pendingHandoff()?.n === nonce) {
+  // the installed app is NEVER the in-app browser that must hand its session off,
+  // even if the stored nonce expired or a second sign-in overwrote it meanwhile
+  if (isStandalone() || pendingHandoff()?.n === nonce) {
     clearHandoff();
     return 'own';
   }

@@ -69,6 +69,10 @@ function repeatOptions(hasCustom: boolean) {
 }
 
 const detailCache = new Map<string, Detail>();
+/** Sign-out (or switching accounts without a reload) must not leak the previous user's tasks. */
+export function clearDetailCache() {
+  detailCache.clear();
+}
 
 function TaskDetail({ task }: { task: Task }) {
   const [mode, setMode] = useState<Mode>('view');

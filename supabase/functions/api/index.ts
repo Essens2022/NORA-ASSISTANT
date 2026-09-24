@@ -35,7 +35,7 @@ import {
   type SnoozePreset,
   type Task,
 } from '../_shared/core/index.ts';
-import { cors, HttpError, json, log, readJson } from '../_shared/http.ts';
+import { background, cors, HttpError, json, log, readJson } from '../_shared/http.ts';
 import { getAI, getSTT } from '../_shared/providers.ts';
 import { getVapid, pushToUser } from '../_shared/push.ts';
 import { rowToProfile, rowToTask, SupabaseStore } from '../_shared/store.ts';
@@ -139,8 +139,8 @@ async function chat(ctx: Ctx, text: string, convRequested: string | null, reqId:
   const reply = await nora.handle(text, { conversationId: conv, requestId: reqId });
   const ms = Date.now() - started;
   log('chat', { rid: ctx.rid, path: reply.path, ms, awaiting: reply.awaiting, lang: reply.lang });
-  void admin.from('metrics').insert({ user_id: ctx.userId, name: 'chat_latency_ms', value: ms, props: { path: reply.path } });
-  if (reply.lang !== ctx.profile.conv_lang) void ctx.db.from('profiles').update({ conv_lang: reply.lang }).eq('id', ctx.userId);
+  background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'chat_latency_ms', value: ms, props: { path: reply.path } }));
+  if (reply.lang !== ctx.profile.conv_lang) background(ctx.db.from('profiles').update({ conv_lang: reply.lang }).eq('id', ctx.userId));
   return { reply, conversation_id: conv, tasks: await tasksByIds(ctx, reply.task_ids) };
 }
 
@@ -162,13 +162,13 @@ async function voice(ctx: Ctx) {
     result = await stt.transcribe(audio, { prompt: 'NORA' });
   } catch (err) {
     log('stt_error', { rid: ctx.rid, error: String(err).slice(0, 200) });
-    void admin.from('metrics').insert({ user_id: ctx.userId, name: 'stt_error', value: 1 });
+    background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'stt_error', value: 1 }));
     throw new HttpError(502, 'stt_failed');
   }
   const sttMs = Date.now() - started;
   if (result.duration == null && clientDuration) result.duration = clientDuration;
   const verdict = acceptTranscript(result);
-  void admin.from('metrics').insert({ user_id: ctx.userId, name: 'stt_latency_ms', value: sttMs, props: { ok: verdict.ok } });
+  background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'stt_latency_ms', value: sttMs, props: { ok: verdict.ok } }));
   log('stt', { rid: ctx.rid, ms: sttMs, ok: verdict.ok, reason: verdict.ok ? null : verdict.reason, detected: result.language });
   if (!verdict.ok) return { heard: false, reason: verdict.reason, reply_text: t(lang, 'nothing_heard') };
   return { heard: true, transcript: verdict.text, ...(await chat(ctx, verdict.text, conv, reqId)) };
@@ -405,7 +405,7 @@ async function notifyAction(req: Request, rid: string) {
       throw new HttpError(400, 'invalid_action');
   }
   log('notify_action', { rid, action: body.action });
-  void admin.from('metrics').insert({ user_id: rem.user_id, name: 'notification_action', value: 1, props: { action: body.action } });
+  background(admin.from('metrics').insert({ user_id: rem.user_id, name: 'notification_action', value: 1, props: { action: body.action } }));
   return { ok: true, text };
 }
 

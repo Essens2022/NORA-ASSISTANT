@@ -72,6 +72,8 @@ export async function api<T = unknown>(path: string, opts: Options = {}, retried
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError((data as { error?: string }).error ?? `http_${res.status}`, res.status);
+  // a request just made it through: whatever set `online: false` earlier no longer applies
+  if (!getState().online) setState({ online: true });
   return data as T;
 }
 
@@ -111,7 +113,8 @@ export async function sendOrQueue<T>(path: string, method: Queued['method'], bod
   } catch (err) {
     if (err instanceof ApiError && (err.code === 'network' || err.code === 'timeout')) {
       writeQueue([...readQueue(), { id: newRequestId(), path, method, body }]);
-      setState({ online: false });
+      // only a real connectivity problem should show the offline bar
+      if (!navigator.onLine) setState({ online: false });
       return null;
     }
     throw err;
@@ -124,17 +127,17 @@ export async function flushQueue(): Promise<number> {
   flushing = true;
   let done = 0;
   try {
-    let q = readQueue();
-    while (q.length) {
-      const item = q[0];
+    // re-read on every iteration: a write queued concurrently (another tab, another
+    // sendOrQueue call) must not be lost by overwriting storage with a stale snapshot
+    for (let item = readQueue()[0]; item; item = readQueue()[0]) {
       try {
         await api(item.path, { method: item.method, body: item.body, requestId: item.id });
       } catch (err) {
-        if (err instanceof ApiError && (err.code === 'network' || err.code === 'timeout')) break;
-        // 4xx: the operation is no longer valid (e.g. task deleted) – drop it
+        // network/timeout or a server error: keep the item, stop for now and retry later
+        if (!(err instanceof ApiError) || err.code === 'network' || err.code === 'timeout' || !err.status || err.status >= 500 || err.status === 429) break;
+        // a real 4xx: the operation is no longer valid (e.g. the task was deleted) – drop it
       }
-      q = q.slice(1);
-      writeQueue(q);
+      writeQueue(readQueue().filter((q) => q.id !== item.id));
       done++;
     }
   } finally {

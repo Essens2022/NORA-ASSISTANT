@@ -63,7 +63,10 @@ export class TaskService {
 
   private async plan(task: Task): Promise<void> {
     const planned = planReminders(task, this.prefs, this.now());
-    await this.store.replaceReminders(task.id, planned);
+    // planReminders only ever produces prep/departure/main/followup: a pending
+    // snooze or nudge is a promise NORA already made and must survive a replan
+    // (timezone sync, an unrelated edit, …) — only snooze()/notYet() replace those.
+    await this.store.replaceReminders(task.id, planned, ['prep', 'departure', 'main', 'followup']);
   }
 
   async create(

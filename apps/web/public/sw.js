@@ -1,5 +1,5 @@
 /* NORA service worker: app-shell caching + push notifications with actions. */
-const VERSION = 'nora-v3';
+const VERSION = 'nora-v4';
 const params = new URL(self.location.href).searchParams;
 const API = params.get('api') || '';
 const ANON = params.get('key') || '';
@@ -29,8 +29,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(VERSION).then((c) => c.put(BASE, copy));
+          // never cache a 5xx / captive-portal page as the offline shell
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(VERSION).then((c) => c.put(BASE, copy));
+          }
           return res;
         })
         .catch(() => caches.match(BASE)),
@@ -68,18 +71,19 @@ self.addEventListener('push', (event) => {
     // If NORA is open, let the app play its own chime and show the reminder inline too.
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     clients.forEach((c) => c.postMessage({ type: 'reminder', title: data.title, body: data.body, task_id: data.task_id, kind: data.kind, sound: data.sound }));
+    const silent = data.sound === 'silent';
     await self.registration.showNotification(data.title || 'NORA', {
       body: data.body || '',
       tag: data.tag || undefined,
       renotify: true,
-      silent: data.sound === 'silent',
+      silent,
       // stays on screen until the user reacts – NORA doesn't let it slip by
       requireInteraction: !!data.sticky || important,
       icon: `${BASE}icon-192.png`,
       badge: `${BASE}badge.png`,
       lang: data.lang,
-      // NORA's signature: two short taps and a longer one ("ta-ta-taaa")
-      vibrate: data.sound === 'silent' ? [] : important ? [120, 70, 120, 70, 420, 250, 120, 70, 120, 70, 420] : [120, 70, 120, 70, 380],
+      // Chrome throws if `vibrate` is present at all on a silent notification, even []
+      ...(silent ? {} : { vibrate: important ? [120, 70, 120, 70, 420, 250, 120, 70, 120, 70, 420] : [120, 70, 120, 70, 380] }), // NORA's signature: two short taps and a longer one
       data: { token: data.token, task_id: data.task_id, kind: data.kind },
       actions: (data.actions || []).slice(0, 2).map((a) => ({ action: a.action, title: a.title })),
     });
