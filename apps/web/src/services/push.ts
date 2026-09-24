@@ -15,6 +15,26 @@ export function pushStatus(): PushStatus {
   return Notification.permission as PushStatus;
 }
 
+// The browser never lets JS revoke a granted Notification permission, so "off" for this
+// device has to be tracked separately – otherwise syncSubscription() (run on every start
+// and every resume) silently re-subscribes the moment the user turns it off.
+const OPT_OUT_KEY = 'nora.push_off';
+export function isPushOptedOut(): boolean {
+  try {
+    return localStorage.getItem(OPT_OUT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+function setPushOptedOut(off: boolean) {
+  try {
+    if (off) localStorage.setItem(OPT_OUT_KEY, '1');
+    else localStorage.removeItem(OPT_OUT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 let registration: Promise<ServiceWorkerRegistration | null> | null = null;
 
 export function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -37,13 +57,14 @@ export async function enablePush(lang: string): Promise<PushStatus> {
   if (status === 'unsupported' || status === 'ios_needs_install' || status === 'denied') return status;
   const permission = status === 'granted' ? 'granted' : await Notification.requestPermission();
   if (permission !== 'granted') return permission as PushStatus;
+  setPushOptedOut(false); // an explicit re-enable always wins over a previous "off"
   await syncSubscription(lang);
   return 'granted';
 }
 
 /** Keep the server's copy of this device's subscription fresh (called on start). */
 export async function syncSubscription(lang: string): Promise<boolean> {
-  if (pushStatus() !== 'granted') return false;
+  if (pushStatus() !== 'granted' || isPushOptedOut()) return false;
   const reg = await registerServiceWorker();
   if (!reg) return false;
   const { publicKey } = await api<{ publicKey: string | null }>('/v1/push/key', { auth: false });
@@ -58,6 +79,7 @@ export async function syncSubscription(lang: string): Promise<boolean> {
 }
 
 export async function disablePushOnThisDevice(): Promise<void> {
+  setPushOptedOut(true);
   const reg = await registerServiceWorker();
   const sub = await reg?.pushManager.getSubscription();
   if (!sub) return;

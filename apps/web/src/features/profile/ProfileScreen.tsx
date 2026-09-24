@@ -5,7 +5,7 @@ import { Button, Confirm, Input, Section, Segmented, Select, Toggle } from '../.
 import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tr } from '../../i18n/index.ts';
 import { api, deviceTimezone, isManualTimezone, setManualTimezone } from '../../services/api.ts';
 import { signOut } from '../../services/auth.ts';
-import { disablePushOnThisDevice, enablePush, pushStatus, type PushStatus } from '../../services/push.ts';
+import { disablePushOnThisDevice, enablePush, isPushOptedOut, pushStatus, type PushStatus } from '../../services/push.ts';
 import { saveVoice, savedVoice, tts } from '../../services/voice/tts.ts';
 import { updateProfile } from '../../state/actions.ts';
 import { toast, useStore, toastError } from '../../state/store.ts';
@@ -236,10 +236,14 @@ function VoicePicker({ lang }: { lang: Lang }) {
 
 function PushControl() {
   const [status, setStatus] = useState<PushStatus>(pushStatus());
+  // browser permission ('granted') never reverts to 'default' once given – whether this
+  // device actually gets pushes is separately tracked in isPushOptedOut()
+  const [optedOut, setOptedOut] = useState(isPushOptedOut());
   const [busy, setBusy] = useState(false);
   const lang = useStore((s) => s.profile?.ui_lang ?? 'en');
+  const on = status === 'granted' && !optedOut;
   const label =
-    status === 'granted' ? tr('prof.notif_enabled') : status === 'denied' ? tr('prof.notif_blocked') : status === 'unsupported' ? tr('prof.notif_unsupported') : status === 'ios_needs_install' ? tr('prof.notif_ios') : '';
+    status === 'denied' ? tr('prof.notif_blocked') : status === 'unsupported' ? tr('prof.notif_unsupported') : status === 'ios_needs_install' ? tr('prof.notif_ios') : on ? tr('prof.notif_enabled') : '';
   return (
     <div class="push-control">
       <div class="row">
@@ -247,7 +251,7 @@ function PushControl() {
           <span class="row-label">{tr('prof.notif_on')}</span>
           {label && <p class="hint">{label}</p>}
         </div>
-        {status === 'default' && (
+        {!on && status !== 'denied' && status !== 'unsupported' && status !== 'ios_needs_install' && (
           <Button
             small
             variant="primary"
@@ -256,6 +260,7 @@ function PushControl() {
               setBusy(true);
               try {
                 setStatus(await enablePush(lang));
+                setOptedOut(isPushOptedOut());
               } catch {
                 toastError(tr('common.error'));
               }
@@ -265,16 +270,21 @@ function PushControl() {
             {tr('prof.notif_enable')}
           </Button>
         )}
-        {status === 'granted' && (
-          <Button small variant="ghost" onClick={async () => {
-            await disablePushOnThisDevice();
-            toast(tr('common.saved'));
-          }}>
+        {on && (
+          <Button
+            small
+            variant="ghost"
+            onClick={async () => {
+              await disablePushOnThisDevice();
+              setOptedOut(true);
+              toast(tr('common.saved'));
+            }}
+          >
             {tr('common.off')}
           </Button>
         )}
       </div>
-      {status === 'granted' && (
+      {on && (
         <Button
           small
           icon="bell"
