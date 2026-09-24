@@ -1751,12 +1751,14 @@ textarea.input {
   }
 }
 
-/* the voice button and composer live outside .ai-scroll now, so they're always on
-   screen without needing sticky positioning (see .ai-screen/.ai-scroll above) */
+/* the briefing, voice button and composer live outside .ai-scroll now, so they're
+   always on screen without needing sticky positioning (see .ai-screen/.ai-scroll above) */
 .ai-screen .composer {
   box-shadow: 0 6px 24px rgba(16, 24, 40, 0.08);
 }
 .ai-screen .briefing {
+  flex-shrink: 0;
+  margin-bottom: 12px;
   padding: 16px 16px 12px;
 }
 .ai-screen .brief-next {

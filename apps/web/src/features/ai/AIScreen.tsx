@@ -93,11 +93,11 @@ export function AIScreen() {
         </p>
       </header>
 
-      {/* briefing + chat scroll here; the voice button and composer below are always
-          on screen, never pushed off or hidden behind each other on a short phone */}
-      <div class="ai-scroll" ref={listRef}>
-        <Briefing tasks={tasks} today={today} />
+      {/* the briefing stays put, like the voice button and composer below it – only
+          the conversation scrolls, never pushed off or hidden on a short phone */}
+      <Briefing tasks={tasks} today={today} />
 
+      <div class="ai-scroll" ref={listRef}>
         <div class="conversation" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 ? (
             <div class="ai-empty">
