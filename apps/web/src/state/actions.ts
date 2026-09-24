@@ -174,6 +174,10 @@ export async function sendText(text: string, requestId = newRequestId()): Promis
       requestId,
     });
     applyReply(pendingId, res);
+    // a typed message gets a spoken reply too, same as a voice one (spec: NORA
+    // always answers out loud when Voice replies is on, not just after the mic) –
+    // but never step on an actual voice turn in progress (listening/processing/already speaking)
+    if (getState().voice === 'idle') void speak(res.reply.text, res.reply.lang);
     return true;
   } catch (err) {
     setState((s) => ({ messages: s.messages.map((m) => (m.id === pendingId ? { ...m, pending: false, error: true, text: errorText(err), retry: { text: clean, requestId } } as ChatItem : m)) }));
