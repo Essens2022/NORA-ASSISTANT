@@ -276,4 +276,15 @@ describe('more behaviour from the spec', () => {
     expect(r.text).toBe('Nu pot gândi acum, dar pot nota. Încearcă din nou peste puțin.');
     expect(tasks()).toHaveLength(0);
   });
+
+  it('a clearly Romanian message wins even if the model, biased by a short prior turn in another language, self-reports the wrong one', async () => {
+    // Reproduces a live bug: after "Норм." (ru), the model kept answering in
+    // Russian even though the very next message has Romanian diacritics.
+    ai.next({ language: 'ru', actions: [], ask: null, reply: 'Хорошо!' });
+    const r1 = await say('Норм.');
+    expect(r1.lang).toBe('ru');
+    ai.next({ language: 'ru', actions: [{ type: 'create_task', task: { title: 'Cafea', kind: 'generic' } }], ask: null, reply: 'Хорошо, напомню.' });
+    const r2 = await say('Amintește-mi, te rog, să iau cafeaua de pe foc peste 30 de secunde.');
+    expect(r2.lang).toBe('ro');
+  });
 });

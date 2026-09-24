@@ -8,7 +8,7 @@
 
 import type { AIAction, AIPlan, AIProvider, AskField, ChatMessage } from './ai.ts';
 import { buildMessages, clarifiedFields, validatePlan } from './ai.ts';
-import { classifyReply, detectLang, parseDate, parseDuration, parseTime } from './parse.ts';
+import { certainLang, classifyReply, detectLang, parseDate, parseDuration, parseTime } from './parse.ts';
 import { departureTime, snoozeUntil } from './reminders.ts';
 import { describeRule, formatWhen, joinList, t, taskLine } from './replies.ts';
 import type { TaskQuery, TaskStore } from './service.ts';
@@ -252,7 +252,9 @@ export class Assistant {
     }
     const { plan, errors } = validatePlan(raw, c.lang);
     this.log('ai_plan', { ms: Date.now() - started, actions: plan.actions.map((a) => a.type), ask: plan.ask?.field ?? null, errors });
-    c.lang = plan.language;
+    // the model can be biased by a short prior turn in another language ("Норм.")
+    // into replying in that language even when THIS message is unambiguous
+    c.lang = certainLang(c.text) ?? plan.language;
     if (errors.includes('invalid_json') && !plan.actions.length) return this.done(c, t(c.lang, 'didnt_understand'), [], null, 'ai');
     return this.execute(c, plan, refs);
   }

@@ -454,9 +454,21 @@ const LANG_HINTS: Array<[Lang, RegExp]> = [
   ['en', ub(/\b(tomorrow|remind|need|the|at|call|today|want|have|to|my|i|yes|no|done|please|next|week)\b/)],
 ];
 
-export function detectLang(text: string, fallback: Lang): Lang {
+/**
+ * Script/diacritics are unambiguous on their own, independent of anything said
+ * earlier in the conversation. Used to keep the AI path honest: a short prior
+ * turn in another language ("Норм.") can otherwise bias the model into
+ * continuing in that language even when the *current* message is clearly not.
+ */
+export function certainLang(text: string): Lang | null {
   if (/[Ѐ-ӿ]/.test(text)) return 'ru';
   if (/[ăâîșşțţ]/i.test(text)) return 'ro';
+  return null;
+}
+
+export function detectLang(text: string, fallback: Lang): Lang {
+  const certain = certainLang(text);
+  if (certain) return certain;
   const n = norm(text);
   let best: Lang = fallback;
   let bestScore = 0;
