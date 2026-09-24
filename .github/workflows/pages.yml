@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+env:
+  # custom domain served at the root; empty → https://<owner>.github.io/<repo>/
+  PAGES_DOMAIN: norakeep.com
+
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -24,13 +28,16 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build
-        # project site lives under /<repo>/; public Supabase values come from apps/web/.env.production
-        run: BASE_PATH="/${{ github.event.repository.name }}/" npm -w apps/web run build
+        # public Supabase values come from apps/web/.env.production
+        run: |
+          if [ -n "$PAGES_DOMAIN" ]; then export BASE_PATH=/; else export BASE_PATH="/${{ github.event.repository.name }}/"; fi
+          npm -w apps/web run build
       - name: Publish to gh-pages
         working-directory: apps/web/dist
         run: |
           cp index.html 404.html   # SPA fallback for deep links
           touch .nojekyll
+          if [ -n "$PAGES_DOMAIN" ]; then echo "$PAGES_DOMAIN" > CNAME; fi
           find . -name '*.map' -delete
           git init -q -b gh-pages
           git add -A
