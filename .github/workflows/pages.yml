@@ -1,4 +1,5 @@
 name: Deploy web app (GitHub Pages)
+# Pages serves the gh-pages branch; this workflow rebuilds it on every change to the app.
 on:
   push:
     branches: [main]
@@ -6,16 +7,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,21 +26,13 @@ jobs:
       - name: Build
         # project site lives under /<repo>/; public Supabase values come from apps/web/.env.production
         run: BASE_PATH="/${{ github.event.repository.name }}/" npm -w apps/web run build
-      - name: SPA fallback for deep links
-        run: cp apps/web/dist/index.html apps/web/dist/404.html
-      - uses: actions/configure-pages@v5
-        with:
-          # turn Pages on (source: GitHub Actions) the first time
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: apps/web/dist
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish to gh-pages
+        working-directory: apps/web/dist
+        run: |
+          cp index.html 404.html   # SPA fallback for deep links
+          touch .nojekyll
+          find . -name '*.map' -delete
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -q -m "Deploy ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages
