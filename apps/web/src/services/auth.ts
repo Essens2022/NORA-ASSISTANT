@@ -27,7 +27,7 @@ export async function accessToken(): Promise<string | null> {
 
 export async function sendCode(email: string, meta: Record<string, string>) {
   if (!auth) throw new Error('not_configured');
-  const { error } = await auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin, data: meta } });
+  const { error } = await auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + import.meta.env.BASE_URL, data: meta } });
   if (error) throw error;
 }
 
@@ -40,7 +40,7 @@ export async function verifyCode(email: string, token: string) {
 
 export async function signInWith(provider: 'google' | 'apple') {
   if (!auth) throw new Error('not_configured');
-  const { error } = await auth.signInWithOAuth({ provider, options: { redirectTo: location.origin } });
+  const { error } = await auth.signInWithOAuth({ provider, options: { redirectTo: location.origin + import.meta.env.BASE_URL } });
   if (error) throw error;
 }
 

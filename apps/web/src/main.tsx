@@ -15,7 +15,7 @@ import './styles.css';
 applyTheme();
 
 // deep links: /activity, /profile, /?task=<id>
-const path = location.pathname.replace(/\/+$/, '').slice(1) as Tab;
+const path = location.pathname.slice(import.meta.env.BASE_URL.length).replace(/\/+$/, '') as Tab;
 if (path === 'activity' || path === 'profile') setState({ tab: path });
 const params = new URLSearchParams(location.search);
 const deepTask = params.get('task');

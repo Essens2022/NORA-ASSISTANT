@@ -6,6 +6,8 @@ import { readFileSync } from 'node:fs';
 const version = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version ?? '0.1.0';
 
 export default defineConfig({
+  // '/' for a root domain; '/<repo>/' for GitHub Pages project sites
+  base: process.env.BASE_PATH || '/',
   plugins: [preact()],
   define: { __APP_VERSION__: JSON.stringify(version) },
   resolve: { alias: { '@nora/core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)) } },

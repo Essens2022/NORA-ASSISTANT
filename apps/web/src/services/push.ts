@@ -20,7 +20,7 @@ let registration: Promise<ServiceWorkerRegistration | null> | null = null;
 export function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator) || import.meta.env.DEV) return Promise.resolve(null);
   registration ??= navigator.serviceWorker
-    .register(`/sw.js?api=${encodeURIComponent(config.apiUrl)}&key=${encodeURIComponent(config.supabaseAnonKey)}`, { scope: '/' })
+    .register(`${import.meta.env.BASE_URL}sw.js?api=${encodeURIComponent(config.apiUrl)}&key=${encodeURIComponent(config.supabaseAnonKey)}`, { scope: import.meta.env.BASE_URL })
     .catch(() => null);
   return registration;
 }

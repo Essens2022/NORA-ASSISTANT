@@ -3,9 +3,11 @@ const VERSION = 'nora-v1';
 const params = new URL(self.location.href).searchParams;
 const API = params.get('api') || '';
 const ANON = params.get('key') || '';
+// the app's base path ("/" or "/nora-assistant/" on GitHub Pages)
+const BASE = new URL('./', self.location.href).pathname;
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(VERSION).then((c) => c.addAll(['/', '/manifest.webmanifest', '/icon.svg'])).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(VERSION).then((c) => c.addAll([BASE, `${BASE}manifest.webmanifest`, `${BASE}icon.svg`])).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -28,14 +30,14 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(VERSION).then((c) => c.put('/', copy));
+          caches.open(VERSION).then((c) => c.put(BASE, copy));
           return res;
         })
-        .catch(() => caches.match('/')),
+        .catch(() => caches.match(BASE)),
     );
     return;
   }
-  if (url.pathname.startsWith('/assets/')) {
+  if (url.pathname.startsWith(`${BASE}assets/`)) {
     // hashed, immutable build assets: cache first
     event.respondWith(
       caches.match(req).then(
@@ -73,8 +75,8 @@ self.addEventListener('push', (event) => {
       silent: data.sound === 'silent',
       // stays on screen until the user reacts – NORA doesn't let it slip by
       requireInteraction: !!data.sticky || important,
-      icon: '/icon-192.png',
-      badge: '/badge.png',
+      icon: `${BASE}icon-192.png`,
+      badge: `${BASE}badge.png`,
       lang: data.lang,
       // NORA's signature: two short taps and a longer one ("ta-ta-taaa")
       vibrate: data.sound === 'silent' ? [] : important ? [120, 70, 120, 70, 420, 250, 120, 70, 120, 70, 420] : [120, 70, 120, 70, 380],
@@ -120,13 +122,13 @@ self.addEventListener('notificationclick', (event) => {
     (async () => {
       if (action === 'open') {
         await act(token, 'open');
-        await focusApp(`/?task=${encodeURIComponent(task_id || '')}`, { type: 'notification', action: 'open', task_id });
+        await focusApp(`${BASE}?task=${encodeURIComponent(task_id || '')}`, { type: 'notification', action: 'open', task_id });
         return;
       }
       const ok = await act(token, action);
       const clients = await self.clients.matchAll({ type: 'window' });
       clients.forEach((c) => c.postMessage({ type: 'notification', action: 'refresh', task_id }));
-      if (!ok) await focusApp(`/?task=${encodeURIComponent(task_id || '')}`, { type: 'notification', action, task_id });
+      if (!ok) await focusApp(`${BASE}?task=${encodeURIComponent(task_id || '')}`, { type: 'notification', action, task_id });
     })(),
   );
 });

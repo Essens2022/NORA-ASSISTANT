@@ -24,7 +24,7 @@ export function Nav() {
           onClick={() => {
             setState({ tab: t.id });
             try {
-              history.replaceState(null, '', t.id === 'ai' ? '/' : `/${t.id}`);
+              history.replaceState(null, '', t.id === 'ai' ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}${t.id}`);
             } catch {
               /* ignore */
             }
