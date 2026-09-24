@@ -46,6 +46,8 @@ export interface AppState {
   toasts: Toast[];
   features: { ai: boolean; stt: boolean; push: boolean };
   replyLang: Lang | null;
+  /** OAuth hand-off screen shown in the in-app browser (see services/auth.ts) */
+  handoff: 'working' | 'handed' | 'failed' | null;
 }
 
 const initial: AppState = {
@@ -68,6 +70,7 @@ const initial: AppState = {
   toasts: [],
   features: { ai: true, stt: true, push: true },
   replyLang: null,
+  handoff: null,
 };
 
 let state: AppState = initial;

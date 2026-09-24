@@ -125,6 +125,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* no rubber-band / pull-to-refresh: the app stays put like a native one */
+  overscroll-behavior: none;
+  background: var(--bg);
 }
 body {
   margin: 0;
@@ -133,7 +136,9 @@ body {
   font: 400 16px/24px var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+  touch-action: manipulation; /* no double-tap zoom */
+  -webkit-tap-highlight-color: transparent;
 }
 body.no-scroll {
   overflow: hidden;
@@ -1783,4 +1788,20 @@ textarea.input {
 }
 .ai-screen .voice {
   margin: 8px 0 12px;
+}
+
+/* OAuth hand-off page (in-app browser) */
+.handoff .auth-card {
+  text-align: center;
+}
+.handoff-check {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  color: #fff;
+  background: var(--success);
 }

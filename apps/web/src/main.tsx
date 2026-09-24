@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { App } from './App.tsx';
 import { detectDeviceLang, setLang } from './i18n/index.ts';
 import { flushQueue, track } from './services/api.ts';
+import { completeHandoff, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
 import { getState, setState, type Tab } from './state/store.ts';
@@ -25,6 +26,10 @@ void setLang(detectDeviceLang()).then(() => {
   requestAnimationFrame(() => setTimeout(() => track('tti_ms', Math.round(performance.now())), 0));
 });
 
+// Google sign-in from the installed app comes back through an in-app browser (iOS)
+if (new URLSearchParams(location.search).has('handoff')) setState({ handoff: 'working' });
+void completeHandoff().then((r) => setState({ handoff: r === 'handed' || r === 'failed' ? r : null }));
+watchHandoff(() => undefined);
 initAuth();
 void registerServiceWorker();
 

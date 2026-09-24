@@ -19,7 +19,7 @@ function useLazy<P>(loader: () => Promise<ComponentType<P>>, when: boolean): Com
 }
 
 export function App() {
-  const { authReady, userId, bootstrapped, onboardedAt, profile, tab, online } = useStore((s) => ({
+  const { authReady, userId, bootstrapped, onboardedAt, profile, tab, online, handoff } = useStore((s) => ({
     authReady: s.authReady,
     userId: s.userId,
     bootstrapped: s.bootstrapped,
@@ -27,9 +27,11 @@ export function App() {
     profile: s.profile,
     tab: s.tab,
     online: s.online,
+    handoff: s.handoff,
   }));
   const Profile = useLazy(() => import('./features/profile/ProfileScreen.tsx').then((m) => m.ProfileScreen), tab === 'profile');
 
+  if (handoff) return <Handoff state={handoff} />;
   if (!authReady) return <Splash />;
   if (!userId) return <SignIn />;
   if (!bootstrapped && !profile) return <Splash />;
@@ -61,6 +63,29 @@ function Splash() {
   return (
     <div class="splash" aria-busy="true">
       <div class="splash-mark" />
+    </div>
+  );
+}
+
+/** Shown in the in-app browser after Google sign-in from the installed app. */
+function Handoff({ state }: { state: 'working' | 'handed' | 'failed' }) {
+  return (
+    <div class="auth handoff" role="status" aria-live="polite">
+      <h1 class="brand big">NORA</h1>
+      {state === 'working' && <p class="muted">{tr('auth.handoff_working')}</p>}
+      {state === 'handed' && (
+        <div class="auth-card">
+          <div class="handoff-check" aria-hidden="true">✓</div>
+          <h2>{tr('auth.handoff_done_title')}</h2>
+          <p class="muted">{tr('auth.handoff_done_body')}</p>
+        </div>
+      )}
+      {state === 'failed' && (
+        <div class="auth-card">
+          <h2>{tr('auth.oauth_failed')}</h2>
+          <p class="muted">{tr('auth.handoff_failed_body')}</p>
+        </div>
+      )}
     </div>
   );
 }
