@@ -226,7 +226,7 @@ export function buildNotification(
  * opens, snoozes, completes or answers.
  */
 /** Minutes after the reminder at which NORA calls again while there is no answer. */
-export const NUDGE_MIN = { high: [5, 10, 20, 30, 45, 60, 90, 120], normal: [10, 20, 35, 55, 80, 120], low: [30, 90] } as const;
+export const NUDGE_MIN = { high: [5, 10, 17, 25, 38, 50, 80, 120], normal: [5, 10, 17, 25, 38, 50, 80, 120], low: [30, 90] } as const;
 
 export function nudgePlan(kind: ReminderKind, priority: Priority, prefs: Preferences, sentAt: Date): PlannedReminder[] {
   if (!['main', 'departure', 'snooze'].includes(kind)) return [];
