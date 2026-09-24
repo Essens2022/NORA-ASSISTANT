@@ -1659,7 +1659,56 @@ textarea.input {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 20px;
+}
+/* Google button per Google's branding: neutral surface, the multi-colour G, clear label */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: var(--r-btn, 14px);
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #1f1f1f;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.btn-google:active {
+  transform: scale(0.98);
+}
+.btn-google:disabled {
+  opacity: 0.6;
+}
+.btn-google:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.auth-alt {
+  align-self: center;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: none;
+  border: 0;
+  color: var(--blue);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.auth-alt:hover {
+  text-decoration: underline;
+}
+.auth-card .form .auth-alt {
+  display: block;
+  margin: 12px auto 0;
 }
 .onboarding {
   justify-content: center;
