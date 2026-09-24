@@ -2,6 +2,7 @@
 //
 //   POST   /v1/chat                       text → NORA reply (+ touched tasks)
 //   POST   /v1/voice                      audio → STT (silence guard) → chat
+//   POST   /v1/speak                      text → cloud TTS audio (mp3)
 //   GET    /v1/bootstrap                  profile + tasks + conversation for first paint
 //   GET    /v1/tasks  POST /v1/tasks      list / create manually
 //   GET    /v1/tasks/:id                  task + reminders + history
@@ -39,6 +40,7 @@ import { background, cors, HttpError, json, log, readJson } from '../_shared/htt
 import { getAI, getSTT } from '../_shared/providers.ts';
 import { getVapid, pushToUser } from '../_shared/push.ts';
 import { rowToProfile, rowToTask, SupabaseStore } from '../_shared/store.ts';
+import { DEFAULT_TTS_VOICE, getTTS, TTS_VOICES, type TtsVoice } from '../_shared/tts.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -172,6 +174,27 @@ async function voice(ctx: Ctx) {
   log('stt', { rid: ctx.rid, ms: sttMs, ok: verdict.ok, reason: verdict.ok ? null : verdict.reason, detected: result.language });
   if (!verdict.ok) return { heard: false, reason: verdict.reason, reply_text: t(lang, 'nothing_heard') };
   return { heard: true, transcript: verdict.text, ...(await chat(ctx, verdict.text, conv, reqId)) };
+}
+
+async function speak(ctx: Ctx): Promise<Response> {
+  const tts = await getTTS(admin);
+  if (!tts) throw new HttpError(503, 'tts_unavailable');
+  const body = await readJson<{ text?: string; voice?: string }>(ctx.req);
+  const text = (body.text ?? '').trim();
+  if (!text) throw new HttpError(400, 'empty');
+  if (text.length > 2000) throw new HttpError(413, 'too_long');
+  const voice: TtsVoice = (TTS_VOICES as readonly string[]).includes(body.voice ?? '') ? (body.voice as TtsVoice) : DEFAULT_TTS_VOICE;
+  const started = Date.now();
+  let upstream: Response;
+  try {
+    upstream = await tts.speak(text, voice);
+  } catch (err) {
+    log('tts_error', { rid: ctx.rid, error: String(err).slice(0, 200) });
+    background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'tts_error', value: 1 }));
+    throw new HttpError(502, 'tts_failed');
+  }
+  background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'tts_latency_ms', value: Date.now() - started, props: { chars: text.length } }));
+  return new Response(upstream.body, { status: 200, headers: { ...cors, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store', 'x-request-id': ctx.rid } });
 }
 
 // ---------------------------------------------------------------------------
@@ -457,9 +480,10 @@ Deno.serve(async (req) => {
     // public routes
     if (path === '/v1/push/key' && m === 'GET') return json({ publicKey: (await getVapid(admin)).publicKey }, 200, { 'Cache-Control': 'public, max-age=3600' });
     if (path === '/v1/notify-action' && m === 'POST') return json(await notifyAction(req, rid));
-    if (path === '/v1/health') return json({ ok: true, ai: (await getAI(admin))?.name ?? null, stt: (await getSTT(admin))?.name ?? null, push: true });
+    if (path === '/v1/health') return json({ ok: true, ai: (await getAI(admin))?.name ?? null, stt: (await getSTT(admin))?.name ?? null, tts: (await getTTS(admin))?.name ?? null, push: true });
 
     const ctx = await authed(req, url, rid);
+    if (path === '/v1/speak' && m === 'POST') return await speak(ctx);
     let seg: RegExpMatchArray | null;
     let result: unknown;
 
@@ -476,7 +500,7 @@ Deno.serve(async (req) => {
         ctx.db.from('messages').select('id, role, content, meta, created_at').eq('conversation_id', conv).order('id', { ascending: false }).limit(20),
         ctx.store.getState(conv),
       ]);
-      result = { profile: ctx.profile, onboarded_at: prow?.onboarded_at ?? null, conversation_id: conv, awaiting: state.pending?.field ?? null, messages: (messages ?? []).reverse(), ...tasks, features: { ai: !!(await getAI(admin)), stt: !!(await getSTT(admin)), push: true } };
+      result = { profile: ctx.profile, onboarded_at: prow?.onboarded_at ?? null, conversation_id: conv, awaiting: state.pending?.field ?? null, messages: (messages ?? []).reverse(), ...tasks, features: { ai: !!(await getAI(admin)), stt: !!(await getSTT(admin)), tts: !!(await getTTS(admin)), push: true } };
     } else if (path === '/v1/tasks' && m === 'GET') result = await listTasks(ctx);
     else if (path === '/v1/tasks' && m === 'POST') result = await createTask(ctx);
     else if ((seg = path.match(/^\/v1\/tasks\/([0-9a-f-]{36})$/))) {

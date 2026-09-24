@@ -44,7 +44,7 @@ export interface AppState {
   tab: Tab;
   openTaskId: string | null;
   toasts: Toast[];
-  features: { ai: boolean; stt: boolean; push: boolean };
+  features: { ai: boolean; stt: boolean; tts: boolean; push: boolean };
   replyLang: Lang | null;
   /** OAuth hand-off screen shown in the in-app browser (see services/auth.ts) */
   handoff: 'working' | 'handed' | 'failed' | null;
@@ -70,7 +70,7 @@ const initial: AppState = {
   tab: 'ai',
   openTaskId: null,
   toasts: [],
-  features: { ai: true, stt: true, push: true },
+  features: { ai: true, stt: true, tts: false, push: true },
   replyLang: null,
   handoff: null,
   alertTaskId: null,

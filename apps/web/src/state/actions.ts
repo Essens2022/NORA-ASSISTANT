@@ -58,13 +58,14 @@ interface Bootstrap {
   awaiting: string | null;
   messages: Array<{ id: number; role: 'user' | 'assistant'; content: string; meta?: { reply?: AssistantReply } }>;
   tasks: Task[];
-  features: { ai: boolean; stt: boolean; push: boolean };
+  features: { ai: boolean; stt: boolean; tts: boolean; push: boolean };
 }
 
 export async function bootstrap() {
   const started = performance.now();
   try {
     const b = await api<Bootstrap>('/v1/bootstrap');
+    tts.setCloudEnabled(b.features.tts);
     await applyProfile(b.profile);
     setState({
       profile: b.profile,
