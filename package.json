@@ -14,7 +14,7 @@
     "sync-core": "node scripts/sync-core.mjs",
     "functions:check": "npm run sync-core && cd supabase/functions && ../../node_modules/.bin/deno check api/index.ts dispatch/index.ts",
     "functions:deploy": "npm run sync-core && supabase functions deploy api --no-verify-jwt && supabase functions deploy dispatch --no-verify-jwt",
-    "test:e2e": "VITE_SUPABASE_URL=https://e2e.supabase.co VITE_SUPABASE_ANON_KEY=anon npm -w apps/web run build && cd apps/web && vitest run -c vitest.e2e.config.ts",
+    "test:e2e": "VITE_FEATURES= VITE_SUPABASE_URL=https://e2e.supabase.co VITE_SUPABASE_ANON_KEY=anon npm -w apps/web run build && cd apps/web && vitest run -c vitest.e2e.config.ts",
     "vapid": "node scripts/vapid.mjs"
   },
   "devDependencies": {
