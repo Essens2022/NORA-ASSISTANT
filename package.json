@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "deno": "^2.9.6",
+    "esbuild": "^0.28.2",
     "playwright": "1.55",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"

@@ -2,7 +2,9 @@
 // SpeechToTextProvider interfaces, so Groq can be swapped for OpenAI,
 // Anthropic, a local model, Apple or Google without touching the app.
 
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import type { AIProvider, ChatMessage, SpeechToTextProvider, SttResult } from './core/index.ts';
+import { getSecret } from './secrets.ts';
 
 /** Any OpenAI-compatible chat endpoint (Groq, OpenAI, Together, vLLM, …). */
 export class OpenAICompatibleProvider implements AIProvider {
@@ -73,30 +75,31 @@ export class WhisperProvider implements SpeechToTextProvider {
 
 const env = (k: string, d = '') => Deno.env.get(k) ?? d;
 
-export function aiFromEnv(): AIProvider | null {
+/** AI provider from config; the key comes from env (GROQ_API_KEY) or Vault (groq_api_key). */
+export async function getAI(admin: SupabaseClient): Promise<AIProvider | null> {
   const provider = env('AI_PROVIDER', 'groq');
   if (provider === 'groq') {
-    const key = env('GROQ_API_KEY');
+    const key = await getSecret(admin, 'groq_api_key', 'GROQ_API_KEY');
     if (!key) return null;
     // gpt-oss is a reasoning model – keep reasoning short for voice latency.
     return new OpenAICompatibleProvider('groq', 'https://api.groq.com/openai/v1', key, env('AI_MODEL', 'openai/gpt-oss-120b'), { reasoning_effort: env('AI_REASONING', 'low') });
   }
   if (provider === 'openai') {
-    const key = env('OPENAI_API_KEY');
+    const key = await getSecret(admin, 'openai_api_key', 'OPENAI_API_KEY');
     if (!key) return null;
     return new OpenAICompatibleProvider('openai', env('OPENAI_BASE_URL', 'https://api.openai.com/v1'), key, env('AI_MODEL', 'gpt-4.1-mini'));
   }
   return null;
 }
 
-export function sttFromEnv(): SpeechToTextProvider | null {
+export async function getSTT(admin: SupabaseClient): Promise<SpeechToTextProvider | null> {
   const provider = env('STT_PROVIDER', 'groq');
   if (provider === 'groq') {
-    const key = env('GROQ_API_KEY');
+    const key = await getSecret(admin, 'groq_api_key', 'GROQ_API_KEY');
     return key ? new WhisperProvider('groq', 'https://api.groq.com/openai/v1', key, env('STT_MODEL', 'whisper-large-v3')) : null;
   }
   if (provider === 'openai') {
-    const key = env('OPENAI_API_KEY');
+    const key = await getSecret(admin, 'openai_api_key', 'OPENAI_API_KEY');
     return key ? new WhisperProvider('openai', env('OPENAI_BASE_URL', 'https://api.openai.com/v1'), key, env('STT_MODEL', 'whisper-1')) : null;
   }
   return null;

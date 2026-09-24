@@ -1,13 +1,26 @@
 // Deliver a notification to all of a user's devices; disable dead subscriptions.
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import type { NotificationPayload } from './core/index.ts';
-import { sendWebPush, type VapidKeys } from './webpush.ts';
+import { ensureSecret, getSecret } from './secrets.ts';
+import { generateVapidKeys, sendWebPush, type VapidKeys } from './webpush.ts';
 
-export function vapidFromEnv(): VapidKeys | null {
-  const publicKey = Deno.env.get('VAPID_PUBLIC_KEY');
-  const privateKey = Deno.env.get('VAPID_PRIVATE_KEY');
-  if (!publicKey || !privateKey) return null;
-  return { publicKey, privateKey, subject: Deno.env.get('VAPID_SUBJECT') ?? 'mailto:support@nora.app' };
+let vapidCache: VapidKeys | null = null;
+
+/** VAPID keys from env or Vault; generated and stored on first use (no manual setup). */
+export async function getVapid(admin: SupabaseClient): Promise<VapidKeys> {
+  if (vapidCache) return vapidCache;
+  const subject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:support@nora.app';
+  const envPub = Deno.env.get('VAPID_PUBLIC_KEY');
+  const envPriv = Deno.env.get('VAPID_PRIVATE_KEY');
+  if (envPub && envPriv) {
+    vapidCache = { publicKey: envPub, privateKey: envPriv, subject };
+    return vapidCache;
+  }
+  // the key pair must stay consistent: one JSON secret, created once (race-safe)
+  const stored = (await getSecret(admin, 'nora_vapid_pair')) ?? (await ensureSecret(admin, 'nora_vapid_pair', JSON.stringify(await generateVapidKeys())));
+  const pair = JSON.parse(stored) as { publicKey: string; privateKey: string };
+  vapidCache = { publicKey: pair.publicKey, privateKey: pair.privateKey, subject };
+  return vapidCache;
 }
 
 export async function pushToUser(admin: SupabaseClient, userId: string, payload: NotificationPayload | Record<string, unknown>, vapid: VapidKeys): Promise<{ sent: number; devices: number }> {

@@ -22,11 +22,11 @@ import {
   type Reminder,
 } from '../_shared/core/index.ts';
 import { json, log } from '../_shared/http.ts';
-import { pushToUser, vapidFromEnv } from '../_shared/push.ts';
+import { getVapid, pushToUser } from '../_shared/push.ts';
+import { getSecret } from '../_shared/secrets.ts';
 import { rowToProfile, SupabaseStore } from '../_shared/store.ts';
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
-const CRON_SECRET = Deno.env.get('CRON_SECRET');
 
 async function profileOf(cache: Map<string, Profile>, userId: string): Promise<Profile | null> {
   if (cache.has(userId)) return cache.get(userId)!;
@@ -52,7 +52,7 @@ async function askInConversation(userId: string, taskId: string, text: string) {
 }
 
 async function sendDue(): Promise<{ claimed: number; sent: number; skipped: number; failed: number }> {
-  const vapid = vapidFromEnv();
+  const vapid = await getVapid(admin);
   const { data: due, error } = await admin.rpc('claim_due_reminders', { batch: 200 });
   if (error) throw new Error(`claim failed: ${error.message}`);
   const reminders = (due ?? []) as Reminder[];
@@ -152,7 +152,8 @@ async function sweepOverdue(): Promise<{ missed: number; advanced: number }> {
 }
 
 Deno.serve(async (req) => {
-  if (!CRON_SECRET || req.headers.get('x-cron-secret') !== CRON_SECRET) return json({ error: 'forbidden' }, 403);
+  const cronSecret = await getSecret(admin, 'nora_cron_secret', 'CRON_SECRET');
+  if (!cronSecret || req.headers.get('x-cron-secret') !== cronSecret) return json({ error: 'forbidden' }, 403);
   const started = Date.now();
   try {
     const result = await sendDue();

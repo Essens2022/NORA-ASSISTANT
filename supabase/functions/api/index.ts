@@ -36,16 +36,14 @@ import {
   type Task,
 } from '../_shared/core/index.ts';
 import { cors, HttpError, json, log, readJson } from '../_shared/http.ts';
-import { aiFromEnv, sttFromEnv } from '../_shared/providers.ts';
-import { pushToUser, vapidFromEnv } from '../_shared/push.ts';
+import { getAI, getSTT } from '../_shared/providers.ts';
+import { getVapid, pushToUser } from '../_shared/push.ts';
 import { rowToProfile, rowToTask, SupabaseStore } from '../_shared/store.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-const ai = aiFromEnv();
-const stt = sttFromEnv();
 
 const OPEN_STATUSES = ['captured', 'needs_clarification', 'scheduled', 'upcoming', 'reminded', 'acknowledged', 'in_progress', 'missed', 'rescheduled'] as const;
 
@@ -135,6 +133,7 @@ async function tasksByIds(ctx: Ctx, ids: string[]): Promise<Task[]> {
 
 async function chat(ctx: Ctx, text: string, convRequested: string | null, reqId: string) {
   const conv = await conversationId(ctx, convRequested);
+  const ai = await getAI(admin);
   const nora = new Assistant(ctx.store, ai, ctx.profile, (event, data) => log(event, { rid: ctx.rid, ...data }));
   const started = Date.now();
   const reply = await nora.handle(text, { conversationId: conv, requestId: reqId });
@@ -146,6 +145,7 @@ async function chat(ctx: Ctx, text: string, convRequested: string | null, reqId:
 }
 
 async function voice(ctx: Ctx) {
+  const stt = await getSTT(admin);
   if (!stt) throw new HttpError(503, 'stt_unavailable');
   const form = await ctx.req.formData().catch(() => null);
   const audio = form?.get('audio');
@@ -355,8 +355,7 @@ async function devicesRoute(ctx: Ctx) {
 }
 
 async function pushTest(ctx: Ctx) {
-  const vapid = vapidFromEnv();
-  if (!vapid) throw new HttpError(503, 'push_unavailable');
+  const vapid = await getVapid(admin);
   const lang = ctx.profile.ui_lang;
   const title = { ro: 'NORA funcționează', en: 'NORA is working', it: 'NORA funziona', ru: 'NORA работает' }[lang];
   const body = { ro: 'Așa vei primi reminderele.', en: "This is how your reminders will look.", it: 'Così riceverai i promemoria.', ru: 'Так будут выглядеть напоминания.' }[lang];
@@ -456,9 +455,9 @@ Deno.serve(async (req) => {
   const started = Date.now();
   try {
     // public routes
-    if (path === '/v1/push/key' && m === 'GET') return json({ publicKey: Deno.env.get('VAPID_PUBLIC_KEY') ?? null }, 200, { 'Cache-Control': 'public, max-age=3600' });
+    if (path === '/v1/push/key' && m === 'GET') return json({ publicKey: (await getVapid(admin)).publicKey }, 200, { 'Cache-Control': 'public, max-age=3600' });
     if (path === '/v1/notify-action' && m === 'POST') return json(await notifyAction(req, rid));
-    if (path === '/v1/health') return json({ ok: true, ai: ai?.name ?? null, stt: stt?.name ?? null, push: !!vapidFromEnv() });
+    if (path === '/v1/health') return json({ ok: true, ai: (await getAI(admin))?.name ?? null, stt: (await getSTT(admin))?.name ?? null, push: true });
 
     const ctx = await authed(req, url, rid);
     let seg: RegExpMatchArray | null;
@@ -477,7 +476,7 @@ Deno.serve(async (req) => {
         ctx.db.from('messages').select('id, role, content, meta, created_at').eq('conversation_id', conv).order('id', { ascending: false }).limit(20),
         ctx.store.getState(conv),
       ]);
-      result = { profile: ctx.profile, onboarded_at: prow?.onboarded_at ?? null, conversation_id: conv, awaiting: state.pending?.field ?? null, messages: (messages ?? []).reverse(), ...tasks, features: { ai: !!ai, stt: !!stt, push: !!vapidFromEnv() } };
+      result = { profile: ctx.profile, onboarded_at: prow?.onboarded_at ?? null, conversation_id: conv, awaiting: state.pending?.field ?? null, messages: (messages ?? []).reverse(), ...tasks, features: { ai: !!(await getAI(admin)), stt: !!(await getSTT(admin)), push: true } };
     } else if (path === '/v1/tasks' && m === 'GET') result = await listTasks(ctx);
     else if (path === '/v1/tasks' && m === 'POST') result = await createTask(ctx);
     else if ((seg = path.match(/^\/v1\/tasks\/([0-9a-f-]{36})$/))) {
