@@ -295,15 +295,27 @@ function PushControl() {
   );
 }
 
+// kept between visits and prefetched after start-up, so the list shows instantly
+let memoryCache: MemoryItem[] | null = null;
+export function prefetchMemory() {
+  return api<{ items: MemoryItem[] }>('/v1/memory')
+    .then((r) => (memoryCache = Array.isArray(r.items) ? r.items : []))
+    .catch(() => memoryCache);
+}
+
 function MemoryList() {
-  const [items, setItems] = useState<MemoryItem[] | null>(null);
+  const [items, setItemsState] = useState<MemoryItem[] | null>(memoryCache);
+  const setItems = (v: MemoryItem[]) => {
+    memoryCache = v;
+    setItemsState(v);
+  };
   const [editing, setEditing] = useState<string | null>(null);
   const [value, setValue] = useState('');
   const [confirmAll, setConfirmAll] = useState(false);
   const load = () =>
     api<{ items: MemoryItem[] }>('/v1/memory')
       .then((r) => setItems(Array.isArray(r.items) ? r.items : []))
-      .catch(() => setItems([]));
+      .catch(() => setItems(memoryCache ?? []));
   useEffect(() => void load(), []);
 
   if (items === null) return <p class="muted">…</p>;

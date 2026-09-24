@@ -1,23 +1,13 @@
-import { useEffect, useState } from 'preact/hooks';
-import type { ComponentType } from 'preact';
 import { Nav, Toasts } from './components/Nav.tsx';
 import { AIScreen } from './features/ai/AIScreen.tsx';
 import { ActivityScreen } from './features/activity/ActivityScreen.tsx';
 import { SignIn } from './features/auth/SignIn.tsx';
 import { Onboarding } from './features/onboarding/Onboarding.tsx';
+import { ProfileScreen } from './features/profile/ProfileScreen.tsx';
 import { TaskDetailHost } from './features/task/TaskDetail.tsx';
 import { ReminderAlert } from './features/alert/ReminderAlert.tsx';
 import { tr } from './i18n/index.ts';
 import { useStore } from './state/store.ts';
-
-// Profile is not needed for first paint – load it on demand.
-function useLazy<P>(loader: () => Promise<ComponentType<P>>, when: boolean): ComponentType<P> | null {
-  const [C, setC] = useState<ComponentType<P> | null>(null);
-  useEffect(() => {
-    if (when && !C) void loader().then((c) => setC(() => c));
-  }, [when]);
-  return C;
-}
 
 export function App() {
   const { authReady, userId, bootstrapped, onboardedAt, profile, tab, online, handoff } = useStore((s) => ({
@@ -30,7 +20,6 @@ export function App() {
     online: s.online,
     handoff: s.handoff,
   }));
-  const Profile = useLazy(() => import('./features/profile/ProfileScreen.tsx').then((m) => m.ProfileScreen), tab === 'profile');
 
   if (handoff) return <Handoff state={handoff} />;
   if (!authReady) return <Splash />;
@@ -51,7 +40,7 @@ export function App() {
       <main id="main" class="main">
         {tab === 'ai' && <AIScreen />}
         {tab === 'activity' && <ActivityScreen />}
-        {tab === 'profile' && (Profile ? <Profile /> : <div class="screen" />)}
+        {tab === 'profile' && <ProfileScreen />}
       </main>
       <Nav />
       <TaskDetailHost />

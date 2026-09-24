@@ -68,9 +68,15 @@ function repeatOptions(hasCustom: boolean) {
   return opts;
 }
 
+const detailCache = new Map<string, Detail>();
+
 function TaskDetail({ task }: { task: Task }) {
   const [mode, setMode] = useState<Mode>('view');
-  const [detail, setDetail] = useState<Detail | null>(null);
+  const [detail, setDetailState] = useState<Detail | null>(detailCache.get(task.id) ?? null);
+  const setDetail = (d: Detail) => {
+    detailCache.set(task.id, d);
+    setDetailState(d);
+  };
   const [confirm, setConfirm] = useState<'delete' | 'cancel' | null>(null);
   const today = todayLocal();
   const close = () => setState({ openTaskId: null });

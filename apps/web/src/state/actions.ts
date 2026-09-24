@@ -7,6 +7,7 @@ import { auth } from '../services/auth.ts';
 import { syncSubscription } from '../services/push.ts';
 import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.ts';
 import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
+import { prefetchMemory } from '../features/profile/ProfileScreen.tsx';
 import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 
 // ----------------------------------------------------------------------------
@@ -64,6 +65,8 @@ export async function bootstrap() {
       tasks: Object.fromEntries(b.tasks.map((t) => [t.id, t])),
     });
     upsertTasks([]);
+    surfaceUnanswered();
+    void prefetchMemory();
     track('app_open', Math.round(performance.now() - started));
     void flushQueue().then((n) => {
       if (n) void refreshTasks();
@@ -84,12 +87,26 @@ export async function applyProfile(p: Profile) {
   setFormat({ locale: p.locale, hour12: p.prefs.hour12 });
 }
 
+/**
+ * A reminder that fired and got no answer yet (status 'reminded') takes the whole
+ * screen as soon as NORA is open: it has to be answered, not scrolled past.
+ */
+export function surfaceUnanswered() {
+  const s = getState();
+  if (s.alertTaskId || s.openTaskId) return;
+  const due = Object.values(s.tasks)
+    .filter((t) => t.status === 'reminded')
+    .sort((a, b) => (a.start_at ?? '').localeCompare(b.start_at ?? ''))[0];
+  if (due) setState({ alertTaskId: due.id });
+}
+
 export async function refreshTasks() {
   try {
     const { tasks } = await api<{ tasks: Task[] }>('/v1/tasks');
     const keepCompleted = Object.values(getState().tasks).filter((t) => t.status === 'completed' && !tasks.some((x) => x.id === t.id));
     setState({ tasks: Object.fromEntries([...keepCompleted, ...tasks].map((t) => [t.id, t])) });
     upsertTasks([]);
+    surfaceUnanswered();
   } catch {
     /* offline – cached tasks stay */
   }

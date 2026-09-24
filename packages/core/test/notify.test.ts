@@ -51,12 +51,15 @@ describe('notifications call the person', () => {
 
 describe('nudge plan (call again when there is no reaction)', () => {
   const sent = new Date('2026-09-24T07:00:00Z');
-  it('normal: once after 10 min; high: 10 and 25 min', () => {
-    expect(nudgePlan('main', 'normal', DEFAULT_PREFERENCES, sent).map((n) => n.fire_at)).toEqual(['2026-09-24T07:10:00.000Z']);
-    expect(nudgePlan('main', 'high', DEFAULT_PREFERENCES, sent).map((n) => n.fire_at)).toEqual(['2026-09-24T07:10:00.000Z', '2026-09-24T07:25:00.000Z']);
+  const mins = (p: 'low' | 'normal' | 'high') => nudgePlan('main', p, DEFAULT_PREFERENCES, sent).map((n) => (Date.parse(n.fire_at) - sent.getTime()) / 60000);
+  it('keeps calling until answered: normal for 2 h, high more often, low twice', () => {
+    expect(mins('normal')).toEqual([10, 20, 35, 55, 80, 120]);
+    expect(mins('high')).toEqual([5, 10, 20, 30, 45, 60, 90, 120]);
+    expect(mins('low')).toEqual([30, 90]);
+    expect(nudgePlan('main', 'high', DEFAULT_PREFERENCES, sent).every((n) => n.sound === 'important')).toBe(true);
   });
-  it('never for low priority, silent mode, prep or follow-ups', () => {
-    expect(nudgePlan('main', 'low', DEFAULT_PREFERENCES, sent)).toEqual([]);
+  it('never in silent mode, with notifications off, for prep or follow-ups', () => {
+    expect(nudgePlan('main', 'normal', { ...DEFAULT_PREFERENCES, notifications: false }, sent)).toEqual([]);
     expect(nudgePlan('main', 'normal', { ...DEFAULT_PREFERENCES, sound: 'silent' }, sent)).toEqual([]);
     expect(nudgePlan('prep', 'high', DEFAULT_PREFERENCES, sent)).toEqual([]);
     expect(nudgePlan('followup', 'high', DEFAULT_PREFERENCES, sent)).toEqual([]);

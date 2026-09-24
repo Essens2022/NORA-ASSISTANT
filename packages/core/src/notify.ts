@@ -225,9 +225,14 @@ export function buildNotification(
  * Low priority and silent mode: never. Nudges are dropped as soon as the user
  * opens, snoozes, completes or answers.
  */
+/** Minutes after the reminder at which NORA calls again while there is no answer. */
+export const NUDGE_MIN = { high: [5, 10, 20, 30, 45, 60, 90, 120], normal: [10, 20, 35, 55, 80, 120], low: [30, 90] } as const;
+
 export function nudgePlan(kind: ReminderKind, priority: Priority, prefs: Preferences, sentAt: Date): PlannedReminder[] {
   if (!['main', 'departure', 'snooze'].includes(kind)) return [];
-  if (priority === 'low' || prefs.sound === 'silent' || !prefs.notifications) return [];
-  const delays = priority === 'high' || prefs.sound === 'important' ? [10, 25] : [10];
+  if (prefs.sound === 'silent' || !prefs.notifications) return [];
+  // NORA keeps calling until the user answers (Done / snooze / opens the task);
+  // the dispatcher drops every nudge once the task is no longer 'reminded'.
+  const delays = priority === 'high' || prefs.sound === 'important' ? NUDGE_MIN.high : priority === 'low' ? NUDGE_MIN.low : NUDGE_MIN.normal;
   return delays.map((m) => ({ kind: 'nudge' as const, fire_at: new Date(sentAt.getTime() + m * 60000).toISOString(), sound: priority === 'high' ? ('important' as const) : prefs.sound }));
 }

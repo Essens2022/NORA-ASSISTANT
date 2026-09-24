@@ -3,14 +3,13 @@
 
 import type { Lang } from '@nora/core';
 import { en, type MessageKey } from './en.ts';
+import { it } from './it.ts';
+import { ro } from './ro.ts';
+import { ru } from './ru.ts';
 
 type Dict = Record<MessageKey, string>;
-const loaders: Record<Lang, () => Promise<Dict>> = {
-  en: async () => en,
-  ro: async () => (await import('./ro.ts')).ro,
-  it: async () => (await import('./it.ts')).it,
-  ru: async () => (await import('./ru.ts')).ru,
-};
+// bundled, not lazy: switching screens or languages never waits on the network
+const dicts: Record<Lang, Dict> = { en, ro, it, ru };
 
 export const LANG_NAMES: Record<Lang, string> = { en: 'English', ro: 'Română', it: 'Italiano', ru: 'Русский' };
 export const DEFAULT_LOCALE: Record<Lang, string> = { en: 'en-US', ro: 'ro-RO', it: 'it-IT', ru: 'ru-RU' };
@@ -31,7 +30,7 @@ export function detectDeviceLang(): Lang {
 }
 
 export async function setLang(lang: Lang): Promise<void> {
-  dict = await loaders[lang]();
+  dict = dicts[lang];
   current = lang;
   document.documentElement.lang = lang;
   listeners.forEach((l) => l());

@@ -1,5 +1,5 @@
 /* NORA service worker: app-shell caching + push notifications with actions. */
-const VERSION = 'nora-v2';
+const VERSION = 'nora-v3';
 const params = new URL(self.location.href).searchParams;
 const API = params.get('api') || '';
 const ANON = params.get('key') || '';
@@ -121,7 +121,9 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     (async () => {
       if (action === 'open') {
-        await act(token, 'open');
+        // Opening a reminder is not an answer: the full-screen reminder asks for one
+        // and NORA keeps calling (nudges) until the user presses a button there.
+        if (!['main', 'departure', 'snooze', 'nudge'].includes(kind)) await act(token, 'open');
         const alert = ['main', 'departure', 'snooze', 'nudge'].includes(kind) ? '&alert=1' : '';
         await focusApp(`${BASE}?task=${encodeURIComponent(task_id || '')}${alert}`, { type: 'notification', action: 'open', task_id, kind });
         return;
