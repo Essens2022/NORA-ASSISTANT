@@ -17,6 +17,14 @@ import './styles.css';
 
 applyTheme();
 
+// Clear the "you have something unanswered" badge (set from the push handler
+// in the service worker) the moment the person actually looks at NORA.
+try {
+  navigator.clearAppBadge?.();
+} catch {
+  /* Badging API not available here */
+}
+
 // deep links: /activity, /profile, /?task=<id>
 const path = location.pathname.slice(import.meta.env.BASE_URL.length).replace(/\/+$/, '') as Tab;
 if (path === 'activity' || path === 'profile') setState({ tab: path });
@@ -71,7 +79,14 @@ window.addEventListener('offline', () => setState({ online: false }));
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) hiddenAt = Date.now();
-  else if (getState().userId && Date.now() - hiddenAt > 60_000) void bootstrap();
+  else {
+    try {
+      navigator.clearAppBadge?.();
+    } catch {
+      /* ignore */
+    }
+    if (getState().userId && Date.now() - hiddenAt > 60_000) void bootstrap();
+  }
 });
 
 // Messages from the service worker (notification buttons while the app is open)

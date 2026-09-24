@@ -71,6 +71,14 @@ self.addEventListener('push', (event) => {
     // If NORA is open, let the app play its own chime and show the reminder inline too.
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     clients.forEach((c) => c.postMessage({ type: 'reminder', title: data.title, body: data.body, task_id: data.task_id, kind: data.kind, sound: data.sound }));
+    // Belt-and-braces against a suppressed banner/sound (Focus mode, a quiet
+    // notification style, an unread system notification the person hasn't
+    // noticed…): the app icon itself gets a badge, cleared when NORA is opened.
+    try {
+      if (self.navigator?.setAppBadge) await self.navigator.setAppBadge();
+    } catch {
+      /* Badging API not available here */
+    }
     const silent = data.sound === 'silent';
     await self.registration.showNotification(data.title || 'NORA', {
       body: data.body || '',
