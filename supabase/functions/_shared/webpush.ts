@@ -111,7 +111,11 @@ export async function sendWebPush(
     TTL: String(opts.ttl ?? 6 * 3600),
     Urgency: opts.urgency ?? 'high',
   };
-  if (opts.topic) headers.Topic = opts.topic.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32);
+  // Apple's web push service (web.push.apple.com) rejects the Topic header with
+  // "BadWebPushTopic" — unlike Chrome/Firefox, which use it to coalesce/replace
+  // pending notifications. Only send it where it's actually accepted.
+  const apple = new URL(sub.endpoint).host === 'web.push.apple.com';
+  if (opts.topic && !apple) headers.Topic = opts.topic.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32);
   const res = await fetch(sub.endpoint, { method: 'POST', headers, body: bs(body) });
   const ok = res.status >= 200 && res.status < 300;
   const errorBody = ok ? undefined : (await res.text().catch(() => '')).slice(0, 300);
