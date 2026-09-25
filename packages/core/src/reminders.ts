@@ -63,8 +63,12 @@ export function planReminders(t: PlanTask, prefs: Preferences, now: Date): Plann
   const out: PlannedReminder[] = [];
   const sound: SoundLevel = t.priority === 'high' && prefs.sound !== 'silent' ? 'important' : prefs.sound;
   const at = (date: string, time: string) => zonedToUtc(date, time, t.timezone);
+  // A short lead, not a "give it a real head start" margin: just enough to skip a time
+  // that's already effectively past (clock skew, minute rounding) without swallowing a
+  // genuine near-term ask like "peste un minut" / "remind me in a minute", which used to
+  // land inside a 30s window and get silently dropped.
   const push = (kind: ReminderKind, d: Date | null, s: SoundLevel = sound) => {
-    if (d && d.getTime() > now.getTime() + 30_000) out.push({ kind, fire_at: d.toISOString(), sound: s });
+    if (d && d.getTime() > now.getTime() + 3_000) out.push({ kind, fire_at: d.toISOString(), sound: s });
   };
 
   const timed = !!t.due_time;
