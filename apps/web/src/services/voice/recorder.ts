@@ -77,7 +77,7 @@ export class VoiceRecorder {
       return;
     }
     const mime = pickMime();
-    this.recorder = new MediaRecorder(this.stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : undefined);
+    this.recorder = new MediaRecorder(this.stream, mime ? { mimeType: mime, audioBitsPerSecond: 64000 } : undefined);
     this.recorder.ondataavailable = (e) => e.data.size && this.chunks.push(e.data);
     this.recorder.onstop = () => this.finish();
     this.recorder.start(250);

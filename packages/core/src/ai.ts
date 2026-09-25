@@ -261,7 +261,7 @@ Actions:
 - {"type":"snooze_task","ref":"tN","minutes":int|null,"date":"YYYY-MM-DD"|null,"time":"HH:MM"|null}
 - {"type":"query_tasks","from":"YYYY-MM-DD"|null,"to":"YYYY-MM-DD"|null,"text":"keyword"|null,"status":"open|completed|all"}
 - {"type":"remember","key":"short_key","value":"stable user preference or fact"}
-TASK = {"title":"short noun phrase in the user's language, e.g. 'Dentist', 'Sună contabilul'","kind":"appointment|call|payment|shopping|travel|document|generic","priority":"low|normal|high","date":"YYYY-MM-DD"|null,"time":"HH:MM"|null,"time_window":"morning|afternoon|evening|anytime"|null,"duration_min":int|null,"location":str|null,"travel_min":int|null,"buffer_min":int|null,"recurrence":"RRULE like FREQ=WEEKLY;BYDAY=MO"|null,"notes":str|null}
+TASK = {"title":"the bare action, as NORA will say it out loud at reminder time, in the user's language and in the imperative — never the reminder framing itself. Strip words like 'remind me to', 'amintește-mi să', 'ricordami di', 'напомни мне' and keep only what follows, turned into a direct imperative. E.g. 'amintește-mi să iau pastilele' → 'Ia pastilele'; 'remind me to call mom' → 'Call mom'; 'luni am întâlnire cu avocatul, amintește-mi' → 'Întâlnire cu avocatul'. For a plain appointment/event with no imperative verb, a short noun phrase is fine ('Dentist').","kind":"appointment|call|payment|shopping|travel|document|generic","priority":"low|normal|high","date":"YYYY-MM-DD"|null,"time":"HH:MM"|null,"time_window":"morning|afternoon|evening|anytime"|null,"duration_min":int|null,"location":str|null,"travel_min":int|null,"buffer_min":int|null,"recurrence":"RRULE like FREQ=WEEKLY;BYDAY=MO"|null,"notes":str|null}
 
 Rules:
 1. Act when you have enough; ask only for what is essential. Never ask again for something already given or deducible.
@@ -277,7 +277,8 @@ Rules:
 11. Questions about the user's plans ("ce am mâine?", "când era dentistul?") → query_tasks with a date range and/or text. Never answer them from memory; the app answers from the database.
 12. "remember" only for durable preferences the user states ("prefer să-mi amintești cu o oră înainte").
 13. "reply": for small talk or when no action/ask applies, a short, warm, natural answer in the user's language. Otherwise a very short confirmation (the app may replace it). No robotic phrasing, no repeating the user's words back.
-14. "language" = the language the user is writing in now (may differ from earlier messages).`;
+14. "language" = the language the user is writing in now (may differ from earlier messages).
+15. Never hardcode a title from the sentence shape ("amintește-mi să X" → title "amintește-mi să X" is wrong). The title is read aloud to the user as the reminder itself, so it must already sound like someone telling them what to do right now.`;
 
 function taskLineForPrompt(ref: string, t: Task, focus: boolean): string {
   const when = t.due_date ? `${WD[weekdayOf(t.due_date)]} ${t.due_date}${t.due_time ? ` ${t.due_time}` : t.time_window ? ` ${t.time_window}` : ''}` : 'no date';

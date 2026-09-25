@@ -161,7 +161,7 @@ async function voice(ctx: Ctx) {
   const started = Date.now();
   let result;
   try {
-    result = await stt.transcribe(audio, { prompt: 'NORA' });
+    result = await stt.transcribe(audio, { language: lang, prompt: ctx.profile.display_name ? `NORA, ${ctx.profile.display_name}` : 'NORA' });
   } catch (err) {
     log('stt_error', { rid: ctx.rid, error: String(err).slice(0, 200) });
     background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'stt_error', value: 1 }));

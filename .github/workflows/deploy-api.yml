@@ -3,7 +3,7 @@ name: Deploy Edge Functions (Supabase)
 on:
   push:
     branches: [main]
-    paths: ['supabase/functions/**', 'supabase/config.toml', '.github/workflows/deploy-api.yml']
+    paths: ['packages/core/**', 'supabase/functions/**', 'supabase/config.toml', '.github/workflows/deploy-api.yml']
   workflow_dispatch:
 
 concurrency:
@@ -15,6 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Sync packages/core into the Edge Function's copy
+        run: npm run sync-core
       - uses: supabase/setup-cli@v1
         with:
           version: latest
