@@ -93,6 +93,8 @@ export interface PushResult {
   status: number;
   /** Subscription is gone – disable the device. */
   gone: boolean;
+  /** Response body, only kept on failure (diagnostics). */
+  errorBody?: string;
 }
 
 export async function sendWebPush(
@@ -111,8 +113,9 @@ export async function sendWebPush(
   };
   if (opts.topic) headers.Topic = opts.topic.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32);
   const res = await fetch(sub.endpoint, { method: 'POST', headers, body: bs(body) });
-  await res.body?.cancel();
-  return { ok: res.status >= 200 && res.status < 300, status: res.status, gone: res.status === 404 || res.status === 410 };
+  const ok = res.status >= 200 && res.status < 300;
+  const errorBody = ok ? undefined : (await res.text().catch(() => '')).slice(0, 300);
+  return { ok, status: res.status, gone: res.status === 404 || res.status === 410, errorBody };
 }
 
 /** Generate a VAPID key pair (run once, store as function secrets). */

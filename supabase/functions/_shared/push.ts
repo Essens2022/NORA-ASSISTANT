@@ -35,7 +35,7 @@ export async function pushToUser(admin: SupabaseClient, userId: string, payload:
         });
         if (r.ok) sent++;
         else if (r.gone) await admin.from('devices').update({ disabled_at: new Date().toISOString() }).eq('id', d.id);
-        else console.warn(JSON.stringify({ event: 'push_failed', status: r.status }));
+        else console.warn(JSON.stringify({ event: 'push_failed', status: r.status, body: r.errorBody, endpoint: d.endpoint.slice(0, 60) }));
       } catch (err) {
         console.warn(JSON.stringify({ event: 'push_error', error: String(err) }));
       }
