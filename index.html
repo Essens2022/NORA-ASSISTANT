@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#F7F9FC" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="NORA – Tell me once. I'll remember." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="NORA" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <title>NORA</title>
+    <script>
+      // A reminder tap forces a real reload (needed for iOS to allow the voice to
+      // speak without a further touch) – paint the alert screen's own dark
+      // background immediately, before any CSS/JS loads, so that reload never
+      // shows a flash of the light theme in between.
+      if (location.search.includes('alert=1')) document.documentElement.style.background = '#0b1220';
+    </script>
+    <script type="module" crossorigin src="/assets/index-B0mGHEVJ.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DwxoCkhE.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
