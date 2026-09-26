@@ -80,7 +80,9 @@ export function AIScreen() {
   };
 
   const hour = nowLocal().hour;
-  const greet = hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
+  // Midnight–4am is still "evening" as far as a greeting goes – the night hasn't
+  // turned into morning just because the clock rolled over to a new date.
+  const greet = hour < 4 ? tr('ai.greet_evening') : hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
   const examples = tr('ai.examples').split('|');
 
   return (
