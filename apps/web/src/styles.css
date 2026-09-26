@@ -1628,10 +1628,11 @@ textarea.input {
   min-height: 100dvh;
   max-width: 440px;
   margin: 0 auto;
-  padding: calc(48px + env(safe-area-inset-top)) 24px 32px;
+  padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   gap: 12px;
 }
