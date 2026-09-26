@@ -45,10 +45,14 @@ export function ReminderAlert() {
     say();
     // That trust often doesn't carry over: the first touch anywhere on this
     // screen unlocks audio and repeats sound + voice immediately, instead of
-    // waiting for the reminder to be dismissed first.
-    const unlock = () => {
+    // waiting for the reminder to be dismissed first. But a tap that's about to
+    // dismiss the screen (one of its own action buttons) shouldn't also kick off
+    // one more ring/voice right as it closes - that reads as a stray, senseless
+    // chime rather than the reminder actually being heard.
+    const unlock = (e: PointerEvent) => {
       unlockAudio();
       tts.unlock();
+      if (e.target instanceof Element && e.target.closest('.alert-actions')) return;
       ring();
       say();
     };
