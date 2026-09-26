@@ -13,6 +13,13 @@
     <link rel="icon" href="%BASE_URL%icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="%BASE_URL%icon-192.png" />
     <title>NORA</title>
+    <script>
+      // A reminder tap forces a real reload (needed for iOS to allow the voice to
+      // speak without a further touch) – paint the alert screen's own dark
+      // background immediately, before any CSS/JS loads, so that reload never
+      // shows a flash of the light theme in between.
+      if (location.search.includes('alert=1')) document.documentElement.style.background = '#0b1220';
+    </script>
   </head>
   <body>
     <div id="app"></div>
