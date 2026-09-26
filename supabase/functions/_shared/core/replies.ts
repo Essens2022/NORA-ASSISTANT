@@ -11,6 +11,7 @@ type Dict = Record<string, string>;
 const T: Record<Lang, Dict> = {
   ro: {
     created: 'Perfect. Îți amintesc {when}.',
+    confirmed_speech: 'Perfect, îți amintesc.',
     created_ok: 'Perfect. Te anunț din timp.',
     created_inbox: 'Notat.',
     created_departure: 'Perfect. Ca să ajungi fără grabă, ar fi bine să pleci în jur de {dep}.',
@@ -59,6 +60,7 @@ const T: Record<Lang, Dict> = {
   },
   en: {
     created: "Done. I'll remind you {when}.",
+    confirmed_speech: "Done, I'll remind you.",
     created_ok: "Done. I'll give you a heads-up in time.",
     created_inbox: 'Got it.',
     created_departure: 'Done. To get there without rushing, leave around {dep}.',
@@ -107,6 +109,7 @@ const T: Record<Lang, Dict> = {
   },
   it: {
     created: 'Perfetto. Te lo ricordo {when}.',
+    confirmed_speech: 'Perfetto, te lo ricordo.',
     created_ok: 'Perfetto. Ti avviso in tempo.',
     created_inbox: 'Segnato.',
     created_departure: 'Perfetto. Per arrivare senza fretta, parti verso le {dep}.',
@@ -155,6 +158,7 @@ const T: Record<Lang, Dict> = {
   },
   ru: {
     created: 'Готово. Напомню {when}.',
+    confirmed_speech: 'Готово, напомню.',
     created_ok: 'Готово. Предупрежу заранее.',
     created_inbox: 'Записала.',
     created_departure: 'Готово. Чтобы доехать без спешки, лучше выехать около {dep}.',

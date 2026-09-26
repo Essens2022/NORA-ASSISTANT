@@ -48,6 +48,12 @@ export interface AssistantStore extends TaskStore {
 
 export interface AssistantReply {
   text: string;
+  /** What NORA should say out loud, when it differs from `text` – e.g. the written
+   * confirmation spells out the time ("Perfect. Îți amintesc mâine la 9."), but
+   * TTS engines often mispronounce a read-out date/time, so the spoken version
+   * drops it ("Perfect, îți amintesc.") and leaves the time to the screen. Falls
+   * back to `text` when absent. */
+  speech?: string;
   lang: Lang;
   /** Tasks created/changed by this turn – the UI refreshes them. */
   task_ids: string[];
@@ -429,7 +435,11 @@ export class Assistant {
     this.focus(c, task);
     c.state.pending = null;
     if (task.due_date && !task.due_time && !task.time_window && NEEDS_TIME.has(task.kind)) return this.ask(c, task, 'time');
-    return this.done(c, this.confirmCreate(c, task), c.touched);
+    const reply = this.done(c, this.confirmCreate(c, task), c.touched);
+    // the written confirmation spells out the time; spoken, keep it short and skip
+    // the time/date/rule entirely rather than risk TTS mispronouncing it
+    reply.speech = task.due_date ? t(c.lang, 'confirmed_speech') : t(c.lang, 'created_inbox');
+    return reply;
   }
 
   private ask(c: TurnCtx, task: Task, field: AskField): AssistantReply {

@@ -178,7 +178,7 @@ export async function sendText(text: string, requestId = newRequestId()): Promis
     // a typed message gets a spoken reply too, same as a voice one (spec: NORA
     // always answers out loud when Voice replies is on, not just after the mic) –
     // but never step on an actual voice turn in progress (listening/processing/already speaking)
-    if (getState().voice === 'idle') void speak(res.reply.text, res.reply.lang);
+    if (getState().voice === 'idle') void speak(res.reply.speech ?? res.reply.text, res.reply.lang);
     return true;
   } catch (err) {
     setState((s) => ({ messages: s.messages.map((m) => (m.id === pendingId ? { ...m, pending: false, error: true, text: errorText(err), retry: { text: clean, requestId } } as ChatItem : m)) }));
@@ -281,7 +281,7 @@ async function listen(followUp = false, token = ++voiceToken): Promise<'denied' 
     });
     applyReply(pendingId, { reply: res.reply, conversation_id: res.conversation_id!, tasks: res.tasks ?? [] });
     track('voice_roundtrip_ms', Math.round(performance.now() - started), { path: res.reply.path });
-    await speak(res.reply.text, res.reply.lang);
+    await speak(res.reply.speech ?? res.reply.text, res.reply.lang);
     if (token !== voiceToken) return null;
     // NORA asked a question → keep the conversation going hands-free
     if (res.reply.awaiting && getState().voice === 'idle') return listen(true, token);
