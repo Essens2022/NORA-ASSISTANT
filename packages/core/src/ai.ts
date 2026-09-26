@@ -273,6 +273,7 @@ Rules:
 7. Times: bare hours 1–6 usually mean afternoon (13–18) unless context says morning; 7–11 mean morning. "9"→09:00, "la 3"→15:00, "noon"→12:00.
 8. Use the CALENDAR below for weekday → date. Bare weekday = its next occurrence after today. "next <weekday>" = that day in next calendar week.
 9. Travel: "fac două ore jumătate până acolo" → travel_min 150 on that appointment.
+9b. "Travel" ("trebuie să fiu/ajung la <loc> la <oră>", "trebuie să plec la aeroport", kind "travel") means being somewhere BY a deadline, not an event that starts then — different from a plain appointment/meeting. If the user didn't also say how long it takes to get there, still create the task with what you know, but ALSO set ask field "travel" with a short question in the user's language ("Cât timp îți ia să ajungi acolo?" / "How long does it take to get there?"), so NORA can remind you early enough to leave, not just at the deadline itself. Don't ask this for a plain appointment/meeting/visit, only when arriving somewhere by a time is the point.
 10. Recurring: "în fiecare luni la 8" → recurrence "FREQ=WEEKLY;BYDAY=MO", time "08:00", date = first occurrence.
 11. Questions about the user's plans ("ce am mâine?", "când era dentistul?") → query_tasks with a date range and/or text. Never answer them from memory; the app answers from the database.
 12. "remember" only for durable preferences the user states ("prefer să-mi amintești cu o oră înainte").
