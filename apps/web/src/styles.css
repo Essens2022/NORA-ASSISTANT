@@ -762,8 +762,12 @@ textarea.input {
   display: flex;
   flex-direction: column;
   /* fixed, not min-: the voice button and composer must never be pushed below the
-     fold on a short phone – the briefing/chat scroll inside .ai-scroll instead */
-  height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom));
+     fold on a short phone – the briefing/chat scroll inside .ai-scroll instead.
+     --app-h (set in main.tsx from visualViewport) instead of 100dvh: iOS Safari can
+     report a stale dvh right after a long background/foreground cycle, which made
+     .ai-screen taller than the real viewport and let the whole page (briefing
+     included) scroll as one block until the app was fully restarted. */
+  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
   padding-bottom: 16px;
   overflow: hidden;
 }

@@ -75,11 +75,25 @@ window.addEventListener('online', () => {
 });
 window.addEventListener('offline', () => setState({ online: false }));
 
+// iOS Safari can report a stale 100dvh right after a long background/foreground
+// cycle, tall enough that the whole page scrolls as one block (briefing included)
+// instead of just the conversation – until the app is fully restarted. Compute the
+// real visible height ourselves and keep it current, instead of trusting dvh alone.
+const setAppHeight = () => {
+  document.documentElement.style.setProperty('--app-h', `${window.visualViewport?.height ?? window.innerHeight}px`);
+};
+setAppHeight();
+window.visualViewport?.addEventListener('resize', setAppHeight);
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+
 // Coming back to the app: refresh (reminders may have changed statuses meanwhile)
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) hiddenAt = Date.now();
   else {
+    // the browser's own viewport figures can still be settling right at this instant
+    requestAnimationFrame(setAppHeight);
     try {
       navigator.clearAppBadge?.();
     } catch {
