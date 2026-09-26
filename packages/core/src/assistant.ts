@@ -94,7 +94,10 @@ export class Assistant {
     if (state.pending && now.getTime() - Date.parse(state.pending.asked_at) > PENDING_TTL_MS) state.pending = null;
     if (state.focus_at && now.getTime() - Date.parse(state.focus_at) > FOCUS_TTL_MS) state.focus_task_id = null;
 
-    const lang = detectLang(text, state.lang ?? this.profile.conv_lang ?? this.profile.ui_lang);
+    // ui_lang is a deliberate choice made on this device; conv_lang is just a sticky
+    // guess from whatever language the account last happened to talk in — possibly on
+    // a different device entirely. Prefer the deliberate choice when starting fresh.
+    const lang = detectLang(text, state.lang ?? this.profile.ui_lang ?? this.profile.conv_lang);
     const ctx: TurnCtx = { svc, state, lang, now, today, requestId: opts.requestId, text, touched: [] };
 
     let reply: AssistantReply;

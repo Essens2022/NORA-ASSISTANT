@@ -82,7 +82,10 @@ async function sendDue(): Promise<{ claimed: number; sent: number; skipped: numb
         skipped++;
         continue;
       }
-      const lang = (profile.conv_lang ?? profile.ui_lang) as Lang;
+      // ui_lang is the deliberate, per-account language setting; conv_lang is just
+      // a sticky guess from whichever device last talked to NORA in some language.
+      // A reminder notification should speak the language the user actually reads.
+      const lang = (profile.ui_lang ?? profile.conv_lang) as Lang;
       const today = toZoned(new Date(), profile.timezone).date;
       const payload = buildNotification(r, task, lang, profile.prefs, today, { name: profile.display_name });
 

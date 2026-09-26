@@ -151,12 +151,14 @@ async function voice(ctx: Ctx) {
   if (!stt) throw new HttpError(503, 'stt_unavailable');
   const form = await ctx.req.formData().catch(() => null);
   const audio = form?.get('audio');
-  if (!(audio instanceof File) || audio.size < 1200) return { heard: false, reason: 'too_short', reply_text: t(ctx.profile.conv_lang ?? ctx.profile.ui_lang, 'nothing_heard') };
+  if (!(audio instanceof File) || audio.size < 1200) return { heard: false, reason: 'too_short', reply_text: t(ctx.profile.ui_lang ?? ctx.profile.conv_lang, 'nothing_heard') };
   if (audio.size > 8 * 1024 * 1024) throw new HttpError(413, 'audio_too_large');
   const clientDuration = Number(form!.get('duration') ?? 0);
   const conv = (form!.get('conversation_id') as string) || null;
   const reqId = ((form!.get('request_id') as string) || ctx.rid).slice(0, 80);
-  const lang = (ctx.profile.conv_lang ?? ctx.profile.ui_lang) as Lang;
+  // ui_lang is this device's deliberate choice; conv_lang can be stale from another
+  // device's last conversation and would otherwise bias transcription the wrong way.
+  const lang = (ctx.profile.ui_lang ?? ctx.profile.conv_lang) as Lang;
 
   const started = Date.now();
   let result;
@@ -401,7 +403,7 @@ async function notifyAction(req: Request, rid: string) {
   const task = await store.getTask(rem.task_id);
   if (!task || task.user_id !== rem.user_id) throw new HttpError(404, 'not_found');
   const svc = new TaskService(store, profile);
-  const lang = (profile.conv_lang ?? profile.ui_lang) as Lang;
+  const lang = (profile.ui_lang ?? profile.conv_lang) as Lang;
   let text = '';
   switch (body.action) {
     case 'done':
