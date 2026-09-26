@@ -267,6 +267,13 @@ export class Assistant {
 
   private async execute(c: TurnCtx, plan: AIPlan, refs: Map<string, Task>): Promise<AssistantReply> {
     const lines: string[] = [];
+    // Spoken counterpart of `lines`, kept in step with it – push() below appends to
+    // both, defaulting the speech line to the written one when they don't differ.
+    const speechLines: string[] = [];
+    const push = (text: string, speech: string = text) => {
+      lines.push(text);
+      speechLines.push(speech);
+    };
     let created: Task | null = null;
     let results: AssistantReply['results'];
     let createIndex = 0;
@@ -291,7 +298,7 @@ export class Assistant {
           created = task;
           c.touched.push(task.id);
           this.focus(c, task);
-          if (!missing.length && !(plan.ask?.ref === 'new')) lines.push(this.confirmCreate(c, task));
+          if (!missing.length && !(plan.ask?.ref === 'new')) push(this.confirmCreate(c, task), this.confirmSpeech(c, task));
           break;
         }
         case 'update_task': {
@@ -304,9 +311,9 @@ export class Assistant {
           this.focus(c, saved);
           if (c.state.pending?.task_id === saved.id) c.state.pending = null;
           const moved = before.due_date !== saved.due_date || before.due_time !== saved.due_time;
-          if (moved && saved.due_date) lines.push(t(c.lang, 'updated', { when: this.when(c, saved) }));
-          else if (action.changes.travel_min && saved.due_time) lines.push(this.confirmCreate(c, saved));
-          else lines.push(saved.missing_fields.length ? '' : t(c.lang, 'updated_generic'));
+          if (moved && saved.due_date) push(t(c.lang, 'updated', { when: this.when(c, saved) }), t(c.lang, 'updated_generic'));
+          else if (action.changes.travel_min && saved.due_time) push(this.confirmCreate(c, saved), this.confirmSpeech(c, saved));
+          else push(saved.missing_fields.length ? '' : t(c.lang, 'updated_generic'));
           break;
         }
         case 'complete_task':
@@ -314,12 +321,14 @@ export class Assistant {
         case 'reopen_task': {
           const task = await resolve(action.ref);
           if (task === 'ambiguous' || !task) return this.done(c, t(c.lang, 'not_found'), c.touched);
-          if (action.type === 'complete_task') lines.push((await this.complete(c, task)).text);
-          else if (action.type === 'cancel_task') lines.push((await this.cancel(c, task)).text);
+          if (action.type === 'complete_task') {
+            const r = await this.complete(c, task);
+            push(r.text, r.speech);
+          } else if (action.type === 'cancel_task') push((await this.cancel(c, task)).text);
           else {
             const saved = await c.svc.reopen(task);
             c.touched.push(saved.id);
-            lines.push(t(c.lang, 'reopened'));
+            push(t(c.lang, 'reopened'));
           }
           break;
         }
@@ -333,18 +342,18 @@ export class Assistant {
           const saved = await c.svc.snooze(task, until);
           c.touched.push(saved.id);
           this.focus(c, saved);
-          lines.push(t(c.lang, 'snoozed', { when: this.whenInstant(c, until) }));
+          push(t(c.lang, 'snoozed', { when: this.whenInstant(c, until) }), t(c.lang, 'snoozed_speech'));
           break;
         }
         case 'query_tasks': {
           const out = await this.query(c, action);
           results = out.results;
-          lines.push(out.text);
+          push(out.text);
           break;
         }
         case 'remember':
           if (this.profile.prefs.personalization) await this.store.remember(action.key, action.value);
-          if (!plan.reply) lines.push(t(c.lang, 'remembered'));
+          if (!plan.reply) push(t(c.lang, 'remembered'));
           break;
       }
     }
@@ -369,13 +378,16 @@ export class Assistant {
           }
           this.focus(c, target);
           const q = a.question || t(c.lang, `ask_${a.field}`);
-          return this.done(c, [...lines.filter(Boolean), q].join(' '), c.touched, a.field);
+          const reply = this.done(c, [...lines.filter(Boolean), q].join(' '), c.touched, a.field);
+          reply.speech = [...speechLines.filter(Boolean), q].join(' ');
+          return reply;
         }
       }
     }
 
     const text = lines.filter(Boolean).join(' ') || plan.reply || t(c.lang, 'didnt_understand');
     const reply = this.done(c, text, c.touched, null, 'ai');
+    reply.speech = speechLines.filter(Boolean).join(' ') || plan.reply || t(c.lang, 'didnt_understand');
     if (results) reply.results = results;
     return reply;
   }
@@ -436,10 +448,14 @@ export class Assistant {
     c.state.pending = null;
     if (task.due_date && !task.due_time && !task.time_window && NEEDS_TIME.has(task.kind)) return this.ask(c, task, 'time');
     const reply = this.done(c, this.confirmCreate(c, task), c.touched);
-    // the written confirmation spells out the time; spoken, keep it short and skip
-    // the time/date/rule entirely rather than risk TTS mispronouncing it
-    reply.speech = task.due_date ? t(c.lang, 'confirmed_speech') : t(c.lang, 'created_inbox');
+    reply.speech = this.confirmSpeech(c, task);
     return reply;
+  }
+
+  // the written confirmation spells out the time/date/rule; spoken, keep it short
+  // and skip it entirely rather than risk TTS mispronouncing it
+  private confirmSpeech(c: TurnCtx, task: Task): string {
+    return task.due_date ? t(c.lang, 'confirmed_speech') : t(c.lang, 'created_inbox');
   }
 
   private ask(c: TurnCtx, task: Task, field: AskField): AssistantReply {
@@ -453,7 +469,11 @@ export class Assistant {
     const { task: saved, nextDate } = await c.svc.complete(task);
     c.touched.push(saved.id);
     c.state.pending = null;
-    if (nextDate) return this.done(c, t(c.lang, 'completed_next', { when: formatWhen(nextDate, saved.due_time, c.today, c.lang, this.profile.prefs.hour12) }), c.touched);
+    if (nextDate) {
+      const reply = this.done(c, t(c.lang, 'completed_next', { when: formatWhen(nextDate, saved.due_time, c.today, c.lang, this.profile.prefs.hour12) }), c.touched);
+      reply.speech = t(c.lang, 'completed');
+      return reply;
+    }
     c.state.focus_task_id = saved.id;
     return this.done(c, t(c.lang, 'completed'), c.touched);
   }
