@@ -14,6 +14,19 @@ export function ReminderAlert() {
   const { id, task, name } = useStore((s) => ({ id: s.alertTaskId, task: s.alertTaskId ? s.tasks[s.alertTaskId] : undefined, name: s.profile?.display_name ?? null }));
   const [busy, setBusy] = useState(false);
 
+  // this screen is always dark (see .alert-screen), regardless of the app's own
+  // light/dark setting – the status bar has to follow along or it shows up as a
+  // pale strip over a dark screen.
+  useEffect(() => {
+    if (!id) return;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const previous = meta?.getAttribute('content');
+    meta?.setAttribute('content', '#0b1220');
+    return () => {
+      if (previous != null) meta?.setAttribute('content', previous);
+    };
+  }, [!!id]);
+
   useEffect(() => {
     if (!id || !task) return;
     let rings = 0;
