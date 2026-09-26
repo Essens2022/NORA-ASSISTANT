@@ -37,17 +37,24 @@ export function ReminderAlert() {
     ring();
     const timer = setInterval(ring, REPEAT_MS);
     const line = name ? tr('alert.say_named', { name, title: task.title }) : tr('alert.say', { title: task.title });
-    const t = setTimeout(() => void speak(line, getLang()), 1200);
-    // audio may start locked (opened from a notification): the first touch unlocks it
+    // Try right away, no delay: if this screen was reached by tapping the
+    // notification itself, iOS sometimes still carries that tap's "user
+    // activated" trust into the freshly opened page for a brief moment –
+    // our best chance of speaking without any further touch on the page.
+    const say = () => void speak(line, getLang());
+    say();
+    // That trust often doesn't carry over: the first touch anywhere on this
+    // screen unlocks audio and repeats sound + voice immediately, instead of
+    // waiting for the reminder to be dismissed first.
     const unlock = () => {
       unlockAudio();
       tts.unlock();
       ring();
+      say();
     };
     addEventListener('pointerdown', unlock, { once: true });
     return () => {
       clearInterval(timer);
-      clearTimeout(t);
       removeEventListener('pointerdown', unlock);
     };
   }, [id, !!task]);
