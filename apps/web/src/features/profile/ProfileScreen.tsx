@@ -2,7 +2,7 @@ import { LANGS, type Lang, type MemoryItem, type Preferences, type SoundLevel } 
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Confirm, Input, Section, Segmented, Select, Toggle } from '../../components/ui.tsx';
-import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr, trIn } from '../../i18n/index.ts';
 import { api, deviceTimezone, isManualTimezone, setManualTimezone } from '../../services/api.ts';
 import { signOut } from '../../services/auth.ts';
 import { disablePushOnThisDevice, enablePush, isPushOptedOut, pushStatus, type PushStatus } from '../../services/push.ts';
@@ -227,7 +227,7 @@ function VoicePicker({ lang }: { lang: Lang }) {
           saveVoice(lang, v || null);
         }}
       />
-      <Button small icon="speaker" onClick={() => void tts.speak(tr('prof.voice_test'), lang, { voiceURI: sel || null })}>
+      <Button small icon="speaker" onClick={() => void tts.speak(trIn(lang, 'prof.voice_test'), lang, { voiceURI: sel || null })}>
         {tr('prof.voice_preview')}
       </Button>
     </div>

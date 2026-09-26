@@ -54,6 +54,14 @@ export function tr(key: MessageKey, vars: Record<string, string | number> = {}):
   return s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 }
 
+/** Like tr(), but in a specific language instead of the current UI language — for
+ * text that must speak/read as a given language regardless of what's on screen
+ * (e.g. a voice preview: hearing it in Italian only makes sense if it's Italian). */
+export function trIn(lang: Lang, key: MessageKey, vars: Record<string, string | number> = {}): string {
+  const s = dicts[lang]?.[key] ?? en[key] ?? key;
+  return s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
+}
+
 /** Plural-aware message: looks up `${base}.one|few|many|other` with Intl.PluralRules. */
 export function tp(base: string, n: number, vars: Record<string, string | number> = {}): string {
   const cat = new Intl.PluralRules(current).select(n);
