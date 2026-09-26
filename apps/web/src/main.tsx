@@ -103,6 +103,12 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// A notification can arrive (or be tapped) before this fresh page load's own
+// bootstrap() has populated the conversation history – refreshTasks() alone would
+// then show the reminder alert over a briefly empty chat until the next restart.
+// Fall back to a full bootstrap() the first time, so tasks and messages land together.
+const freshTasks = () => (getState().bootstrapped ? refreshTasks() : bootstrap());
+
 // Messages from the service worker (notification buttons while the app is open)
 navigator.serviceWorker?.addEventListener('message', (e) => {
   const d = e.data as { type?: string; action?: string; task_id?: string; title?: string; body?: string; sound?: string; kind?: string };
@@ -110,7 +116,7 @@ navigator.serviceWorker?.addEventListener('message', (e) => {
     // NORA is open: the reminder takes the whole screen (with sound and voice)
     const id = d.task_id;
     if (id && (d.kind === 'main' || d.kind === 'departure' || d.kind === 'snooze' || d.kind === 'nudge')) {
-      void refreshTasks().then(() => {
+      void freshTasks().then(() => {
         if (getState().tasks[id]?.status === 'reminded') setState({ alertTaskId: id });
       });
       return;
@@ -125,7 +131,7 @@ navigator.serviceWorker?.addEventListener('message', (e) => {
     const id = d.task_id;
     if (['main', 'departure', 'snooze', 'nudge'].includes(d.kind ?? '')) {
       // fetch fresh state first: a stale/already-answered reminder must never take the screen
-      void refreshTasks().then(() => {
+      void freshTasks().then(() => {
         if (getState().tasks[id]?.status === 'reminded') setState({ alertTaskId: id });
       });
     } else setState({ openTaskId: id, tab: 'activity' });
