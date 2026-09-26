@@ -125,35 +125,6 @@ async function focusApp(url, message) {
   await self.clients.openWindow(url);
 }
 
-// A reminder tap needs to actually be heard. iOS only grants a page permission to
-// play audio without any further touch when that page's *load* is itself the direct
-// result of the tap – true for a fresh clients.openWindow(), but NOT for merely
-// focus()ing a window NORA already had open in the background (the common case,
-// since NORA stays running to receive pushes). Force a real navigate() of that
-// existing window instead, so the reminder screen gets the same fresh-load chance
-// to speak as a cold app-open would.
-async function openOrNavigate(url) {
-  const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-  for (const c of all) {
-    if ('navigate' in c) {
-      try {
-        const navigated = await c.navigate(url);
-        await (navigated || c).focus();
-        return;
-      } catch {
-        /* WebKit sometimes refuses navigate() outside its own activation window – fall through */
-      }
-    }
-  }
-  for (const c of all) {
-    if ('focus' in c) {
-      await c.focus();
-      return;
-    }
-  }
-  await self.clients.openWindow(url);
-}
-
 self.addEventListener('notificationclick', (event) => {
   const n = event.notification;
   const { token, task_id, kind } = n.data || {};
@@ -162,13 +133,11 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     (async () => {
       if (action === 'open') {
-        const isAlert = ['main', 'departure', 'snooze', 'nudge'].includes(kind);
         // Opening a reminder is not an answer: the full-screen reminder asks for one
         // and NORA keeps calling (nudges) until the user presses a button there.
-        if (!isAlert) await act(token, 'open');
-        const url = `${BASE}?task=${encodeURIComponent(task_id || '')}${isAlert ? '&alert=1' : ''}`;
-        if (isAlert) await openOrNavigate(url);
-        else await focusApp(url, { type: 'notification', action: 'open', task_id, kind });
+        if (!['main', 'departure', 'snooze', 'nudge'].includes(kind)) await act(token, 'open');
+        const alert = ['main', 'departure', 'snooze', 'nudge'].includes(kind) ? '&alert=1' : '';
+        await focusApp(`${BASE}?task=${encodeURIComponent(task_id || '')}${alert}`, { type: 'notification', action: 'open', task_id, kind });
         return;
       }
       const ok = await act(token, action);
