@@ -1625,7 +1625,9 @@ textarea.input {
 /* ---------- auth / onboarding / splash ---------- */
 .auth,
 .onboarding {
-  min-height: 100dvh;
+  /* var(--app-h, 100dvh): see the comment on .ai-screen – some browsers don't size
+     100dvh reliably, which left this just barely off-center instead of truly centered. */
+  min-height: var(--app-h, 100dvh);
   max-width: 440px;
   margin: 0 auto;
   padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
