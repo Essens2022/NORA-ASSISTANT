@@ -4,7 +4,7 @@ import { detectDeviceLang, setLang } from './i18n/index.ts';
 import { flushQueue, track } from './services/api.ts';
 import { completeHandoff, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
-import { primeSpeech } from './services/voice/tts.ts';
+import { primeSpeech, tts } from './services/voice/tts.ts';
 import { unlockAudio } from './utils/chime.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
 import { getState, setState, type Tab } from './state/store.ts';
@@ -47,6 +47,7 @@ initAuth();
 const unlockAll = () => {
   primeSpeech();
   unlockAudio();
+  tts.unlock();
 };
 addEventListener('pointerdown', unlockAll, { once: true, capture: true });
 addEventListener('keydown', unlockAll, { once: true, capture: true });

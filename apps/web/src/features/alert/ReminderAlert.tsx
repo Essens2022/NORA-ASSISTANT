@@ -6,6 +6,7 @@ import { formatTime, getLang, tr } from '../../i18n/index.ts';
 import { completeTask, snoozeTask, speak } from '../../state/actions.ts';
 import { setState, useStore } from '../../state/store.ts';
 import { playChime, unlockAudio } from '../../utils/chime.ts';
+import { tts } from '../../services/voice/tts.ts';
 
 const REPEAT_MS = 5000;
 const MAX_RINGS = 8; // ~40 s, then stays on screen silently
@@ -40,6 +41,7 @@ export function ReminderAlert() {
     // audio may start locked (opened from a notification): the first touch unlocks it
     const unlock = () => {
       unlockAudio();
+      tts.unlock();
       ring();
     };
     addEventListener('pointerdown', unlock, { once: true });

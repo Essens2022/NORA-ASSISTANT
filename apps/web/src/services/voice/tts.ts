@@ -95,10 +95,21 @@ const CLOUD_VOICES: Array<{ uri: string; name: string }> = [
   { uri: 'shimmer', name: 'Shimmer' },
 ];
 
+// A silent, 1-sample WAV: just enough for iOS to treat a play() call as
+// triggered by the gesture that started it, without an audible blip.
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+
 class CloudTTS implements TTSProvider {
   readonly name = 'cloud';
-  private audio: HTMLAudioElement | null = null;
+  // One element, reused for every reply (not `new Audio()` per call): iOS only
+  // trusts a *later* src swap + play() without a fresh tap if this exact element
+  // already played successfully once, inside a real user gesture (see unlock()).
+  // A reply often arrives seconds after that tap, once transcription and the AI
+  // have both round-tripped, by which point a brand-new element's play() is
+  // silently refused – the text still appeared, but nothing was ever heard.
+  private el: HTMLAudioElement | null = null;
   private objectUrl: string | null = null;
+  private unlocked = false;
 
   available() {
     return typeof Audio !== 'undefined';
@@ -106,6 +117,21 @@ class CloudTTS implements TTSProvider {
 
   async voices(_lang: Lang) {
     return CLOUD_VOICES;
+  }
+
+  /** Call synchronously inside a user gesture (tap, key press). */
+  unlock() {
+    if (this.unlocked || typeof Audio === 'undefined') return;
+    this.unlocked = true;
+    try {
+      this.el ??= new Audio();
+      this.el.src = SILENT_WAV;
+      void this.el.play().catch(() => {
+        this.unlocked = false; // let the next gesture try again
+      });
+    } catch {
+      this.unlocked = false;
+    }
   }
 
   async speak(text: string, _lang: Lang, opts: { voiceURI?: string | null; signal?: AbortSignal } = {}) {
@@ -123,8 +149,10 @@ class CloudTTS implements TTSProvider {
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     this.objectUrl = url;
-    const audio = new Audio(url);
-    this.audio = audio;
+    this.el ??= new Audio();
+    const audio = this.el;
+    audio.src = url;
+    let playError: unknown;
     await new Promise<void>((resolve) => {
       const done = () => resolve();
       audio.onended = done;
@@ -133,15 +161,18 @@ class CloudTTS implements TTSProvider {
         audio.pause();
         done();
       });
-      audio.play().catch(done);
+      audio.play().catch((err) => {
+        playError = err;
+        done();
+      });
     });
+    // play() was refused (autoplay policy): surface it so the caller falls back
+    // to the browser's own voice instead of silently saying nothing at all.
+    if (playError) throw playError instanceof Error ? playError : new Error(String(playError));
   }
 
   stop() {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio = null;
-    }
+    this.el?.pause();
     if (this.objectUrl) {
       URL.revokeObjectURL(this.objectUrl);
       this.objectUrl = null;
@@ -158,6 +189,11 @@ class HybridTTS implements TTSProvider {
 
   setCloudEnabled(v: boolean) {
     this.cloudEnabled = v;
+  }
+
+  /** Call synchronously inside a user gesture, before any reply can arrive. */
+  unlock() {
+    this.cloud.unlock();
   }
 
   available() {
@@ -186,7 +222,7 @@ class HybridTTS implements TTSProvider {
   }
 }
 
-export const tts: TTSProvider & { setCloudEnabled(v: boolean): void } = new HybridTTS();
+export const tts: TTSProvider & { setCloudEnabled(v: boolean): void; unlock(): void } = new HybridTTS();
 
 let primed = false;
 /**
