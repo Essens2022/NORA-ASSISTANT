@@ -18,7 +18,7 @@ export function SignIn() {
     return (
       <div class="auth">
         <h1 class="brand big">
-          <Logo size={40} withWordmark />
+          <Logo size={48} withWordmark />
         </h1>
         <p class="muted">{tr('auth.not_configured')}</p>
       </div>
@@ -68,7 +68,7 @@ export function SignIn() {
   return (
     <div class="auth">
       <h1 class="brand big">
-        <Logo size={40} withWordmark />
+        <Logo size={48} withWordmark />
       </h1>
       <p class="tagline">{tr('brand.tagline')}</p>
       <div class="auth-card">

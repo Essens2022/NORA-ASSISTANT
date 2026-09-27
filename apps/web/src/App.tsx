@@ -61,7 +61,7 @@ export function App() {
 function Splash() {
   return (
     <div class="splash" aria-busy="true">
-      <Logo size={72} class="logo-splash" />
+      <Logo size={84} class="logo-splash" />
     </div>
   );
 }

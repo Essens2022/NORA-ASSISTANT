@@ -90,7 +90,7 @@ export function AIScreen() {
     <div class="screen ai-screen">
       <header class="ai-head">
         <h1 class="brand">
-          <Logo size={28} withWordmark />
+          <Logo size={34} withWordmark />
         </h1>
         <p class="greet">
           <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />

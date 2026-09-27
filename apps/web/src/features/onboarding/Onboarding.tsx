@@ -24,7 +24,7 @@ export function Onboarding() {
     return (
       <div class="onboarding">
         <h1 class="brand big logo-splash">
-          <Logo size={44} withWordmark />
+          <Logo size={52} withWordmark />
         </h1>
         <p class="tagline">{tr('brand.tagline')}</p>
         <div class="onb-body">
