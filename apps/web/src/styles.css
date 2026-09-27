@@ -499,6 +499,73 @@ textarea.input {
 .chip:active {
   background: var(--pressed);
 }
+.chip-row-label {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+  margin: 4px 4px 6px;
+}
+.chip.selected {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.chip-priority-high.selected {
+  background: var(--error);
+  border-color: var(--error);
+}
+.chip-priority-low.selected {
+  background: var(--secondary-text);
+  border-color: var(--secondary-text);
+}
+
+/* ---------- task confirmation ---------- */
+.task-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  padding: 8px 0 4px;
+}
+.task-confirm-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--success-text);
+  display: grid;
+  place-items: center;
+}
+.task-confirm h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.task-confirm-card {
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.task-confirm-card .row-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.task-confirm-card .row-line strong {
+  color: var(--text);
+}
+.task-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 /* ---------- cards & sections ---------- */
 .card {

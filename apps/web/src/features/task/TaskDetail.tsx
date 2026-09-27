@@ -380,9 +380,25 @@ function TaskFields(props: {
           onChange={(x) => set('window', x)}
         />
       )}
-      <div class="grid2">
-        <Select label={tr('task.kind')} value={v.kind} options={TASK_KINDS.map((k) => ({ value: k, label: tr(`kind.${k}` as MessageKey) }))} onChange={(x) => set('kind', x)} />
-        <Select label={tr('task.priority')} value={v.priority} options={(['low', 'normal', 'high'] as const).map((p) => ({ value: p, label: tr(`priority.${p}` as MessageKey) }))} onChange={(x) => set('priority', x)} />
+      <div>
+        <p class="chip-row-label">{tr('task.kind')}</p>
+        <div class="chips" role="group" aria-label={tr('task.kind')}>
+          {TASK_KINDS.map((k) => (
+            <button type="button" key={k} class={`chip${v.kind === k ? ' selected' : ''}`} onClick={() => set('kind', k)}>
+              {tr(`kind.${k}` as MessageKey)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p class="chip-row-label">{tr('task.priority')}</p>
+        <div class="chips" role="group" aria-label={tr('task.priority')}>
+          {(['low', 'normal', 'high'] as const).map((p) => (
+            <button type="button" key={p} class={`chip chip-priority-${p}${v.priority === p ? ' selected' : ''}`} onClick={() => set('priority', p)}>
+              {tr(`priority.${p}` as MessageKey)}
+            </button>
+          ))}
+        </div>
       </div>
       <Select label={tr('task.recurrence')} value={v.repeat as Repeat} options={repeatOptions(props.hasCustomRule)} onChange={(x) => set('repeat', x)} />
       <Input label={tr('task.location')} value={v.location} onValue={(x) => set('location', x)} maxLength={200} />
@@ -450,38 +466,113 @@ export function NewTaskSheet({ open, onClose }: { open: boolean; onClose: () => 
   const empty = { title: '', date: '', time: '', window: '', kind: 'generic', priority: 'normal', location: '', notes: '', travel: '', repeat: 'none' };
   const [v, setV] = useState<Record<string, string>>(empty);
   const [busy, setBusy] = useState(false);
+  const [created, setCreated] = useState<Task | null>(null);
+
+  const reset = () => {
+    setV(empty);
+    setCreated(null);
+  };
+
   return (
     <Sheet
       open={open}
       onClose={() => {
-        setV(empty);
+        reset();
         onClose();
       }}
-      title={tr('task.new')}
+      title={created ? tr('task.confirm_title') : tr('task.new')}
     >
-      <form
-        class="form"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!v.title.trim()) return;
-          setBusy(true);
-          const task = await createTask(fieldsToPayload(v, null));
-          setBusy(false);
-          if (task) {
-            setV(empty);
+      {created ? (
+        <TaskConfirm
+          task={created}
+          onDone={() => {
+            reset();
             onClose();
-            if (getState().tab === 'activity') toast(tr('common.saved'));
-          }
-        }}
-      >
-        <TaskFields v={v} set={(k, val) => setV((o) => ({ ...o, [k]: val }))} hasCustomRule={false} />
-        <div class="actions-row">
-          <Button onClick={onClose}>{tr('common.cancel')}</Button>
-          <Button variant="primary" type="submit" busy={busy} disabled={!v.title.trim()}>
-            {tr('common.save')}
-          </Button>
-        </div>
-      </form>
+          }}
+          onAddAnother={reset}
+          onViewCalendar={() => {
+            reset();
+            onClose();
+            setState({ tab: 'calendar', calendarFocusDate: created.due_date ?? todayLocal() });
+          }}
+          onEdit={() => {
+            const id = created.id;
+            reset();
+            onClose();
+            setState({ openTaskId: id });
+          }}
+        />
+      ) : (
+        <form
+          class="form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!v.title.trim()) return;
+            setBusy(true);
+            const task = await createTask(fieldsToPayload(v, null));
+            setBusy(false);
+            if (task) {
+              if (getState().tab === 'activity') toast(tr('common.saved'));
+              setCreated(task);
+            }
+          }}
+        >
+          <TaskFields v={v} set={(k, val) => setV((o) => ({ ...o, [k]: val }))} hasCustomRule={false} />
+          <div class="actions-row">
+            <Button onClick={onClose}>{tr('common.cancel')}</Button>
+            <Button variant="primary" type="submit" busy={busy} disabled={!v.title.trim()}>
+              {tr('common.save')}
+            </Button>
+          </div>
+        </form>
+      )}
     </Sheet>
+  );
+}
+
+function TaskConfirm({
+  task,
+  onDone,
+  onAddAnother,
+  onViewCalendar,
+  onEdit,
+}: {
+  task: Task;
+  onDone: () => void;
+  onAddAnother: () => void;
+  onViewCalendar: () => void;
+  onEdit: () => void;
+}) {
+  const today = todayLocal();
+  return (
+    <div class="task-confirm">
+      <div class="task-confirm-icon">
+        <Icon name="check" size={26} />
+      </div>
+      <h3>{task.title}</h3>
+      <div class="task-confirm-card">
+        <div class="row-line">
+          <Icon name="calendar" size={16} />
+          <strong>{task.due_date ? `${relativeDay(task.due_date, today)} · ${formatDate(task.due_date)}` : tr('task.no_date')}</strong>
+        </div>
+        <div class="row-line">
+          <Icon name="clock" size={16} />
+          <span>{task.due_time ? formatTime(task.due_time) : task.time_window ? tr(`task.window.${task.time_window}` as MessageKey) : tr('task.any_time')}</span>
+        </div>
+        <div class="row-line">
+          <span>{tr(`kind.${task.kind}` as MessageKey)} · {tr(`priority.${task.priority}` as MessageKey)}</span>
+        </div>
+      </div>
+      <div class="task-confirm-actions">
+        <Button variant="primary" onClick={onDone}>
+          {tr('task.confirm_done')}
+        </Button>
+        <Button onClick={onAddAnother}>{tr('task.confirm_add_another')}</Button>
+        {task.due_date && <Button onClick={onViewCalendar}>{tr('task.confirm_view_calendar')}</Button>}
+        <Button variant="ghost" onClick={onEdit}>
+          {tr('task.confirm_edit')}
+        </Button>
+      </div>
+    </div>
   );
 }

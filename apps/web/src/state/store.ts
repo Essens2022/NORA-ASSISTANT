@@ -50,6 +50,8 @@ export interface AppState {
   handoff: 'working' | 'handed' | 'failed' | null;
   /** task shown in the full-screen reminder moment */
   alertTaskId: string | null;
+  /** date the Calendar tab should open to and select (consumed once, then cleared) */
+  calendarFocusDate: string | null;
 }
 
 const initial: AppState = {
@@ -74,6 +76,7 @@ const initial: AppState = {
   replyLang: null,
   handoff: null,
   alertTaskId: null,
+  calendarFocusDate: null,
 };
 
 let state: AppState = initial;

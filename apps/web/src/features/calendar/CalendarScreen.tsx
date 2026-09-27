@@ -1,10 +1,10 @@
 import { addDays, weekdayOf, type Task } from '@nora/core';
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { TaskCard } from '../../components/TaskCard.tsx';
 import { Button, EmptyState } from '../../components/ui.tsx';
 import { getLocale, tr } from '../../i18n/index.ts';
-import { useStore } from '../../state/store.ts';
+import { getState, setState, useStore } from '../../state/store.ts';
 import { todayLocal } from '../../utils/time.ts';
 import { NewTaskSheet } from '../task/TaskDetail.tsx';
 
@@ -42,10 +42,16 @@ function dayTitle(date: string, locale: string): string {
 export function CalendarScreen() {
   const tasks = useStore((s) => s.tasks);
   const today = todayLocal();
-  const [month, setMonth] = useState(() => monthOf(today));
-  const [selected, setSelected] = useState(today);
+  const focusDate = getState().calendarFocusDate;
+  const [month, setMonth] = useState(() => monthOf(focusDate ?? today));
+  const [selected, setSelected] = useState(focusDate ?? today);
   const [creating, setCreating] = useState(false);
   const locale = getLocale();
+
+  useEffect(() => {
+    if (focusDate) setState({ calendarFocusDate: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const byDate = useMemo(() => {
     const m: Record<string, Task[]> = {};
