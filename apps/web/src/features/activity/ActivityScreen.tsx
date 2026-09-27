@@ -7,7 +7,6 @@ import { tr, type MessageKey } from '../../i18n/index.ts';
 import { loadCompleted } from '../../state/actions.ts';
 import { setState, toast, useStore, toastError } from '../../state/store.ts';
 import { todayLocal } from '../../utils/time.ts';
-import { NewTaskSheet } from '../task/TaskDetail.tsx';
 
 const order = (a: Task, b: Task) => `${a.due_date ?? '9999'}${a.due_time ?? '99'}${a.created_at}`.localeCompare(`${b.due_date ?? '9999'}${b.due_time ?? '99'}${b.created_at}`);
 
@@ -15,7 +14,6 @@ export function ActivityScreen() {
   const { tasks, completedLoaded, bootstrapped } = useStore((s) => ({ tasks: s.tasks, completedLoaded: s.completedLoaded, bootstrapped: s.bootstrapped }));
   const [showCompleted, setShowCompleted] = useState(false);
   const [loadingDone, setLoadingDone] = useState(false);
-  const [creating, setCreating] = useState(false);
   const today = todayLocal();
 
   const groups = useMemo(() => {
@@ -74,9 +72,6 @@ export function ActivityScreen() {
     <div class="screen activity-screen">
       <header class="screen-head">
         <h1>{tr('act.title')}</h1>
-        <Button small icon="plus" onClick={() => setCreating(true)}>
-          {tr('task.new')}
-        </Button>
       </header>
 
       {bootstrapped && dayPercent !== null && (
@@ -152,7 +147,6 @@ export function ActivityScreen() {
           )}
         </section>
       )}
-      <NewTaskSheet open={creating} onClose={() => setCreating(false)} />
     </div>
   );
 }
