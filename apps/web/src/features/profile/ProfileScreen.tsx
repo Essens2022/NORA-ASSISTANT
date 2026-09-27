@@ -15,16 +15,27 @@ import { playChime } from '../../utils/chime.ts';
 const LOCALES = ['en-US', 'en-GB', 'ro-RO', 'it-IT', 'ru-RU', 'de-DE', 'fr-FR', 'es-ES', 'pt-PT', 'pl-PL', 'uk-UA'];
 
 export function ProfileScreen() {
-  const { profile, email } = useStore((s) => ({ profile: s.profile, email: s.email }));
+  const { profile, email, taskCount } = useStore((s) => ({ profile: s.profile, email: s.email, taskCount: Object.keys(s.tasks).length }));
   if (!profile) return <div class="screen" />;
   const p = profile.prefs;
   const setPref = <K extends keyof Preferences>(k: K, v: Preferences[K]) => updateProfile({ prefs: { [k]: v } as Partial<Preferences> });
+  const initials = (profile.display_name ?? email ?? '?').trim().slice(0, 1).toUpperCase();
 
   return (
     <div class="screen profile-screen">
       <header class="screen-head">
         <h1>{tr('prof.title')}</h1>
       </header>
+
+      <div class="prof-card">
+        <div class="prof-avatar" aria-hidden="true">
+          {initials}
+        </div>
+        <div class="prof-card-text">
+          <p class="prof-name">{profile.display_name || email}</p>
+          <p class="prof-stat">{tp('prof.active_tasks', taskCount)}</p>
+        </div>
+      </div>
 
       <Section title={tr('prof.account')} id="account">
         <NameField value={profile.display_name ?? ''} />
