@@ -85,23 +85,17 @@ window.addEventListener('offline', () => setState({ online: false }));
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
 //
-// Opening the keyboard on a focused input is a second, separate problem: `position:
-// fixed` elements (the bottom nav, sheet modals) are anchored to the *layout*
-// viewport, which the keyboard doesn't shrink - only the *visual* viewport does. The
-// browser then auto-scrolls the visual viewport down to keep the focused input in
-// view, which drags the whole app up while the nav bar stays pinned to the
-// (now off-screen) layout-viewport bottom, appearing to "detach" mid-screen with a
-// blank gap above it. --kb-offset tracks that gap so fixed UI can compensate with a
-// translateY (see .nav / .sheet-backdrop).
+// This also carries the app through the on-screen keyboard opening: body is now
+// pinned (position: fixed, see styles.css) so the document itself never scrolls,
+// which is what used to drag fixed UI (the bottom nav, sheet modals - anchored to
+// the *layout* viewport, which the keyboard doesn't shrink) out of position when iOS
+// tried to scroll a focused input into view. With nothing left to scroll, opening
+// the keyboard now just shrinks the *visual* viewport, which --app-h already tracks.
 const setAppHeight = () => {
-  const vv = window.visualViewport;
-  document.documentElement.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
-  const kbOffset = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
-  document.documentElement.style.setProperty('--kb-offset', `${kbOffset}px`);
+  document.documentElement.style.setProperty('--app-h', `${window.visualViewport?.height ?? window.innerHeight}px`);
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);
-window.visualViewport?.addEventListener('scroll', setAppHeight);
 window.addEventListener('resize', setAppHeight);
 window.addEventListener('orientationchange', setAppHeight);
 

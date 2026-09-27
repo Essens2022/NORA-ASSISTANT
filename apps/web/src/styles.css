@@ -135,13 +135,26 @@
   box-sizing: border-box;
 }
 html {
+  height: 100%;
+  overflow: hidden;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* no rubber-band / pull-to-refresh: the app stays put like a native one */
   overscroll-behavior: none;
   background: var(--bg);
 }
+/* Pinned instead of a normal scrollable document: on iOS, a focused input near the
+   bottom makes the browser scroll the page to reveal it above the keyboard - and
+   since our fixed nav/sheets are anchored to the layout viewport (which the keyboard
+   doesn't resize, only the visual viewport does), that scroll left them stranded off
+   screen or floating mid-page. With nothing at the document level left to scroll,
+   iOS instead just shrinks the visual viewport (which --app-h already tracks, see
+   main.tsx), so the keyboard opening cleanly resizes .ai-screen/.sheet instead of
+   scrolling anything. Every screen scrolls internally now - see .main below. */
 body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -229,12 +242,17 @@ h3 {
 
 /* ---------- layout ---------- */
 .app {
-  min-height: 100dvh;
+  /* an exact height (not min-height) filling the real visible viewport - body is
+     pinned now, so this is the one place page height is established */
+  height: var(--app-h, 100dvh);
   display: flex;
   flex-direction: column;
 }
 .main {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .tab-hidden {
@@ -784,9 +802,6 @@ textarea.input {
   background: var(--nav-bg);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
-  /* keep pinned to the keyboard's top edge instead of the (now hidden) layout-viewport
-     bottom - see the --kb-offset comment in main.tsx */
-  transform: translateY(calc(-1 * var(--kb-offset, 0px)));
 }
 .nav-item {
   flex: 1;
@@ -901,8 +916,6 @@ textarea.input {
   align-items: flex-end;
   justify-content: center;
   animation: dim var(--t-modal) var(--ease);
-  /* same keyboard/fixed-position compensation as .nav */
-  transform: translateY(calc(-1 * var(--kb-offset, 0px)));
 }
 .sheet {
   width: 100%;
