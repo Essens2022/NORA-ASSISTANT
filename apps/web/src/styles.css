@@ -224,6 +224,9 @@ h3 {
   flex: 1;
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
+.tab-hidden {
+  display: none;
+}
 .screen {
   max-width: 640px;
   margin: 0 auto;

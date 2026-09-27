@@ -4,7 +4,7 @@ import { Icon } from '../../components/Icon.tsx';
 import { TaskCard } from '../../components/TaskCard.tsx';
 import { Button, EmptyState } from '../../components/ui.tsx';
 import { getLocale, tr } from '../../i18n/index.ts';
-import { getState, setState, useStore } from '../../state/store.ts';
+import { setState, useStore } from '../../state/store.ts';
 import { todayLocal } from '../../utils/time.ts';
 import { NewTaskSheet } from '../task/TaskDetail.tsx';
 
@@ -49,18 +49,22 @@ function hourLabel(h: number): string {
 
 export function CalendarScreen() {
   const tasks = useStore((s) => s.tasks);
+  const focusDate = useStore((s) => s.calendarFocusDate);
   const today = todayLocal();
-  const focusDate = getState().calendarFocusDate;
   const [month, setMonth] = useState(() => monthOf(focusDate ?? today));
   const [selected, setSelected] = useState(focusDate ?? today);
   const [creating, setCreating] = useState(false);
   const [view, setView] = useState<'list' | 'timeline'>('list');
   const locale = getLocale();
 
+  // the screen now stays mounted across tab switches (see App.tsx), so "jump to this
+  // date" (from confirming a new task) has to be picked up reactively, not just once on mount
   useEffect(() => {
-    if (focusDate) setState({ calendarFocusDate: null });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!focusDate) return;
+    setMonth(monthOf(focusDate));
+    setSelected(focusDate);
+    setState({ calendarFocusDate: null });
+  }, [focusDate]);
 
   const byDate = useMemo(() => {
     const m: Record<string, Task[]> = {};

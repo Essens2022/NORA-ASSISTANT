@@ -43,12 +43,25 @@ export function App() {
           {tr('common.offline')}
         </div>
       )}
+      {/* every tab stays mounted, just hidden - swapping tabs used to unmount/remount the
+          whole screen, replaying every entrance animation at once and losing scroll
+          position and in-progress state (e.g. the day picked on Calendar) each time */}
       <main id="main" class="main">
-        {tab === 'ai' && <AIScreen />}
-        {tab === 'activity' && <ActivityScreen />}
-        {tab === 'calendar' && <CalendarScreen />}
-        {tab === 'memory' && <MemoryScreen />}
-        {tab === 'profile' && <ProfileScreen />}
+        <div class={`tab-panel${tab === 'ai' ? '' : ' tab-hidden'}`}>
+          <AIScreen />
+        </div>
+        <div class={`tab-panel${tab === 'activity' ? '' : ' tab-hidden'}`}>
+          <ActivityScreen />
+        </div>
+        <div class={`tab-panel${tab === 'calendar' ? '' : ' tab-hidden'}`}>
+          <CalendarScreen />
+        </div>
+        <div class={`tab-panel${tab === 'memory' ? '' : ' tab-hidden'}`}>
+          <MemoryScreen />
+        </div>
+        <div class={`tab-panel${tab === 'profile' ? '' : ' tab-hidden'}`}>
+          <ProfileScreen />
+        </div>
       </main>
       <Nav />
       <TaskDetailHost />

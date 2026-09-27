@@ -155,6 +155,10 @@ afterAll(async () => {
   server?.close();
 });
 
+// every tab stays mounted now (just hidden - see App.tsx), so a task title that also
+// appears in the AI conversation history can otherwise match the wrong (hidden) node
+const activeScreen = () => page.locator('.tab-panel:not(.tab-hidden)');
+
 const shot = async (name: string) => {
   await page.waitForTimeout(350); // let entry animations finish
   await page.screenshot({ path: join(SHOTS, `${name}.png`) });
@@ -209,11 +213,11 @@ describe('NORA web – end to end', () => {
     await page.getByRole('button', { name: 'Activitate' }).click();
     await page.getByRole('heading', { name: /Urmează/ }).waitFor();
     await page.getByRole('heading', { name: /Fără dată/ }).waitFor();
-    await page.getByText('Întâlnire').first().waitFor();
+    await activeScreen().getByText('Întâlnire').first().waitFor();
     await shot('05-activity');
     await page.reload();
     await page.getByRole('heading', { name: /Urmează/ }).waitFor();
-    await page.getByText('Cumpără lapte').waitFor();
+    await activeScreen().getByText('Cumpără lapte').waitFor();
   }, 30_000);
 
   it('task detail: reminders, reschedule, snooze, complete with undo', async () => {
