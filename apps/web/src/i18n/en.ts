@@ -102,6 +102,9 @@ export const en = {
   'cal.today': 'Today',
   'cal.empty_title': 'Nothing this day',
   'cal.empty_hint': 'Pick another day, or add something to this one.',
+  'cal.view': 'View',
+  'cal.view_list': 'List',
+  'cal.view_timeline': 'Timeline',
 
   'mem.title': 'My memory',
   'mem.hint': "What NORA has learned and remembered about you.",

@@ -104,6 +104,9 @@ export const ro: Record<MessageKey, string> = {
   'cal.today': 'Astăzi',
   'cal.empty_title': 'Nimic în ziua asta',
   'cal.empty_hint': 'Alege altă zi, sau adaugă ceva pentru asta.',
+  'cal.view': 'Vizualizare',
+  'cal.view_list': 'Listă',
+  'cal.view_timeline': 'Orar',
 
   'mem.title': 'Amintirile mele',
   'mem.hint': 'Ce a reținut NORA despre tine.',

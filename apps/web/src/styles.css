@@ -1736,6 +1736,86 @@ textarea.input {
 .cal-day.selected.has-tasks::after {
   background: #fff;
 }
+.cal-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cal-view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px;
+}
+.cal-view-toggle button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--secondary-text);
+  display: grid;
+  place-items: center;
+}
+.cal-view-toggle button.active {
+  background: var(--surface);
+  color: var(--blue);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+}
+.cal-timeline-anytime-label {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+  margin: 12px 4px 6px;
+}
+.cal-timeline {
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.cal-timeline-hour {
+  display: flex;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  min-height: 40px;
+}
+.cal-timeline-hour.empty {
+  min-height: 28px;
+}
+.cal-timeline-hour.now .cal-timeline-time {
+  color: var(--blue);
+  font-weight: 700;
+}
+.cal-timeline-time {
+  flex: 0 0 44px;
+  font-size: 12px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
+}
+.cal-timeline-tasks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cal-timeline-task {
+  text-align: left;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: var(--blue-soft, rgba(79, 124, 255, 0.1));
+  color: var(--blue-dark);
+  font-size: 14px;
+  font-weight: 500;
+}
 
 /* ---------- memory ---------- */
 .mem-hint {

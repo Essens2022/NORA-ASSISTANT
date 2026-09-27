@@ -104,6 +104,9 @@ export const it: Record<MessageKey, string> = {
   'cal.today': 'Oggi',
   'cal.empty_title': 'Niente in questo giorno',
   'cal.empty_hint': 'Scegli un altro giorno, o aggiungi qualcosa qui.',
+  'cal.view': 'Visualizzazione',
+  'cal.view_list': 'Elenco',
+  'cal.view_timeline': 'Orario',
 
   'mem.title': 'I miei ricordi',
   'mem.hint': 'Cosa NORA ha imparato e ricordato su di te.',

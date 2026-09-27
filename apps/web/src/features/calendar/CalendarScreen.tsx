@@ -39,6 +39,14 @@ function dayTitle(date: string, locale: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+function hourOf(time: string): number {
+  return Number(time.slice(0, 2));
+}
+function hourLabel(h: number): string {
+  return `${String(h).padStart(2, '0')}:00`;
+}
+
 export function CalendarScreen() {
   const tasks = useStore((s) => s.tasks);
   const today = todayLocal();
@@ -46,6 +54,7 @@ export function CalendarScreen() {
   const [month, setMonth] = useState(() => monthOf(focusDate ?? today));
   const [selected, setSelected] = useState(focusDate ?? today);
   const [creating, setCreating] = useState(false);
+  const [view, setView] = useState<'list' | 'timeline'>('list');
   const locale = getLocale();
 
   useEffect(() => {
@@ -63,6 +72,14 @@ export function CalendarScreen() {
   }, [tasks]);
 
   const dayTasks = (byDate[selected] ?? []).slice().sort(order);
+  const timedTasks = dayTasks.filter((t) => t.due_time);
+  const untimedTasks = dayTasks.filter((t) => !t.due_time);
+  const byHour = useMemo(() => {
+    const m: Record<number, Task[]> = {};
+    for (const t of timedTasks) (m[hourOf(t.due_time!)] ??= []).push(t);
+    return m;
+  }, [dayTasks]);
+  const nowHour = selected === today ? new Date().getHours() : -1;
   const total = daysInMonth(month);
   const offset = mondayFirst(month);
   const cells: Array<string | null> = [...Array(offset).fill(null), ...Array.from({ length: total }, (_, i) => addDays(month, i))];
@@ -112,17 +129,59 @@ export function CalendarScreen() {
       </div>
 
       <section class="group">
-        <h2 class="group-title">
-          {selected === today ? tr('cal.today') : dayTitle(selected, locale)} <span class="count">{dayTasks.length}</span>
-        </h2>
-        {dayTasks.length ? (
+        <div class="cal-day-head">
+          <h2 class="group-title">
+            {selected === today ? tr('cal.today') : dayTitle(selected, locale)} <span class="count">{dayTasks.length}</span>
+          </h2>
+          {dayTasks.length > 0 && (
+            <div class="cal-view-toggle" role="group" aria-label={tr('cal.view')}>
+              <button type="button" class={view === 'list' ? 'active' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')} aria-label={tr('cal.view_list')}>
+                <Icon name="list" size={16} />
+              </button>
+              <button type="button" class={view === 'timeline' ? 'active' : ''} aria-pressed={view === 'timeline'} onClick={() => setView('timeline')} aria-label={tr('cal.view_timeline')}>
+                <Icon name="clock" size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {dayTasks.length === 0 && <EmptyState title={tr('cal.empty_title')} text={tr('cal.empty_hint')} />}
+
+        {dayTasks.length > 0 && view === 'list' && (
           <ul class="task-list">
             {dayTasks.map((t) => (
               <TaskCard key={t.id} task={t} today={today} />
             ))}
           </ul>
-        ) : (
-          <EmptyState title={tr('cal.empty_title')} text={tr('cal.empty_hint')} />
+        )}
+
+        {dayTasks.length > 0 && view === 'timeline' && (
+          <>
+            {untimedTasks.length > 0 && (
+              <>
+                <p class="cal-timeline-anytime-label">{tr('task.any_time')}</p>
+                <ul class="task-list">
+                  {untimedTasks.map((t) => (
+                    <TaskCard key={t.id} task={t} today={today} />
+                  ))}
+                </ul>
+              </>
+            )}
+            <div class="cal-timeline">
+              {HOURS.map((h) => (
+                <div key={h} class={`cal-timeline-hour${h === nowHour ? ' now' : ''}${!byHour[h] ? ' empty' : ''}`}>
+                  <span class="cal-timeline-time">{hourLabel(h)}</span>
+                  <div class="cal-timeline-tasks">
+                    {(byHour[h] ?? []).map((t) => (
+                      <button type="button" key={t.id} class="cal-timeline-task" onClick={() => setState({ openTaskId: t.id })}>
+                        {t.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </section>
 

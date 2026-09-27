@@ -104,6 +104,9 @@ export const ru: Record<MessageKey, string> = {
   'cal.today': 'Сегодня',
   'cal.empty_title': 'Ничего в этот день',
   'cal.empty_hint': 'Выбери другой день или добавь что-то на этот.',
+  'cal.view': 'Вид',
+  'cal.view_list': 'Список',
+  'cal.view_timeline': 'По часам',
 
   'mem.title': 'Моя память',
   'mem.hint': 'Что NORA узнала и запомнила о тебе.',
