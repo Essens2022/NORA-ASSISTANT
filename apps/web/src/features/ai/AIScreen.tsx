@@ -84,6 +84,7 @@ export function AIScreen() {
   // turned into morning just because the clock rolled over to a new date.
   const greet = hour < 4 ? tr('ai.greet_evening') : hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
   const examples = tr('ai.examples').split('|');
+  const avatarFile = voice === 'listening' ? 'avatar-listening' : voice === 'processing' ? 'avatar-thinking' : voice === 'speaking' ? 'avatar-speaking' : 'avatar-idle';
 
   return (
     <div class="screen ai-screen">
@@ -92,8 +93,11 @@ export function AIScreen() {
           <Logo size={28} withWordmark />
         </h1>
         <p class="greet">
-          {greet}
-          {profile?.display_name ? `, ${profile.display_name}` : ''}
+          <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />
+          <span>
+            {greet}
+            {profile?.display_name ? `, ${profile.display_name}` : ''}
+          </span>
         </p>
       </header>
 

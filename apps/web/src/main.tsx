@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { App } from './App.tsx';
-import { detectDeviceLang, setLang } from './i18n/index.ts';
+import { setLang } from './i18n/index.ts';
 import { flushQueue, track } from './services/api.ts';
 import { completeHandoff, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
@@ -33,7 +33,11 @@ const deepTask = params.get('task');
 const deepAlert = params.get('alert') === '1';
 if (deepTask) history.replaceState(null, '', location.pathname);
 
-void setLang(detectDeviceLang()).then(() => {
+// The sign-in screen is shown before we know anything about the person, so it
+// always starts in English – only once they're authenticated does their profile's
+// ui_lang (or, for a brand-new account, the device language passed at sign-up
+// time – see SignIn.tsx) take over.
+void setLang('en').then(() => {
   render(<App />, document.getElementById('app')!);
   requestAnimationFrame(() => setTimeout(() => track('tti_ms', Math.round(performance.now())), 0));
 });

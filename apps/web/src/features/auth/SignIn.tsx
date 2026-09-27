@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { Logo } from '../../components/Logo.tsx';
 import { Button, Input } from '../../components/ui.tsx';
 import { feature, isConfigured } from '../../config/brand.ts';
-import { DEFAULT_LOCALE, getLang, tr } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, detectDeviceLang, tr } from '../../i18n/index.ts';
 import { deviceTimezone } from '../../services/api.ts';
 import { sendCode, signInWith, verifyCode } from '../../services/auth.ts';
 
@@ -30,7 +30,9 @@ export function SignIn() {
     setBusy(true);
     setError(null);
     try {
-      const lang = getLang();
+      // The sign-in screen itself stays in English (see main.tsx), but a brand-new
+      // account should still start in the device's own language, not English.
+      const lang = detectDeviceLang();
       await sendCode(email.trim(), { ui_lang: lang, locale: DEFAULT_LOCALE[lang], timezone: deviceTimezone() });
       setStep('code');
     } catch (err) {
