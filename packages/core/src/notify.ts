@@ -32,8 +32,8 @@ const STR: Record<Lang, S> = {
   ro: {
     call_now: '{name}e momentul: {title}',
     call_now_anon: 'E momentul: {title}',
-    main_body: 'Acum, {at}. Te ocupi?',
-    main_body_date: '{when}. Te ocupi azi?',
+    main_body: 'Acum, {at}. Atinge pentru opțiuni.',
+    main_body_date: '{when}. Atinge pentru opțiuni.',
     soon_title: '{name}în {min} min: {title}',
     soon_title_anon: 'În {min} min: {title}',
     soon_body: '{at}{where}. Te anunț la timp.',
@@ -63,8 +63,8 @@ const STR: Record<Lang, S> = {
   en: {
     call_now: "{name}it's time: {title}",
     call_now_anon: "It's time: {title}",
-    main_body: 'Now, {at}. On it?',
-    main_body_date: '{when}. Doing it today?',
+    main_body: 'Now, {at}. Tap for options.',
+    main_body_date: '{when}. Tap for options.',
     soon_title: '{name}in {min} min: {title}',
     soon_title_anon: 'In {min} min: {title}',
     soon_body: '{at}{where}. I’ll keep you on time.',
@@ -94,8 +94,8 @@ const STR: Record<Lang, S> = {
   it: {
     call_now: '{name}è il momento: {title}',
     call_now_anon: 'È il momento: {title}',
-    main_body: 'Adesso, {at}. Te ne occupi?',
-    main_body_date: '{when}. Lo fai oggi?',
+    main_body: 'Adesso, {at}. Tocca per le opzioni.',
+    main_body_date: '{when}. Tocca per le opzioni.',
     soon_title: '{name}tra {min} min: {title}',
     soon_title_anon: 'Tra {min} min: {title}',
     soon_body: '{at}{where}. Ti avviso in tempo.',
@@ -125,8 +125,8 @@ const STR: Record<Lang, S> = {
   ru: {
     call_now: '{name}пора: {title}',
     call_now_anon: 'Пора: {title}',
-    main_body: 'Сейчас, {at}. Берёшься?',
-    main_body_date: '{when}. Сделаешь сегодня?',
+    main_body: 'Сейчас, {at}. Нажми, чтобы увидеть варианты.',
+    main_body_date: '{when}. Нажми, чтобы увидеть варианты.',
     soon_title: '{name}через {min} мин: {title}',
     soon_title_anon: 'Через {min} мин: {title}',
     soon_body: '{at}{where}. Предупрежу вовремя.',

@@ -16,7 +16,7 @@ describe('notifications call the person', () => {
   it('at the time: by name, one clear sentence, done/snooze', () => {
     const n = buildNotification(rem('main'), task(), 'ro', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at });
     expect(n.title).toBe('Ion, e momentul: Sună contabilul');
-    expect(n.body).toBe('Acum, la 9. Te ocupi?');
+    expect(n.body).toBe('Acum, la 9. Atinge pentru opțiuni.');
     expect(n.actions.map((a) => a.action)).toEqual(['done', 'snooze']);
   });
   it('before the time: countdown', () => {
@@ -44,7 +44,7 @@ describe('notifications call the person', () => {
   });
   it('speaks every language', () => {
     expect(buildNotification(rem('main'), task(), 'en', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at }).title).toBe("Ion, it's time: Sună contabilul");
-    expect(buildNotification(rem('main'), task(), 'it', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).body).toBe('Adesso, alle 9. Te ne occupi?');
+    expect(buildNotification(rem('main'), task(), 'it', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).body).toBe('Adesso, alle 9. Tocca per le opzioni.');
     expect(buildNotification(rem('main'), task(), 'ru', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).title).toBe('Пора: Sună contabilul');
   });
 });
