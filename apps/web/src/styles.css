@@ -783,6 +783,9 @@ textarea.input {
   background: var(--nav-bg);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
+  /* keep pinned to the keyboard's top edge instead of the (now hidden) layout-viewport
+     bottom - see the --kb-offset comment in main.tsx */
+  transform: translateY(calc(-1 * var(--kb-offset, 0px)));
 }
 .nav-item {
   flex: 1;
@@ -897,6 +900,8 @@ textarea.input {
   align-items: flex-end;
   justify-content: center;
   animation: dim var(--t-modal) var(--ease);
+  /* same keyboard/fixed-position compensation as .nav */
+  transform: translateY(calc(-1 * var(--kb-offset, 0px)));
 }
 .sheet {
   width: 100%;

@@ -84,11 +84,24 @@ window.addEventListener('offline', () => setState({ online: false }));
 // cycle, tall enough that the whole page scrolls as one block (briefing included)
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
+//
+// Opening the keyboard on a focused input is a second, separate problem: `position:
+// fixed` elements (the bottom nav, sheet modals) are anchored to the *layout*
+// viewport, which the keyboard doesn't shrink - only the *visual* viewport does. The
+// browser then auto-scrolls the visual viewport down to keep the focused input in
+// view, which drags the whole app up while the nav bar stays pinned to the
+// (now off-screen) layout-viewport bottom, appearing to "detach" mid-screen with a
+// blank gap above it. --kb-offset tracks that gap so fixed UI can compensate with a
+// translateY (see .nav / .sheet-backdrop).
 const setAppHeight = () => {
-  document.documentElement.style.setProperty('--app-h', `${window.visualViewport?.height ?? window.innerHeight}px`);
+  const vv = window.visualViewport;
+  document.documentElement.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
+  const kbOffset = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
+  document.documentElement.style.setProperty('--kb-offset', `${kbOffset}px`);
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);
+window.visualViewport?.addEventListener('scroll', setAppHeight);
 window.addEventListener('resize', setAppHeight);
 window.addEventListener('orientationchange', setAppHeight);
 
