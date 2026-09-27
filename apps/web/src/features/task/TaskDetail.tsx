@@ -7,6 +7,7 @@ import { formatDate, formatInstant, formatTime, getLang, relativeDay, tr, type M
 import { api } from '../../services/api.ts';
 import { cancelTask, completeTask, createTask, deleteTask, reopenTask, snoozeTask, updateTask } from '../../state/actions.ts';
 import { getState, setState, toast, useStore } from '../../state/store.ts';
+import { kindColorClass, kindIcon } from '../../utils/taskKind.ts';
 import { todayLocal, userTz } from '../../utils/time.ts';
 
 interface Detail {
@@ -382,9 +383,10 @@ function TaskFields(props: {
       )}
       <div>
         <p class="chip-row-label">{tr('task.kind')}</p>
-        <div class="chips" role="group" aria-label={tr('task.kind')}>
+        <div class="chips kind-chips" role="group" aria-label={tr('task.kind')}>
           {TASK_KINDS.map((k) => (
-            <button type="button" key={k} class={`chip${v.kind === k ? ' selected' : ''}`} onClick={() => set('kind', k)}>
+            <button type="button" key={k} class={`chip kind-chip${v.kind === k ? ' selected' : ''}`} onClick={() => set('kind', k)}>
+              <Icon name={kindIcon(k)} class={`chip-icon ${kindColorClass(k)}`} size={15} />
               {tr(`kind.${k}` as MessageKey)}
             </button>
           ))}

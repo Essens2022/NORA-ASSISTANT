@@ -12,6 +12,12 @@
   --blue-light: #7c9cff;
   --cyan: #46d7ff;
   --cyan-soft: #beefff;
+  --cyan-text: #0e7490;
+  --purple: #8b5cf6;
+  --purple-soft: #ede9fe;
+  --pink: #ec4899;
+  --pink-soft: #fce7f3;
+  --gradient-brand: linear-gradient(135deg, var(--blue), var(--cyan));
 
   /* status */
   --success: #22c55e;
@@ -85,6 +91,9 @@
     --warning-soft: rgba(245, 185, 66, 0.14);
     --error-soft: rgba(239, 91, 91, 0.14);
     --info-soft: rgba(56, 189, 248, 0.14);
+    --purple-soft: rgba(139, 92, 246, 0.16);
+    --pink-soft: rgba(236, 72, 153, 0.16);
+    --cyan-text: var(--cyan);
     --card-shadow: none;
     color-scheme: dark;
   }
@@ -112,6 +121,9 @@
   --warning-soft: rgba(245, 185, 66, 0.14);
   --error-soft: rgba(239, 91, 91, 0.14);
   --info-soft: rgba(56, 189, 248, 0.14);
+  --purple-soft: rgba(139, 92, 246, 0.16);
+  --pink-soft: rgba(236, 72, 153, 0.16);
+  --cyan-text: var(--cyan);
   --card-shadow: none;
   color-scheme: dark;
 }
@@ -510,13 +522,22 @@ textarea.input {
   border-color: var(--blue);
   color: #fff;
 }
+.chip-priority-high {
+  border-color: var(--error);
+  color: var(--error);
+}
 .chip-priority-high.selected {
   background: var(--error);
-  border-color: var(--error);
+  color: #fff;
+}
+.chip-priority-low {
+  border-color: var(--success);
+  color: var(--success-text);
 }
 .chip-priority-low.selected {
-  background: var(--secondary-text);
-  border-color: var(--secondary-text);
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
 }
 
 /* ---------- task confirmation ---------- */
@@ -565,6 +586,77 @@ textarea.input {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* ---------- kind badges (task category) ---------- */
+.kind-badge {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.kind-badge.kind-blue {
+  background: var(--selected);
+  color: var(--blue);
+}
+.kind-badge.kind-cyan {
+  background: var(--cyan-soft);
+  color: var(--cyan-text);
+}
+.kind-badge.kind-warning {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+.kind-badge.kind-pink {
+  background: var(--pink-soft);
+  color: var(--pink);
+}
+.kind-badge.kind-success {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+.kind-badge.kind-purple {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+.kind-badge.kind-neutral {
+  background: var(--hover);
+  color: var(--secondary-text);
+}
+.kind-badge.small {
+  width: 28px;
+  height: 28px;
+}
+.kind-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.chip-icon.kind-blue {
+  color: var(--blue);
+}
+.chip-icon.kind-cyan {
+  color: var(--cyan-text);
+}
+.chip-icon.kind-warning {
+  color: var(--warning-text);
+}
+.chip-icon.kind-pink {
+  color: var(--pink);
+}
+.chip-icon.kind-success {
+  color: var(--success-text);
+}
+.chip-icon.kind-purple {
+  color: var(--purple);
+}
+.chip-icon.kind-neutral {
+  color: var(--muted);
+}
+.chip.selected .chip-icon {
+  color: #fff;
 }
 
 /* ---------- cards & sections ---------- */
@@ -678,18 +770,28 @@ textarea.input {
   border: 0;
   background: none;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.nav-pill {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: var(--muted);
-  transition: color var(--t-micro) var(--ease);
+  gap: 3px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  background: transparent;
+  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease);
 }
-.nav-item.active {
-  color: var(--blue);
+.nav-item.active .nav-pill {
+  background: var(--gradient-brand);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.35);
 }
 .nav-icon {
   position: relative;

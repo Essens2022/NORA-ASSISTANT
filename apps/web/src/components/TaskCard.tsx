@@ -2,6 +2,7 @@ import type { Task } from '@nora/core';
 import { formatTime, relativeDay, tr, type MessageKey } from '../i18n/index.ts';
 import { completeTask, reopenTask } from '../state/actions.ts';
 import { setState } from '../state/store.ts';
+import { kindColorClass, kindIcon } from '../utils/taskKind.ts';
 import { Icon } from './Icon.tsx';
 
 export function TaskCard({ task, today, showDate = false }: { task: Task; today: string; showDate?: boolean }) {
@@ -26,6 +27,9 @@ export function TaskCard({ task, today, showDate = false }: { task: Task; today:
         {done && <Icon name="check" size={16} />}
       </button>
       <button type="button" class="task-main" onClick={() => setState({ openTaskId: task.id })}>
+        <span class={`kind-badge small ${kindColorClass(task.kind)}`} aria-hidden="true">
+          <Icon name={kindIcon(task.kind)} size={15} />
+        </span>
         <span class="task-time">{task.due_time ? formatTime(task.due_time) : task.time_window ? tr(`task.window.${task.time_window}` as MessageKey) : ''}</span>
         <span class="task-text">
           <span class="task-title">{task.title}</span>

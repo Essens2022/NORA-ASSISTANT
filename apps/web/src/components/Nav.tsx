@@ -35,15 +35,17 @@ export function Nav() {
             }
           }}
         >
-          <span class="nav-icon">
-            <Icon name={t.icon} size={22} />
-            {t.id === 'activity' && attention > 0 && (
-              <span class="badge" aria-label={`${attention}`}>
-                {attention}
-              </span>
-            )}
+          <span class="nav-pill">
+            <span class="nav-icon">
+              <Icon name={t.icon} size={20} />
+              {t.id === 'activity' && attention > 0 && (
+                <span class="badge" aria-label={`${attention}`}>
+                  {attention}
+                </span>
+              )}
+            </span>
+            <span>{tr(t.key)}</span>
           </span>
-          <span>{tr(t.key)}</span>
         </button>
       ))}
     </nav>
