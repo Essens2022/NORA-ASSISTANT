@@ -4,7 +4,7 @@ import type { AssistantReply, Lang, Profile, Task, TaskStatus } from '@nora/core
 import { onI18nChange } from '../i18n/index.ts';
 
 export type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking';
-export type Tab = 'ai' | 'activity' | 'profile';
+export type Tab = 'ai' | 'activity' | 'calendar' | 'memory' | 'profile';
 
 export interface ChatItem {
   id: string;

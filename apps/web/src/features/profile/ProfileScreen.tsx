@@ -1,4 +1,4 @@
-import { LANGS, type Lang, type MemoryItem, type Preferences, type SoundLevel } from '@nora/core';
+import { LANGS, type Lang, type Preferences, type SoundLevel } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Confirm, Input, Section, Segmented, Select, Toggle } from '../../components/ui.tsx';
@@ -8,7 +8,7 @@ import { signOut } from '../../services/auth.ts';
 import { disablePushOnThisDevice, enablePush, isPushOptedOut, pushStatus, type PushStatus } from '../../services/push.ts';
 import { saveVoice, savedVoice, tts } from '../../services/voice/tts.ts';
 import { updateProfile } from '../../state/actions.ts';
-import { toast, useStore, toastError } from '../../state/store.ts';
+import { setState, toast, useStore, toastError } from '../../state/store.ts';
 import { applyTheme, currentTheme, type Theme } from '../../utils/theme.ts';
 import { playChime } from '../../utils/chime.ts';
 
@@ -131,7 +131,12 @@ export function ProfileScreen() {
       <Section title={tr('prof.memory')} id="memory">
         <p class="hint">{tr('prof.memory_hint')}</p>
         <Toggle label={tr('prof.personalization')} checked={p.personalization} onChange={(v) => void setPref('personalization', v)} />
-        <MemoryList />
+        <button type="button" class="row memory-link" onClick={() => setState({ tab: 'memory' })}>
+          <span class="row-text">
+            <span class="row-label">{tr('mem.title')}</span>
+          </span>
+          <Icon name="chevron" size={18} class="chev" />
+        </button>
       </Section>
 
       <Section title={tr('prof.appearance')} id="appearance">
@@ -305,123 +310,7 @@ function PushControl() {
   );
 }
 
-// kept between visits and prefetched after start-up, so the list shows instantly
-let memoryCache: MemoryItem[] | null = null;
-export function prefetchMemory() {
-  return api<{ items: MemoryItem[] }>('/v1/memory')
-    .then((r) => (memoryCache = Array.isArray(r.items) ? r.items : []))
-    .catch(() => memoryCache);
-}
-/** Sign-out (or switching accounts without a reload) must not leak the previous user's memory. */
-export function clearMemoryCache() {
-  memoryCache = null;
-}
-
-function MemoryList() {
-  const [items, setItemsState] = useState<MemoryItem[] | null>(memoryCache);
-  const setItems = (v: MemoryItem[]) => {
-    memoryCache = v;
-    setItemsState(v);
-  };
-  const [editing, setEditing] = useState<string | null>(null);
-  const [value, setValue] = useState('');
-  const [confirmAll, setConfirmAll] = useState(false);
-  const load = () =>
-    api<{ items: MemoryItem[] }>('/v1/memory')
-      .then((r) => setItems(Array.isArray(r.items) ? r.items : []))
-      .catch(() => setItems(memoryCache ?? []));
-  useEffect(() => void load(), []);
-
-  if (items === null) return <p class="muted">…</p>;
-  return (
-    <>
-      {items.length === 0 ? (
-        <p class="muted">{tr('prof.memory_empty')}</p>
-      ) : (
-        <ul class="memory-list">
-          {items.map((m) => (
-            <li key={m.id}>
-              {editing === m.id ? (
-                <form
-                  class="memory-edit"
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    try {
-                      await api(`/v1/memory/${m.id}`, { method: 'PATCH', body: { value } });
-                      setEditing(null);
-                      void load();
-                    } catch {
-                      toastError(tr('err.save_failed'));
-                    }
-                  }}
-                >
-                  {/* m.key is an internal identifier (e.g. "reminder_style"), never translated – the
-                      generic section label reads correctly in every language instead */}
-                  <Input label={tr('prof.memory')} value={value} onValue={setValue} maxLength={300} />
-                  <div class="actions-row">
-                    <Button small onClick={() => setEditing(null)}>
-                      {tr('common.cancel')}
-                    </Button>
-                    <Button small variant="primary" type="submit">
-                      {tr('common.save')}
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                <>
-                  <span class="memory-text">{m.value}</span>
-                  <span class="memory-actions">
-                    <button
-                      type="button"
-                      class="icon-btn"
-                      aria-label={`${tr('common.edit')}: ${m.value}`}
-                      onClick={() => {
-                        setEditing(m.id);
-                        setValue(m.value);
-                      }}
-                    >
-                      <Icon name="edit" size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      class="icon-btn"
-                      aria-label={`${tr('common.delete')}: ${m.value}`}
-                      onClick={async () => {
-                        await api(`/v1/memory/${m.id}`, { method: 'DELETE' }).catch(() => toastError(tr('err.save_failed')));
-                        void load();
-                      }}
-                    >
-                      <Icon name="trash" size={16} />
-                    </button>
-                  </span>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      {items.length > 0 && (
-        <Button small variant="danger" icon="trash" onClick={() => setConfirmAll(true)}>
-          {tr('prof.memory_delete_all')}
-        </Button>
-      )}
-      <Confirm
-        open={confirmAll}
-        title={tr('prof.memory_delete_all')}
-        body={tr('prof.memory_delete_all_confirm')}
-        confirm={tr('common.delete')}
-        cancel={tr('common.cancel')}
-        danger
-        onCancel={() => setConfirmAll(false)}
-        onConfirm={async () => {
-          setConfirmAll(false);
-          await api('/v1/memory', { method: 'DELETE' }).catch(() => toastError(tr('err.save_failed')));
-          void load();
-        }}
-      />
-    </>
-  );
-}
+// Memory list moved to its own screen – see features/memory/MemoryScreen.tsx.
 
 function ThemePicker() {
   const [theme, setTheme] = useState<Theme>(currentTheme());

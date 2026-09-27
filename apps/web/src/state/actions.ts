@@ -7,7 +7,7 @@ import { auth } from '../services/auth.ts';
 import { syncSubscription } from '../services/push.ts';
 import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.ts';
 import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
-import { clearMemoryCache, prefetchMemory } from '../features/profile/ProfileScreen.tsx';
+import { clearMemoryCache, prefetchMemory } from '../features/memory/MemoryScreen.tsx';
 import { clearDetailCache } from '../features/task/TaskDetail.tsx';
 import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 

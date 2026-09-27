@@ -27,7 +27,7 @@ try {
 
 // deep links: /activity, /profile, /?task=<id>
 const path = location.pathname.slice(import.meta.env.BASE_URL.length).replace(/\/+$/, '') as Tab;
-if (path === 'activity' || path === 'profile') setState({ tab: path });
+if (path === 'activity' || path === 'calendar' || path === 'memory' || path === 'profile') setState({ tab: path });
 const params = new URLSearchParams(location.search);
 const deepTask = params.get('task');
 const deepAlert = params.get('alert') === '1';

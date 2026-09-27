@@ -1,6 +1,8 @@
 import { Nav, Toasts } from './components/Nav.tsx';
 import { AIScreen } from './features/ai/AIScreen.tsx';
 import { ActivityScreen } from './features/activity/ActivityScreen.tsx';
+import { CalendarScreen } from './features/calendar/CalendarScreen.tsx';
+import { MemoryScreen } from './features/memory/MemoryScreen.tsx';
 import { SignIn } from './features/auth/SignIn.tsx';
 import { Onboarding } from './features/onboarding/Onboarding.tsx';
 import { ProfileScreen } from './features/profile/ProfileScreen.tsx';
@@ -43,6 +45,8 @@ export function App() {
       <main id="main" class="main">
         {tab === 'ai' && <AIScreen />}
         {tab === 'activity' && <ActivityScreen />}
+        {tab === 'calendar' && <CalendarScreen />}
+        {tab === 'memory' && <MemoryScreen />}
         {tab === 'profile' && <ProfileScreen />}
       </main>
       <Nav />

@@ -809,6 +809,24 @@ textarea.input {
   margin: 8px 0 24px;
 }
 
+/* quick action chips on AI Home – a horizontally scrolling row, no wrap */
+.ai-quick-actions {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 0 16px;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.ai-quick-actions::-webkit-scrollbar {
+  display: none;
+}
+.ai-quick-actions .chip {
+  flex-shrink: 0;
+  min-height: 40px;
+  font-size: 14px;
+}
+
 /* briefing card */
 .briefing {
   background: var(--surface);
@@ -1574,6 +1592,93 @@ textarea.input {
   display: flex;
   align-items: center;
   color: var(--text-2);
+}
+
+/* ---------- calendar ---------- */
+.cal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card-lg);
+  box-shadow: var(--card-shadow);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cal-month {
+  font-weight: 700;
+  font-size: 17px;
+}
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.cal-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  display: grid;
+  place-items: center;
+  position: relative;
+  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease);
+}
+.cal-day.empty {
+  pointer-events: none;
+}
+.cal-day.today {
+  color: var(--blue);
+  font-weight: 700;
+}
+.cal-day.has-tasks::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blue-light);
+}
+.cal-day.selected {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+}
+.cal-day.selected.has-tasks::after {
+  background: #fff;
+}
+
+/* ---------- memory ---------- */
+.mem-hint {
+  margin: -8px 0 16px;
+}
+.mem-search {
+  margin-bottom: 20px;
+}
+.memory-link .row-label {
+  color: var(--blue);
 }
 
 /* ---------- profile ---------- */

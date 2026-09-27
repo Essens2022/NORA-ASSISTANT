@@ -95,6 +95,25 @@ export function AIScreen() {
         </p>
       </header>
 
+      <div class="chips ai-quick-actions" role="group" aria-label={tr('ai.quick_actions')}>
+        <button
+          type="button"
+          class="chip"
+          onClick={() => document.getElementById('composer-input')?.focus()}
+        >
+          {tr('ai.quick_add')}
+        </button>
+        <button type="button" class="chip" onClick={() => void sendText(tr('ai.quick_plan_prompt'))}>
+          {tr('ai.quick_plan')}
+        </button>
+        <button type="button" class="chip" onClick={() => void sendText(tr('ai.quick_week_prompt'))}>
+          {tr('ai.quick_week')}
+        </button>
+        <button type="button" class="chip" onClick={() => void sendText(tr('ai.quick_ideas_prompt'))}>
+          {tr('ai.quick_ideas')}
+        </button>
+      </div>
+
       {/* the briefing stays put, like the voice button and composer below it – only
           the conversation scrolls, never pushed off or hidden on a short phone */}
       <Briefing tasks={tasks} today={today} />
