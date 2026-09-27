@@ -26,6 +26,7 @@ const PATHS = {
   bag: 'M6 8h12l1 12H5L6 8Zm3 0V6a3 3 0 1 1 6 0v2',
   card: 'M3 7h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Zm0 4h18M6 15h4',
   file: 'M8 3h6l4 4v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm6 0v4h4',
+  bookmark: 'M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z',
 } as const;
 
 export type IconName = keyof typeof PATHS;

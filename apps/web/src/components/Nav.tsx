@@ -6,7 +6,7 @@ const TABS: Array<{ id: Tab; icon: IconName; key: 'nav.ai' | 'nav.activity' | 'n
   { id: 'ai', icon: 'spark', key: 'nav.ai' },
   { id: 'activity', icon: 'list', key: 'nav.activity' },
   { id: 'calendar', icon: 'calendar', key: 'nav.calendar' },
-  { id: 'memory', icon: 'pin', key: 'nav.memory' },
+  { id: 'memory', icon: 'bookmark', key: 'nav.memory' },
   { id: 'profile', icon: 'user', key: 'nav.profile' },
 ];
 
