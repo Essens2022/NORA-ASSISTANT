@@ -33,6 +33,13 @@ export function ActivityScreen() {
 
   const openCount = groups.today.length + groups.upcoming.length + groups.attention.length + groups.inbox.length;
 
+  const stats: Array<['today' | 'attention' | 'upcoming', MessageKey]> = [
+    ['today', 'act.today'],
+    ['attention', 'act.attention'],
+    ['upcoming', 'act.upcoming'],
+  ];
+  const scrollTo = (key: string) => document.getElementById(`g-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   const toggleCompleted = async () => {
     if (!showCompleted && !completedLoaded) {
       setLoadingDone(true);
@@ -61,6 +68,17 @@ export function ActivityScreen() {
           {tr('task.new')}
         </Button>
       </header>
+
+      {bootstrapped && openCount > 0 && (
+        <div class="act-stats" role="group" aria-label={tr('act.title')}>
+          {stats.map(([key, label]) => (
+            <button type="button" key={key} class={`act-stat${key === 'attention' && groups[key].length ? ' warn' : ''}`} onClick={() => scrollTo(key)} disabled={groups[key].length === 0}>
+              <span class="act-stat-n">{groups[key].length}</span>
+              <span class="act-stat-label">{tr(label)}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {bootstrapped && openCount === 0 && (
         <EmptyState title={tr('act.empty_title')} text={tr('act.empty_hint')}>
