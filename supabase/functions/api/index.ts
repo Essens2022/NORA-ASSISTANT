@@ -25,12 +25,14 @@ import {
   isOpen,
   isValidTimeZone,
   LANGS,
+  MEMORY_KINDS,
   snoozeUntil,
   t,
   TaskService,
   toZoned,
   validateTaskFields,
   type Lang,
+  type MemoryKind,
   type Preferences,
   type Profile,
   type SnoozePreset,
@@ -353,9 +355,10 @@ async function memoryRoute(ctx: Ctx, id: string | null) {
     return { item: data };
   }
   if (m === 'POST') {
-    const body = await readJson<{ key?: string; value?: string }>(ctx.req);
+    const body = await readJson<{ key?: string; value?: string; kind?: string }>(ctx.req);
     if (!body.key?.trim() || !body.value?.trim()) throw new HttpError(400, 'invalid_value');
-    await ctx.store.remember(body.key.trim().slice(0, 60), body.value.trim().slice(0, 300));
+    const kind = (MEMORY_KINDS as readonly string[]).includes(body.kind ?? '') ? (body.kind as MemoryKind) : 'note';
+    await ctx.store.remember(body.key.trim().slice(0, 60), body.value.trim().slice(0, 300), kind);
     return { ok: true };
   }
   throw new HttpError(405, 'method_not_allowed');

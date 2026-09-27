@@ -1,8 +1,8 @@
 // AI → structured data. The model never touches the database: it returns a
 // JSON plan, which is validated here and then executed deterministically.
 
-import type { DayWindow, Lang, Priority, Task, TaskField, TaskKind, TimeBinding } from './types.ts';
-import { DAY_WINDOWS, LANGS, PRIORITIES, TASK_FIELDS, TASK_KINDS } from './types.ts';
+import type { DayWindow, Lang, MemoryKind, Priority, Task, TaskField, TaskKind, TimeBinding } from './types.ts';
+import { DAY_WINDOWS, LANGS, MEMORY_KINDS, PRIORITIES, TASK_FIELDS, TASK_KINDS } from './types.ts';
 import { isValidDate, isValidTime, addDays, weekdayOf } from './tz.ts';
 import { isValidRule } from './recurrence.ts';
 
@@ -49,7 +49,7 @@ export type AIAction =
   | { type: 'reopen_task'; ref: string }
   | { type: 'snooze_task'; ref: string; minutes: number | null; date: string | null; time: string | null }
   | { type: 'query_tasks'; from: string | null; to: string | null; text: string | null; status: 'open' | 'completed' | 'all' }
-  | { type: 'remember'; key: string; value: string };
+  | { type: 'remember'; key: string; value: string; kind: MemoryKind };
 
 export type AskField = TaskField | 'day_in_week' | 'which';
 
@@ -208,7 +208,8 @@ export function validatePlan(raw: unknown, fallbackLang: Lang): { plan: AIPlan; 
       case 'remember': {
         const key = str(r.key, 60);
         const value = str(r.value, 300);
-        if (key && value) actions.push({ type: 'remember', key, value });
+        const kind = oneOf(r.kind, MEMORY_KINDS) ?? 'preference';
+        if (key && value) actions.push({ type: 'remember', key, value, kind });
         break;
       }
       default:
@@ -260,7 +261,7 @@ Actions:
 - {"type":"complete_task","ref":"tN"} | {"type":"cancel_task","ref":"tN"} | {"type":"reopen_task","ref":"tN"}
 - {"type":"snooze_task","ref":"tN","minutes":int|null,"date":"YYYY-MM-DD"|null,"time":"HH:MM"|null}
 - {"type":"query_tasks","from":"YYYY-MM-DD"|null,"to":"YYYY-MM-DD"|null,"text":"keyword"|null,"status":"open|completed|all"}
-- {"type":"remember","key":"short_key","value":"stable user preference or fact"}
+- {"type":"remember","key":"short_key","value":"the thing to remember","kind":"preference|fact|idea|note|moment"}
 TASK = {"title":"the bare action, as NORA will say it out loud at reminder time, in the user's language and in the imperative — never the reminder framing itself. Strip words like 'remind me to', 'amintește-mi să', 'ricordami di', 'напомни мне' and keep only what follows, turned into a direct imperative. E.g. 'amintește-mi să iau pastilele' → 'Ia pastilele'; 'remind me to call mom' → 'Call mom'; 'luni am întâlnire cu avocatul, amintește-mi' → 'Întâlnire cu avocatul'. For a plain appointment/event with no imperative verb, a short noun phrase is fine ('Dentist').","kind":"appointment|call|payment|shopping|travel|document|generic","priority":"low|normal|high","date":"YYYY-MM-DD"|null,"time":"HH:MM"|null,"time_window":"morning|afternoon|evening|anytime"|null,"duration_min":int|null,"location":str|null,"travel_min":int|null,"buffer_min":int|null,"recurrence":"RRULE like FREQ=WEEKLY;BYDAY=MO"|null,"notes":str|null}
 
 Rules:
@@ -276,7 +277,7 @@ Rules:
 9b. "Travel" ("trebuie să fiu/ajung la <loc> la <oră>", "trebuie să plec la aeroport", kind "travel") means being somewhere BY a deadline, not an event that starts then — different from a plain appointment/meeting. If the user didn't also say how long it takes to get there, still create the task with what you know, but ALSO set ask field "travel" with a short question in the user's language ("Cât timp îți ia să ajungi acolo?" / "How long does it take to get there?"), so NORA can remind you early enough to leave, not just at the deadline itself. Don't ask this for a plain appointment/meeting/visit, only when arriving somewhere by a time is the point.
 10. Recurring: "în fiecare luni la 8" → recurrence "FREQ=WEEKLY;BYDAY=MO", time "08:00", date = first occurrence.
 11. Questions about the user's plans ("ce am mâine?", "când era dentistul?") → query_tasks with a date range and/or text. Never answer them from memory; the app answers from the database.
-12. "remember" only for durable preferences the user states ("prefer să-mi amintești cu o oră înainte").
+12. "remember" for anything durable the user wants kept, not just task-related: a lasting preference about how NORA behaves ("prefer să-mi amintești cu o oră înainte") is kind "preference"; a stable fact about them (birthday, allergy, sizes) is "fact"; something to explore/do later (a trip idea, a book, a gift idea) is "idea"; a personal note with no clear category is "note"; something they want to look back on (a quote, a memory, a reflection) is "moment". Each of these is a SEPARATE, growing item, not a setting to overwrite - "key" must be specific enough to be unique per item (e.g. derived from its content, like "idea_iceland_trip" or "note_book_to_read_dune"), never a generic key like "note" or "idea" reused across different memories, which would silently replace the previous one. Only "preference"/"fact" genuinely mean "the current value of X", where reusing the same key to update it is correct.
 13. "reply": for small talk or when no action/ask applies, a short, warm, natural answer in the user's language. Otherwise a very short confirmation (the app may replace it). No robotic phrasing, no repeating the user's words back.
 14. "language" = the language the user is writing in now (may differ from earlier messages).
 15. Never hardcode a title from the sentence shape ("amintește-mi să X" → title "amintește-mi să X" is wrong). The title is read aloud to the user as the reminder itself, so it must already sound like someone telling them what to do right now.`;

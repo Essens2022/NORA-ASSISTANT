@@ -150,6 +150,25 @@ describe('AI plan validation', () => {
     expect(validatePlan('not json', 'it').plan).toEqual({ language: 'it', actions: [], ask: null, reply: '' });
     expect(validatePlan('```json\n{"language":"ru","actions":[],"reply":"Привет"}\n```', 'en').plan.reply).toBe('Привет');
   });
+  it('remember: keeps a valid kind, defaults to preference otherwise', () => {
+    const { plan } = validatePlan(
+      JSON.stringify({
+        language: 'ro',
+        actions: [
+          { type: 'remember', key: 'idea_iceland_trip', value: 'Vezi aurora boreală în Islanda', kind: 'idea' },
+          { type: 'remember', key: 'default_time', value: '9 dimineața' },
+          { type: 'remember', key: 'bad_kind', value: 'x', kind: 'not_a_kind' },
+        ],
+        ask: null,
+        reply: '',
+      }),
+      'en',
+    );
+    expect(plan.actions).toHaveLength(3);
+    expect(plan.actions[0]).toMatchObject({ type: 'remember', kind: 'idea' });
+    expect(plan.actions[1]).toMatchObject({ type: 'remember', kind: 'preference' });
+    expect(plan.actions[2]).toMatchObject({ type: 'remember', kind: 'preference' });
+  });
 });
 
 describe('formatWhen', () => {

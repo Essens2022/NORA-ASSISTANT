@@ -4,7 +4,7 @@ import { EMPTY_STATE } from './assistant.ts';
 import type { ChatMessage } from './ai.ts';
 import type { PlannedReminder } from './reminders.ts';
 import type { NewTask, TaskQuery } from './service.ts';
-import type { MemoryItem, Reminder, ReminderKind, Task, TaskEventType } from './types.ts';
+import type { MemoryItem, MemoryKind, Reminder, ReminderKind, Task, TaskEventType } from './types.ts';
 
 let seq = 0;
 const id = (p: string) => `${p}_${(++seq).toString(36)}`;
@@ -101,8 +101,8 @@ export class MemoryStore implements AssistantStore {
   async memory() {
     return [...this.mem];
   }
-  async remember(key: string, value: string) {
+  async remember(key: string, value: string, kind: MemoryKind = 'preference') {
     this.mem = this.mem.filter((m) => m.key !== key);
-    this.mem.push({ id: id('mem'), user_id: this.userId, kind: 'preference', key, value, created_at: this.clock().toISOString() });
+    this.mem.push({ id: id('mem'), user_id: this.userId, kind, key, value, created_at: this.clock().toISOString() });
   }
 }

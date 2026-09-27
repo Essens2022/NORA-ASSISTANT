@@ -153,10 +153,13 @@ export type TaskEventType =
   | 'occurrence_completed'
   | 'followup_sent';
 
+export type MemoryKind = 'preference' | 'fact' | 'idea' | 'note' | 'moment';
+export const MEMORY_KINDS: readonly MemoryKind[] = ['preference', 'fact', 'idea', 'note', 'moment'];
+
 export interface MemoryItem {
   id: string;
   user_id: string;
-  kind: 'preference' | 'fact';
+  kind: MemoryKind;
   key: string;
   value: string;
   created_at: string;

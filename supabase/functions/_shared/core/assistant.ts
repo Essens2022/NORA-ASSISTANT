@@ -14,7 +14,7 @@ import { describeRule, formatWhen, joinList, t, taskLine } from './replies.ts';
 import type { TaskQuery, TaskStore } from './service.ts';
 import { TaskService } from './service.ts';
 import { isOpen } from './status.ts';
-import type { Lang, MemoryItem, Profile, Task, TaskField } from './types.ts';
+import type { Lang, MemoryItem, MemoryKind, Profile, Task, TaskField } from './types.ts';
 import { addDays, toZoned, zonedToUtc } from './tz.ts';
 
 export interface PendingQuestion {
@@ -43,7 +43,7 @@ export interface AssistantStore extends TaskStore {
   /** Idempotency: the reply already produced for this request id, if any. */
   findReply(requestId: string): Promise<AssistantReply | null>;
   memory(): Promise<MemoryItem[]>;
-  remember(key: string, value: string): Promise<void>;
+  remember(key: string, value: string, kind: MemoryKind): Promise<void>;
 }
 
 export interface AssistantReply {
@@ -355,7 +355,7 @@ export class Assistant {
           break;
         }
         case 'remember':
-          if (this.profile.prefs.personalization) await this.store.remember(action.key, action.value);
+          if (this.profile.prefs.personalization) await this.store.remember(action.key, action.value, action.kind);
           if (!plan.reply) push(t(c.lang, 'remembered'));
           break;
       }

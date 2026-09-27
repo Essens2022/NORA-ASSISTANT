@@ -1,13 +1,14 @@
-// "What NORA remembers about you" – preferences learned from conversation
-// (kind 'preference') and facts explicitly asked to remember (kind 'fact'),
-// both already stored server-side via the assistant's `remember` action.
-import type { MemoryItem } from '@nora/core';
-import { useEffect, useState } from 'preact/hooks';
+// "What NORA remembers about you" – durable preferences and facts learned
+// from conversation, plus ideas/notes/moments the user asks to keep, all
+// already stored server-side via the assistant's `remember` action (or added
+// here directly with the + button).
+import type { MemoryItem, MemoryKind } from '@nora/core';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
-import { Button, Confirm, EmptyState, Input } from '../../components/ui.tsx';
-import { relativeFromNow, tr } from '../../i18n/index.ts';
+import { Button, Confirm, EmptyState, Input, Sheet } from '../../components/ui.tsx';
+import { relativeFromNow, tr, type MessageKey } from '../../i18n/index.ts';
 import { api } from '../../services/api.ts';
-import { toastError } from '../../state/store.ts';
+import { toast, toastError } from '../../state/store.ts';
 
 // kept between visits and prefetched after start-up, so the list shows instantly
 let memoryCache: MemoryItem[] | null = null;
@@ -21,9 +22,23 @@ export function clearMemoryCache() {
   memoryCache = null;
 }
 
+// display order: what the user actively captures first, what NORA inferred after
+const CATEGORIES: Array<{ kind: MemoryKind; label: MessageKey }> = [
+  { kind: 'idea', label: 'mem.ideas' },
+  { kind: 'note', label: 'mem.notes' },
+  { kind: 'moment', label: 'mem.moments' },
+  { kind: 'preference', label: 'mem.preferences' },
+  { kind: 'fact', label: 'mem.facts' },
+];
+// only these are offered when adding a memory by hand - preference/fact are
+// settings-like values NORA derives from conversation, not something to type in directly
+const ADDABLE_KINDS: MemoryKind[] = ['idea', 'note', 'moment'];
+
 export function MemoryScreen() {
   const [items, setItemsState] = useState<MemoryItem[] | null>(memoryCache);
   const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<MemoryKind | null>(null);
+  const [adding, setAdding] = useState(false);
   const setItems = (v: MemoryItem[]) => {
     memoryCache = v;
     setItemsState(v);
@@ -34,14 +49,16 @@ export function MemoryScreen() {
       .catch(() => setItems(memoryCache ?? []));
   useEffect(() => void load(), []);
 
-  const filtered = (items ?? []).filter((m) => m.value.toLowerCase().includes(query.trim().toLowerCase()));
-  const preferences = filtered.filter((m) => m.kind === 'preference');
-  const facts = filtered.filter((m) => m.kind === 'fact');
+  const filtered = (items ?? []).filter((m) => m.value.toLowerCase().includes(query.trim().toLowerCase()) && (!filter || m.kind === filter));
+  const present = useMemo(() => new Set((items ?? []).map((m) => m.kind)), [items]);
 
   return (
     <div class="screen memory-screen">
       <header class="screen-head">
         <h1>{tr('mem.title')}</h1>
+        <Button small icon="plus" onClick={() => setAdding(true)}>
+          {tr('mem.add')}
+        </Button>
       </header>
       <p class="hint mem-hint">{tr('mem.hint')}</p>
 
@@ -51,7 +68,11 @@ export function MemoryScreen() {
           <div class="skeleton skeleton-row" />
         </div>
       ) : items.length === 0 ? (
-        <EmptyState title={tr('mem.empty_title')} text={tr('mem.empty_hint')} />
+        <EmptyState title={tr('mem.empty_title')} text={tr('mem.empty_hint')}>
+          <Button variant="primary" icon="plus" onClick={() => setAdding(true)}>
+            {tr('mem.add')}
+          </Button>
+        </EmptyState>
       ) : (
         <>
           <label class="sr-only" for="mem-search">
@@ -66,15 +87,92 @@ export function MemoryScreen() {
             onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
           />
 
-          <MemoryGroup title={tr('mem.preferences')} items={preferences} onChanged={load} />
-          <MemoryGroup title={tr('mem.facts')} items={facts} onChanged={load} />
+          {present.size > 1 && (
+            <div class="chips mem-filter" role="group" aria-label={tr('mem.title')}>
+              <button type="button" class={`chip${filter === null ? ' selected' : ''}`} onClick={() => setFilter(null)}>
+                {tr('mem.all')}
+              </button>
+              {CATEGORIES.filter((c) => present.has(c.kind)).map((c) => (
+                <button type="button" key={c.kind} class={`chip${filter === c.kind ? ' selected' : ''}`} onClick={() => setFilter(c.kind)}>
+                  {tr(c.label)}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {filtered.length === 0 && query && <p class="muted pad">{tr('mem.no_match')}</p>}
+          {CATEGORIES.filter((c) => !filter || filter === c.kind).map((c) => (
+            <MemoryGroup key={c.kind} title={tr(c.label)} items={filtered.filter((m) => m.kind === c.kind)} onChanged={load} />
+          ))}
+
+          {filtered.length === 0 && (query || filter) && <p class="muted pad">{tr('mem.no_match')}</p>}
 
           <DeleteAll disabled={items.length === 0} onDone={load} />
         </>
       )}
+
+      <AddMemorySheet open={adding} onClose={() => setAdding(false)} onAdded={load} />
     </div>
+  );
+}
+
+function AddMemorySheet({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
+  const [value, setValue] = useState('');
+  const [kind, setKind] = useState<MemoryKind>('note');
+  const [busy, setBusy] = useState(false);
+
+  const reset = () => {
+    setValue('');
+    setKind('note');
+  };
+
+  return (
+    <Sheet
+      open={open}
+      onClose={() => {
+        reset();
+        onClose();
+      }}
+      title={tr('mem.add_title')}
+    >
+      <form
+        class="form"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const v = value.trim();
+          if (!v) return;
+          setBusy(true);
+          try {
+            const key = `${kind}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+            await api('/v1/memory', { method: 'POST', body: { key, value: v.slice(0, 300), kind } });
+            toast(tr('common.saved'));
+            reset();
+            onClose();
+            onAdded();
+          } catch {
+            toastError(tr('err.save_failed'));
+          }
+          setBusy(false);
+        }}
+      >
+        <Input label={tr('mem.item')} value={value} onValue={setValue} maxLength={300} placeholder={tr('mem.add_placeholder')} />
+        <div>
+          <p class="chip-row-label">{tr('mem.add_kind')}</p>
+          <div class="chips" role="group" aria-label={tr('mem.add_kind')}>
+            {ADDABLE_KINDS.map((k) => (
+              <button type="button" key={k} class={`chip${kind === k ? ' selected' : ''}`} onClick={() => setKind(k)}>
+                {tr(CATEGORIES.find((c) => c.kind === k)!.label)}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div class="actions-row">
+          <Button onClick={onClose}>{tr('common.cancel')}</Button>
+          <Button variant="primary" type="submit" busy={busy} disabled={!value.trim()}>
+            {tr('mem.add')}
+          </Button>
+        </div>
+      </form>
+    </Sheet>
   );
 }
 

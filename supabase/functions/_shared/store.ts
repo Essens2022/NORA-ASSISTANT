@@ -9,6 +9,7 @@ import type {
   ChatMessage,
   ConversationState,
   MemoryItem,
+  MemoryKind,
   NewTask,
   PlannedReminder,
   Preferences,
@@ -134,8 +135,8 @@ export class SupabaseStore implements AssistantStore {
     return (data ?? []) as MemoryItem[];
   }
 
-  async remember(key: string, value: string) {
-    const { error } = await this.db.from('memory_items').upsert({ user_id: this.userId, key, value, kind: 'preference' }, { onConflict: 'user_id,key' });
+  async remember(key: string, value: string, kind: MemoryKind = 'preference') {
+    const { error } = await this.db.from('memory_items').upsert({ user_id: this.userId, key, value, kind }, { onConflict: 'user_id,key' });
     if (error) throw fail('remember', error);
   }
 }

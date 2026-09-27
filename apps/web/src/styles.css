@@ -2065,6 +2065,9 @@ textarea.input {
   margin: -8px 0 16px;
 }
 .mem-search {
+  margin-bottom: 12px;
+}
+.mem-filter {
   margin-bottom: 20px;
 }
 .memory-link .row-label {
