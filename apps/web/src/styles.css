@@ -1015,24 +1015,6 @@ textarea.input {
   margin: 8px 0 24px;
 }
 
-/* quick action chips on AI Home – a horizontally scrolling row, no wrap */
-.ai-quick-actions {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  margin: 0 0 16px;
-  padding-bottom: 2px;
-  flex-shrink: 0;
-  scrollbar-width: none;
-}
-.ai-quick-actions::-webkit-scrollbar {
-  display: none;
-}
-.ai-quick-actions .chip {
-  flex-shrink: 0;
-  min-height: 40px;
-  font-size: 14px;
-}
-
 /* briefing card */
 .briefing {
   background: var(--surface);
