@@ -774,7 +774,12 @@ textarea.input {
 
 /* ---------- bottom navigation ---------- */
 .nav {
-  position: fixed;
+  /* sticky, not fixed: on iOS Safari (especially the standalone/home-screen PWA),
+     a fixed element gets detached and repainted at the wrong spot the moment the
+     keyboard opens and the browser auto-scrolls a focused input into view - it can
+     end up floating mid-screen instead of staying at the bottom. Sticky participates
+     in the page's normal scroll instead of fighting it, so it tracks correctly. */
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
