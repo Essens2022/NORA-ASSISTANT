@@ -1,8 +1,8 @@
 // Minimal onboarding: the promise, then one meaningful permission (notifications),
 // explained before the OS prompt. Everything else is learned gradually.
 import { useState } from 'preact/hooks';
+import { Logo } from '../../components/Logo.tsx';
 import { Button } from '../../components/ui.tsx';
-import { brand } from '../../config/brand.ts';
 import { tr } from '../../i18n/index.ts';
 import { enablePush, pushStatus } from '../../services/push.ts';
 import { track } from '../../services/api.ts';
@@ -23,8 +23,9 @@ export function Onboarding() {
   if (step === 0)
     return (
       <div class="onboarding">
-        <div class="onb-mark" aria-hidden="true" />
-        <h1 class="brand big">{brand.appName}</h1>
+        <h1 class="brand big logo-splash">
+          <Logo size={44} withWordmark />
+        </h1>
         <p class="tagline">{tr('brand.tagline')}</p>
         <div class="onb-body">
           <h2>{tr('onb.how_title')}</h2>

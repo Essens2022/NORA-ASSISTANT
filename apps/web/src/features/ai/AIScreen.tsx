@@ -1,9 +1,9 @@
 import type { Task } from '@nora/core';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
+import { Logo } from '../../components/Logo.tsx';
 import { Button, Sheet } from '../../components/ui.tsx';
 import { VoiceButton } from '../../components/VoiceButton.tsx';
-import { brand } from '../../config/brand.ts';
 import { Briefing } from './Briefing.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
@@ -88,7 +88,9 @@ export function AIScreen() {
   return (
     <div class="screen ai-screen">
       <header class="ai-head">
-        <h1 class="brand">{brand.appName}</h1>
+        <h1 class="brand">
+          <Logo size={28} withWordmark />
+        </h1>
         <p class="greet">
           {greet}
           {profile?.display_name ? `, ${profile.display_name}` : ''}

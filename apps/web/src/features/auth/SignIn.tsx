@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
+import { Logo } from '../../components/Logo.tsx';
 import { Button, Input } from '../../components/ui.tsx';
-import { brand, feature, isConfigured } from '../../config/brand.ts';
+import { feature, isConfigured } from '../../config/brand.ts';
 import { DEFAULT_LOCALE, getLang, tr } from '../../i18n/index.ts';
 import { deviceTimezone } from '../../services/api.ts';
 import { sendCode, signInWith, verifyCode } from '../../services/auth.ts';
@@ -16,7 +17,9 @@ export function SignIn() {
   if (!isConfigured()) {
     return (
       <div class="auth">
-        <h1 class="brand big">{brand.appName}</h1>
+        <h1 class="brand big">
+          <Logo size={40} withWordmark />
+        </h1>
         <p class="muted">{tr('auth.not_configured')}</p>
       </div>
     );
@@ -62,7 +65,9 @@ export function SignIn() {
 
   return (
     <div class="auth">
-      <h1 class="brand big">{brand.appName}</h1>
+      <h1 class="brand big">
+        <Logo size={40} withWordmark />
+      </h1>
       <p class="tagline">{tr('brand.tagline')}</p>
       <div class="auth-card">
         <h2>{tr('auth.title')}</h2>

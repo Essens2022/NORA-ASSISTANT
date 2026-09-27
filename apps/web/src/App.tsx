@@ -1,3 +1,4 @@
+import { Logo } from './components/Logo.tsx';
 import { Nav, Toasts } from './components/Nav.tsx';
 import { AIScreen } from './features/ai/AIScreen.tsx';
 import { ActivityScreen } from './features/activity/ActivityScreen.tsx';
@@ -60,7 +61,7 @@ export function App() {
 function Splash() {
   return (
     <div class="splash" aria-busy="true">
-      <div class="splash-mark" />
+      <Logo size={72} class="logo-splash" />
     </div>
   );
 }
