@@ -34,7 +34,9 @@ let store: MemoryStore;
 let ai: ScriptedAI;
 let nora: Assistant;
 let n = 0;
-const profile: Profile = { id: 'u1', display_name: null, ui_lang: 'ro', conv_lang: 'ro', locale: 'ro-RO', timezone: 'Europe/Rome', prefs: { ...DEFAULT_PREFERENCES } };
+// conv_lang null = "Automat" (detect per message) - the default for these tests,
+// which exercise that auto-detection; a dedicated test below covers a user-fixed one.
+const profile: Profile = { id: 'u1', display_name: null, ui_lang: 'ro', conv_lang: null, locale: 'ro-RO', timezone: 'Europe/Rome', prefs: { ...DEFAULT_PREFERENCES } };
 const say = (text: string, now = NOW) => nora.handle(text, { conversationId: 'c1', requestId: `r${++n}`, now });
 const tasks = () => [...store.tasks.values()];
 const local = (iso: string) => {
@@ -286,5 +288,19 @@ describe('more behaviour from the spec', () => {
     ai.next({ language: 'ru', actions: [{ type: 'create_task', task: { title: 'Cafea', kind: 'generic' } }], ask: null, reply: 'Хорошо, напомню.' });
     const r2 = await say('Amintește-mi, te rog, să iau cafeaua de pe foc peste 30 de secunde.');
     expect(r2.lang).toBe('ro');
+  });
+
+  it('a conversation language fixed in Profile (not "Automat") is never overridden, even by unambiguous text in another language', async () => {
+    // Reported bug: the user picked a fixed "Limba conversației" but NORA kept
+    // replying in whatever language it auto-detected from each message instead.
+    const fixedProfile: Profile = { ...profile, conv_lang: 'it' };
+    const s2 = new MemoryStore('u2', () => NOW);
+    const ai2 = new ScriptedAI();
+    const nora2 = new Assistant(s2, ai2, fixedProfile);
+    // Romanian diacritics ("â") would normally force certainLang() to 'ro', and the
+    // model itself self-reports "ro" too - conv_lang must win over both.
+    ai2.next({ language: 'ro', actions: [{ type: 'create_task', task: { title: 'Întâlnire', kind: 'appointment', date: '2026-09-24' } }], ask: null, reply: 'Notat.' });
+    const r = await nora2.handle('Mâine am o întâlnire.', { conversationId: 'c2', requestId: 'rf1', now: NOW });
+    expect(r.lang).toBe('it');
   });
 });

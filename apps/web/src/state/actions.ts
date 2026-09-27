@@ -140,9 +140,10 @@ let speakAbort: AbortController | null = null;
 
 function replyLang(): Lang {
   const s = getState();
-  // ui_lang before conv_lang: this device's own setting beats a guess that may be
-  // stale from a different device on the same account (see the same fix server-side).
-  return s.replyLang ?? s.profile?.ui_lang ?? s.profile?.conv_lang ?? getLang();
+  // conv_lang, when the user explicitly fixed it (not "Automat"), is a deliberate
+  // choice and must win; only in Automat mode (conv_lang null) does ui_lang serve as
+  // the fallback guess (see the same priority server-side, in assistant.ts).
+  return s.replyLang ?? s.profile?.conv_lang ?? s.profile?.ui_lang ?? getLang();
 }
 
 function errorText(err: unknown): string {

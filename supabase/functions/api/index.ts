@@ -144,7 +144,11 @@ async function chat(ctx: Ctx, text: string, convRequested: string | null, reqId:
   const ms = Date.now() - started;
   log('chat', { rid: ctx.rid, path: reply.path, ms, awaiting: reply.awaiting, lang: reply.lang });
   background(admin.from('metrics').insert({ user_id: ctx.userId, name: 'chat_latency_ms', value: ms, props: { path: reply.path } }));
-  if (reply.lang !== ctx.profile.conv_lang) background(ctx.db.from('profiles').update({ conv_lang: reply.lang }).eq('id', ctx.userId));
+  // conv_lang is only ever set by the user's own explicit choice in Profile (null =
+  // "Automat"/detect) - it must never be silently rewritten from a detected reply
+  // language, or "Automat" would quietly turn into a fixed language behind the
+  // user's back and a deliberately fixed one could get overwritten by a one-off
+  // detection glitch. Per-conversation continuity is handled by state.lang instead.
   return { reply, conversation_id: conv, tasks: await tasksByIds(ctx, reply.task_ids) };
 }
 
@@ -153,14 +157,16 @@ async function voice(ctx: Ctx) {
   if (!stt) throw new HttpError(503, 'stt_unavailable');
   const form = await ctx.req.formData().catch(() => null);
   const audio = form?.get('audio');
-  if (!(audio instanceof File) || audio.size < 1200) return { heard: false, reason: 'too_short', reply_text: t(ctx.profile.ui_lang ?? ctx.profile.conv_lang, 'nothing_heard') };
+  if (!(audio instanceof File) || audio.size < 1200) return { heard: false, reason: 'too_short', reply_text: t(ctx.profile.conv_lang ?? ctx.profile.ui_lang, 'nothing_heard') };
   if (audio.size > 8 * 1024 * 1024) throw new HttpError(413, 'audio_too_large');
   const clientDuration = Number(form!.get('duration') ?? 0);
   const conv = (form!.get('conversation_id') as string) || null;
   const reqId = ((form!.get('request_id') as string) || ctx.rid).slice(0, 80);
-  // ui_lang is this device's deliberate choice; conv_lang can be stale from another
-  // device's last conversation and would otherwise bias transcription the wrong way.
-  const lang = (ctx.profile.ui_lang ?? ctx.profile.conv_lang) as Lang;
+  // conv_lang, when explicitly fixed by the user (not "Automat"), IS the language
+  // they're telling NORA they'll speak - it must drive the transcription hint, not
+  // just be a stale-guess fallback behind ui_lang (the interface language, which can
+  // legitimately differ from the language someone talks to NORA in).
+  const lang = (ctx.profile.conv_lang ?? ctx.profile.ui_lang) as Lang;
 
   const started = Date.now();
   let result;

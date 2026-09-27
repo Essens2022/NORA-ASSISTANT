@@ -94,10 +94,14 @@ export class Assistant {
     if (state.pending && now.getTime() - Date.parse(state.pending.asked_at) > PENDING_TTL_MS) state.pending = null;
     if (state.focus_at && now.getTime() - Date.parse(state.focus_at) > FOCUS_TTL_MS) state.focus_task_id = null;
 
-    // ui_lang is a deliberate choice made on this device; conv_lang is just a sticky
-    // guess from whatever language the account last happened to talk in — possibly on
-    // a different device entirely. Prefer the deliberate choice when starting fresh.
-    const lang = detectLang(text, state.lang ?? this.profile.ui_lang ?? this.profile.conv_lang);
+    // conv_lang is null in "Automat" mode (detect from what the user types) but a
+    // deliberate, fixed choice once the user picks an explicit conversation language
+    // in Profile - that must never be second-guessed by auto-detection on this turn's
+    // text (e.g. a short reply like "da"/"ok" that happens to score as another
+    // language). ui_lang (this device's own setting) is only the detector's fallback
+    // for ambiguous text when in Automat mode - conv_lang there is a sticky guess
+    // that can be stale from another device, so it never gets priority over it.
+    const lang = this.profile.conv_lang ?? detectLang(text, state.lang ?? this.profile.ui_lang);
     const ctx: TurnCtx = { svc, state, lang, now, today, requestId: opts.requestId, text, touched: [] };
 
     let reply: AssistantReply;
@@ -261,9 +265,12 @@ export class Assistant {
     }
     const { plan, errors } = validatePlan(raw, c.lang);
     this.log('ai_plan', { ms: Date.now() - started, actions: plan.actions.map((a) => a.type), ask: plan.ask?.field ?? null, errors });
-    // the model can be biased by a short prior turn in another language ("Норм.")
-    // into replying in that language even when THIS message is unambiguous
-    c.lang = certainLang(c.text) ?? plan.language;
+    // a fixed conv_lang (the user explicitly picked a language in Profile, not
+    // "Automat") must never be second-guessed by what the model thinks THIS message
+    // is written in - only in Automat mode does per-message detection apply, where
+    // the model can otherwise be biased by a short prior turn in another language
+    // ("Норм.") into replying in that language even when THIS message is unambiguous
+    c.lang = this.profile.conv_lang ?? certainLang(c.text) ?? plan.language;
     if (errors.includes('invalid_json') && !plan.actions.length) return this.done(c, t(c.lang, 'didnt_understand'), [], null, 'ai');
     return this.execute(c, plan, refs);
   }
