@@ -1,4 +1,4 @@
-import { activityBucket, type Task } from '@nora/core';
+import { activityBucket, addDays, weekdayOf, type Task } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { ProgressRing } from '../../components/ProgressRing.tsx';
 import { TaskCard } from '../../components/TaskCard.tsx';
@@ -14,6 +14,7 @@ export function ActivityScreen() {
   const { tasks, completedLoaded, bootstrapped } = useStore((s) => ({ tasks: s.tasks, completedLoaded: s.completedLoaded, bootstrapped: s.bootstrapped }));
   const [showCompleted, setShowCompleted] = useState(false);
   const [loadingDone, setLoadingDone] = useState(false);
+  const [range, setRange] = useState<'day' | 'week' | 'month'>('day');
   const today = todayLocal();
 
   const groups = useMemo(() => {
@@ -37,9 +38,23 @@ export function ActivityScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const dueToday = useMemo(() => Object.values(tasks).filter((t) => t.due_date === today && t.status !== 'cancelled'), [tasks, today]);
-  const doneToday = dueToday.filter((t) => t.status === 'completed').length;
-  const dayPercent = dueToday.length ? Math.round((doneToday / dueToday.length) * 100) : null;
+  // week starts Monday, matching the calendar screen's own week-start convention
+  const weekStart = addDays(today, -((weekdayOf(today) + 6) % 7));
+  const weekEnd = addDays(weekStart, 6);
+  const monthPrefix = today.slice(0, 7);
+
+  const rangeTasks = useMemo(() => {
+    const inRange = (d: string) => {
+      if (range === 'day') return d === today;
+      if (range === 'week') return d >= weekStart && d <= weekEnd;
+      return d.slice(0, 7) === monthPrefix;
+    };
+    return Object.values(tasks).filter((t) => t.due_date && inRange(t.due_date) && t.status !== 'cancelled');
+  }, [tasks, range, today, weekStart, weekEnd, monthPrefix]);
+  const rangeDone = rangeTasks.filter((t) => t.status === 'completed').length;
+  const rangePercent = rangeTasks.length ? Math.round((rangeDone / rangeTasks.length) * 100) : null;
+  const progressTitle = range === 'day' ? tr('act.day_progress') : range === 'week' ? tr('act.week_progress') : tr('act.month_progress');
+  const progressHint = range === 'day' ? tr('act.day_progress_hint', { done: rangeDone, total: rangeTasks.length }) : tr('act.progress_hint', { done: rangeDone, total: rangeTasks.length });
 
   const stats: Array<['today' | 'attention' | 'upcoming', MessageKey]> = [
     ['today', 'act.today'],
@@ -74,14 +89,25 @@ export function ActivityScreen() {
         <h1>{tr('act.title')}</h1>
       </header>
 
-      {bootstrapped && dayPercent !== null && (
-        <div class="day-card">
-          <ProgressRing percent={dayPercent} />
-          <div class="day-card-text">
-            <h3>{tr('act.day_progress')}</h3>
-            <p>{tr('act.day_progress_hint', { done: doneToday, total: dueToday.length })}</p>
+      {bootstrapped && (
+        <>
+          <div class="chips act-range" role="group" aria-label={tr('act.title')}>
+            {(['day', 'week', 'month'] as const).map((r) => (
+              <button type="button" key={r} class={`chip${range === r ? ' selected' : ''}`} onClick={() => setRange(r)}>
+                {tr(r === 'day' ? 'act.range_day' : r === 'week' ? 'act.range_week' : 'act.range_month')}
+              </button>
+            ))}
           </div>
-        </div>
+          {rangePercent !== null && (
+            <div class="day-card">
+              <ProgressRing percent={rangePercent} />
+              <div class="day-card-text">
+                <h3>{progressTitle}</h3>
+                <p>{progressHint}</p>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {bootstrapped && openCount > 0 && (

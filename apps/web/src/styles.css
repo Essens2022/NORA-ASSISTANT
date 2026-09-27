@@ -522,13 +522,13 @@ textarea.input {
   padding: 0 16px;
   border-radius: 12px;
   border: 1px solid var(--control-border);
-  background: var(--surface);
+  background-color: var(--surface);
   font-weight: 500;
   color: var(--secondary-text);
-  transition: background var(--t-micro) var(--ease);
+  transition: background-color var(--t-micro) var(--ease);
 }
-.chip:active {
-  background: var(--pressed);
+.chip:active:not(.selected) {
+  background-color: var(--pressed);
 }
 .chip-row-label {
   font-size: 13px;
@@ -537,7 +537,7 @@ textarea.input {
   margin: 4px 4px 6px;
 }
 .chip.selected {
-  background: var(--blue);
+  background-color: var(--blue);
   border-color: var(--blue);
   color: #fff;
 }
@@ -546,7 +546,7 @@ textarea.input {
   color: var(--error);
 }
 .chip-priority-high.selected {
-  background: var(--error);
+  background-color: var(--error);
   color: #fff;
 }
 .chip-priority-low {
@@ -554,7 +554,7 @@ textarea.input {
   color: var(--success-text);
 }
 .chip-priority-low.selected {
-  background: var(--success);
+  background-color: var(--success);
   border-color: var(--success);
   color: #fff;
 }
@@ -1838,6 +1838,13 @@ textarea.input {
   font-weight: 700;
   fill: var(--text);
   font-variant-numeric: tabular-nums;
+}
+.act-range {
+  margin-bottom: 12px;
+}
+.act-range .chip {
+  min-height: 40px;
+  font-size: 14px;
 }
 .day-card {
   display: flex;
