@@ -143,7 +143,8 @@ html {
 }
 body {
   margin: 0;
-  background: var(--bg);
+  background: radial-gradient(circle at 12% -5%, rgba(79, 124, 255, 0.12), transparent 40%), radial-gradient(circle at 92% 8%, rgba(70, 215, 255, 0.12), transparent 38%), var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font: 400 16px/24px var(--font);
   -webkit-font-smoothing: antialiased;
@@ -598,33 +599,36 @@ textarea.input {
   display: grid;
   place-items: center;
 }
+.kind-badge {
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.12);
+}
 .kind-badge.kind-blue {
-  background: var(--selected);
-  color: var(--blue);
+  background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+  color: #fff;
 }
 .kind-badge.kind-cyan {
-  background: var(--cyan-soft);
-  color: var(--cyan-text);
+  background: linear-gradient(135deg, var(--cyan), #0891b2);
+  color: #fff;
 }
 .kind-badge.kind-warning {
-  background: var(--warning-soft);
-  color: var(--warning-text);
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #fff;
 }
 .kind-badge.kind-pink {
-  background: var(--pink-soft);
-  color: var(--pink);
+  background: linear-gradient(135deg, var(--pink), #be185d);
+  color: #fff;
 }
 .kind-badge.kind-success {
-  background: var(--success-soft);
-  color: var(--success-text);
+  background: linear-gradient(135deg, var(--success), #15803d);
+  color: #fff;
 }
 .kind-badge.kind-purple {
-  background: var(--purple-soft);
-  color: var(--purple);
+  background: linear-gradient(135deg, var(--purple), #6d28d9);
+  color: #fff;
 }
 .kind-badge.kind-neutral {
-  background: var(--hover);
-  color: var(--secondary-text);
+  background: linear-gradient(135deg, var(--muted), var(--text-2));
+  color: #fff;
 }
 .kind-badge.small {
   width: 28px;
@@ -1033,40 +1037,51 @@ textarea.input {
   text-align: left;
   border: 0;
   border-radius: var(--r-card);
-  padding: 12px 14px;
-  background: var(--selected);
-  transition: background var(--t-micro) var(--ease);
+  padding: 14px 16px;
+  background: var(--gradient-brand);
+  box-shadow: 0 6px 18px rgba(79, 124, 255, 0.32);
+  transition: filter var(--t-micro) var(--ease);
 }
 .brief-next:active {
-  background: var(--pressed);
+  filter: brightness(0.94);
 }
 .brief-next-label {
   grid-area: label;
   font-size: 12px;
   line-height: 16px;
   font-weight: 600;
-  color: var(--blue);
+  color: rgba(255, 255, 255, 0.85);
 }
 .brief-next-title {
   grid-area: title;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   line-height: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #fff;
 }
 .brief-next-when {
   grid-area: when;
-  color: var(--text-2);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 14px;
   line-height: 20px;
   font-variant-numeric: tabular-nums;
 }
 .brief-next-when em {
   font-style: normal;
-  color: var(--blue);
-  font-weight: 500;
+  color: #fff;
+  font-weight: 600;
+}
+.brief-next .cd-track {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+.brief-next .cd-fill {
+  stroke: #fff;
+}
+.brief-next .cd-core {
+  fill: #fff;
 }
 .countdown {
   grid-area: ring;
