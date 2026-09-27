@@ -120,11 +120,14 @@ document.addEventListener(
     // browser itself always knows - it's the one drawing it. Ask it to bring the
     // field into view directly, after a beat for the keyboard's own open animation
     // (calling this too early, before the animation settles, is what leaves the field
-    // stranded under the keyboard in the first place). A second, later call catches it
-    // if the first one raced a still-settling layout.
+    // stranded under the keyboard in the first place). 'nearest' (not 'end') scrolls
+    // only as much as is actually needed, instead of always snapping the field to the
+    // very bottom of the scroll container and leaving a gap above the keyboard. A
+    // second, later call catches it if the first one raced a still-settling layout;
+    // 'nearest' makes that a no-op once the field is already visible.
     const el = e.target as HTMLElement;
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 700);
+    setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 350);
+    setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 700);
   },
   { capture: true },
 );
