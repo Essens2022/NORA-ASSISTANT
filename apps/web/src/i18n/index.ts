@@ -72,6 +72,7 @@ export function tp(base: string, n: number, vars: Record<string, string | number
 /** "in 2 hours" / "peste 2 ore" / "tra 2 ore" / "через 2 часа". */
 export function relativeFromNow(iso: string): string {
   const mins = Math.round((Date.parse(iso) - Date.now()) / 60000);
+  if (!Number.isFinite(mins)) return '';
   const rtf = new Intl.RelativeTimeFormat(current, { numeric: 'auto' });
   if (Math.abs(mins) < 60) return rtf.format(mins, 'minute');
   const hours = Math.round(mins / 60);

@@ -5,7 +5,7 @@ import type { MemoryItem } from '@nora/core';
 import { useEffect, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Confirm, EmptyState, Input } from '../../components/ui.tsx';
-import { tr } from '../../i18n/index.ts';
+import { relativeFromNow, tr } from '../../i18n/index.ts';
 import { api } from '../../services/api.ts';
 import { toastError } from '../../state/store.ts';
 
@@ -116,7 +116,10 @@ function MemoryGroup({ title, items, onChanged }: { title: string; items: Memory
               </form>
             ) : (
               <>
-                <span class="memory-text">{m.value}</span>
+                <span class="memory-body">
+                  <span class="memory-text">{m.value}</span>
+                  {relativeFromNow(m.created_at) && <span class="memory-meta">{relativeFromNow(m.created_at)}</span>}
+                </span>
                 <span class="memory-actions">
                   <button
                     type="button"
