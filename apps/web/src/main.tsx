@@ -116,6 +116,15 @@ document.addEventListener(
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
     document.documentElement.classList.add('kb-open');
+    // We can't compute where the keyboard ends on this device (see above), but the
+    // browser itself always knows - it's the one drawing it. Ask it to bring the
+    // field into view directly, after a beat for the keyboard's own open animation
+    // (calling this too early, before the animation settles, is what leaves the field
+    // stranded under the keyboard in the first place). A second, later call catches it
+    // if the first one raced a still-settling layout.
+    const el = e.target as HTMLElement;
+    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
+    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 700);
   },
   { capture: true },
 );
