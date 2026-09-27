@@ -143,8 +143,7 @@ html {
 }
 body {
   margin: 0;
-  background: radial-gradient(circle at 12% -5%, rgba(79, 124, 255, 0.12), transparent 40%), radial-gradient(circle at 92% 8%, rgba(70, 215, 255, 0.12), transparent 38%), var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--text);
   font: 400 16px/24px var(--font);
   -webkit-font-smoothing: antialiased;
@@ -152,6 +151,20 @@ body {
   overscroll-behavior: none;
   touch-action: manipulation; /* no double-tap zoom */
   -webkit-tap-highlight-color: transparent;
+}
+/* the ambient wash used to be a `background-attachment: fixed` on body, but that's
+   positioned relative to the whole scrollable page on many mobile browsers, not the
+   viewport - so on a tall page (e.g. a day with lots of tasks) it landed somewhere
+   completely different than on a short one, making the background visibly change
+   colour/tint depending on how much content was on screen. A real position:fixed
+   layer is always viewport-relative, so it now looks identical everywhere. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle at 12% -5%, rgba(79, 124, 255, 0.12), transparent 40%), radial-gradient(circle at 92% 8%, rgba(70, 215, 255, 0.12), transparent 38%);
 }
 body.no-scroll {
   overflow: hidden;
