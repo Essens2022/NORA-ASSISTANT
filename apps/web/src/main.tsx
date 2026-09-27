@@ -108,6 +108,25 @@ window.addEventListener('resize', setAppHeight);
 // that's always reliable, so use that instead: the moment a text field is focused, hide
 // the (otherwise-misplaced) nav and let the composer/sheet claim the full app height,
 // no viewport-geometry guessing required.
+// Neither visualViewport nor scrollIntoView can be trusted to place a field above the
+// keyboard on this device: visualViewport doesn't report the shrink at all, and
+// scrollIntoView's own idea of "the viewport" is the same unshrunk one, so it either
+// overshoots (aligns to the bottom of the full, keyboard-unaware page, leaving a gap)
+// or undershoots ('nearest' stops the moment any edge is visible, short of the field's
+// true resting spot). What IS trustworthy: a position:fixed element's rendered
+// position, read back with getBoundingClientRect() - the browser computes that against
+// whatever it's actually drawing right now, keyboard included, regardless of what the
+// JS viewport APIs claim. Keep an invisible one pinned to the bottom edge as a probe.
+const kbCanary = document.createElement('div');
+kbCanary.style.cssText = 'position:fixed;bottom:0;left:0;width:1px;height:1px;pointer-events:none;visibility:hidden;';
+document.body.appendChild(kbCanary);
+function alignAboveKeyboard(el: HTMLElement) {
+  const visibleBottom = kbCanary.getBoundingClientRect().top;
+  const fieldBottom = el.getBoundingClientRect().bottom;
+  const delta = fieldBottom - visibleBottom + 8; // +8px breathing room above the keyboard
+  if (Math.abs(delta) > 4) window.scrollBy({ top: delta, behavior: 'smooth' });
+}
+
 let kbHideAt = 0;
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 document.addEventListener(
@@ -116,18 +135,10 @@ document.addEventListener(
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
     document.documentElement.classList.add('kb-open');
-    // We can't compute where the keyboard ends on this device (see above), but the
-    // browser itself always knows - it's the one drawing it. Ask it to bring the
-    // field into view directly, after a beat for the keyboard's own open animation
-    // (calling this too early, before the animation settles, is what leaves the field
-    // stranded under the keyboard in the first place). 'nearest' (not 'end') scrolls
-    // only as much as is actually needed, instead of always snapping the field to the
-    // very bottom of the scroll container and leaving a gap above the keyboard. A
-    // second, later call catches it if the first one raced a still-settling layout;
-    // 'nearest' makes that a no-op once the field is already visible.
+    // Poll a few times through the keyboard's own open animation (~250-400ms on iOS),
+    // re-aligning as the canary's position settles into its final spot.
     const el = e.target as HTMLElement;
-    setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 350);
-    setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 700);
+    [80, 200, 350, 550, 800].forEach((ms) => setTimeout(() => alignAboveKeyboard(el), ms));
   },
   { capture: true },
 );
