@@ -1779,6 +1779,34 @@ textarea.input {
   color: var(--text-2);
 }
 
+/* ---------- progress ring / day card ---------- */
+.progress-ring-text {
+  font-size: 20px;
+  font-weight: 700;
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.day-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card-lg);
+  box-shadow: var(--card-shadow);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.day-card-text h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+.day-card-text p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
 /* ---------- activity stats ---------- */
 .act-stats {
   display: flex;

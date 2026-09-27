@@ -125,6 +125,8 @@ export const en = {
   'ai.needs_you': 'Waiting for you',
 
   'act.title': 'Activity',
+  'act.day_progress': "Today's progress",
+  'act.day_progress_hint': '{done} of {total} tasks done today',
   'act.today': 'Today',
   'act.upcoming': 'Upcoming',
   'act.attention': 'Needs attention',

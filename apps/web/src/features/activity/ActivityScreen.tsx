@@ -1,5 +1,6 @@
 import { activityBucket, type Task } from '@nora/core';
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { ProgressRing } from '../../components/ProgressRing.tsx';
 import { TaskCard } from '../../components/TaskCard.tsx';
 import { Button, EmptyState } from '../../components/ui.tsx';
 import { tr, type MessageKey } from '../../i18n/index.ts';
@@ -32,6 +33,15 @@ export function ActivityScreen() {
   }, [tasks, today]);
 
   const openCount = groups.today.length + groups.upcoming.length + groups.attention.length + groups.inbox.length;
+
+  useEffect(() => {
+    if (!completedLoaded) void loadCompleted().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dueToday = useMemo(() => Object.values(tasks).filter((t) => t.due_date === today && t.status !== 'cancelled'), [tasks, today]);
+  const doneToday = dueToday.filter((t) => t.status === 'completed').length;
+  const dayPercent = dueToday.length ? Math.round((doneToday / dueToday.length) * 100) : null;
 
   const stats: Array<['today' | 'attention' | 'upcoming', MessageKey]> = [
     ['today', 'act.today'],
@@ -68,6 +78,16 @@ export function ActivityScreen() {
           {tr('task.new')}
         </Button>
       </header>
+
+      {bootstrapped && dayPercent !== null && (
+        <div class="day-card">
+          <ProgressRing percent={dayPercent} />
+          <div class="day-card-text">
+            <h3>{tr('act.day_progress')}</h3>
+            <p>{tr('act.day_progress_hint', { done: doneToday, total: dueToday.length })}</p>
+          </div>
+        </div>
+      )}
 
       {bootstrapped && openCount > 0 && (
         <div class="act-stats" role="group" aria-label={tr('act.title')}>
