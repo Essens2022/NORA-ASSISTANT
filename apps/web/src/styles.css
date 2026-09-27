@@ -977,12 +977,9 @@ textarea.input {
 }
 .logo-mark {
   flex: none;
-  border-radius: 12px;
+  display: block;
+  border-radius: 22%;
   filter: drop-shadow(0 3px 8px rgba(79, 124, 255, 0.35));
-}
-.logo-letter {
-  font: 800 22px var(--font);
-  fill: #fff;
 }
 .logo-word {
   font-weight: 800;
