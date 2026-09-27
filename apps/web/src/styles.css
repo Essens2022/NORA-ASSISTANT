@@ -1486,6 +1486,22 @@ textarea.input {
 }
 .check .icon {
   position: relative;
+  animation: check-pop var(--t-micro) var(--ease);
+}
+@keyframes check-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .check .icon {
+    animation: none;
+  }
 }
 .task-main {
   flex: 1;
