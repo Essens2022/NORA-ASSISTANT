@@ -253,10 +253,11 @@ describe('NORA web – end to end', () => {
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Titlu').fill('Plătește asigurarea');
     await dialog.getByLabel('Data').fill(toZoned(new Date(Date.now() + 3 * 86400000), 'Europe/Rome').date);
-    await dialog.getByLabel('Tip').selectOption('payment');
+    await dialog.getByRole('group', { name: 'Tip' }).getByRole('button', { name: 'Plată' }).click();
     await dialog.getByRole('button', { name: 'Salvează' }).click();
-    await page.getByText('Plătește asigurarea').waitFor();
+    await dialog.getByRole('heading', { name: 'Plătește asigurarea' }).waitFor();
     expect([...store.tasks.values()].some((t) => t.title === 'Plătește asigurarea' && t.kind === 'payment')).toBe(true);
+    await dialog.getByRole('button', { name: 'Perfect, mulțumesc' }).click();
   }, 20_000);
 
   it('profile: every control persists (language, reminder prefs, memory)', async () => {
@@ -270,7 +271,12 @@ describe('NORA web – end to end', () => {
     await expect.poll(() => profile.prefs.reminder_lead_min).toBe(60);
     await page.getByRole('radio', { name: '12 ore' }).click();
     await expect.poll(() => profile.prefs.hour12).toBe(true);
+
+    await page.getByRole('button', { name: 'Amintirile mele' }).click();
+    await page.getByRole('heading', { name: 'Amintirile mele' }).waitFor();
     await page.getByText('Preferă remindere cu 30 de minute înainte').waitFor();
+    await page.getByRole('button', { name: 'Profil' }).click();
+    await page.getByRole('heading', { name: 'Profil' }).waitFor();
 
     await page.getByLabel('Limba aplicației').selectOption('it');
     await page.getByRole('heading', { name: 'Profilo' }).waitFor();
