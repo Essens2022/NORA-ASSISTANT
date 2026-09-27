@@ -84,13 +84,6 @@ window.addEventListener('offline', () => setState({ online: false }));
 // cycle, tall enough that the whole page scrolls as one block (briefing included)
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
-//
-// This also carries the app through the on-screen keyboard opening: body is now
-// pinned (position: fixed, see styles.css) so the document itself never scrolls,
-// which is what used to drag fixed UI (the bottom nav, sheet modals - anchored to
-// the *layout* viewport, which the keyboard doesn't shrink) out of position when iOS
-// tried to scroll a focused input into view. With nothing left to scroll, opening
-// the keyboard now just shrinks the *visual* viewport, which --app-h already tracks.
 const setAppHeight = () => {
   document.documentElement.style.setProperty('--app-h', `${window.visualViewport?.height ?? window.innerHeight}px`);
 };

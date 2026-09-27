@@ -135,26 +135,13 @@
   box-sizing: border-box;
 }
 html {
-  height: 100%;
-  overflow: hidden;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* no rubber-band / pull-to-refresh: the app stays put like a native one */
   overscroll-behavior: none;
   background: var(--bg);
 }
-/* Pinned instead of a normal scrollable document: on iOS, a focused input near the
-   bottom makes the browser scroll the page to reveal it above the keyboard - and
-   since our fixed nav/sheets are anchored to the layout viewport (which the keyboard
-   doesn't resize, only the visual viewport does), that scroll left them stranded off
-   screen or floating mid-page. With nothing at the document level left to scroll,
-   iOS instead just shrinks the visual viewport (which --app-h already tracks, see
-   main.tsx), so the keyboard opening cleanly resizes .ai-screen/.sheet instead of
-   scrolling anything. Every screen scrolls internally now - see .main below. */
 body {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -242,19 +229,13 @@ h3 {
 
 /* ---------- layout ---------- */
 .app {
-  /* an exact height (not min-height) filling the real visible viewport - body is
-     pinned now, so this is the one place page height is established */
-  height: var(--app-h, 100dvh);
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 .main {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  /* nav is a normal flex sibling below this now (see .nav), not an overlay, so
-     nothing here needs to reserve space for it any more */
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .tab-hidden {
   display: none;
@@ -793,13 +774,10 @@ textarea.input {
 
 /* ---------- bottom navigation ---------- */
 .nav {
-  /* a normal flex child of .app now, not position: fixed - fixed positioning is
-     relative to the *layout* viewport on iOS, which the keyboard never shrinks
-     (only the *visual* viewport does), so the nav kept ending up in the wrong place
-     (hidden behind the keyboard, or appearing to jump) whenever it opened. .app's
-     own height already tracks the real visible area correctly (see --app-h in
-     main.tsx), so a plain flex item here just sits at the true bottom for free. */
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 30;
   display: flex;
   justify-content: center;
@@ -913,15 +891,7 @@ textarea.input {
 /* ---------- bottom sheets ---------- */
 .sheet-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* height (from --app-h), not inset: 0 (which pins bottom: 0 too) - a fixed
-     element's bottom: 0 anchors to the *layout* viewport on iOS, which the keyboard
-     never shrinks, so a field near the top of the sheet could end up covered by the
-     keyboard with nothing able to scroll it into view. --app-h already tracks the
-     real visible (keyboard-aware) height - see the same reasoning on .ai-screen. */
-  height: var(--app-h, 100dvh);
+  inset: 0;
   z-index: 50;
   background: var(--overlay);
   display: flex;
@@ -932,7 +902,7 @@ textarea.input {
 .sheet {
   width: 100%;
   max-width: 640px;
-  max-height: calc(var(--app-h, 100dvh) * 0.92);
+  max-height: 92dvh;
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--surface);
