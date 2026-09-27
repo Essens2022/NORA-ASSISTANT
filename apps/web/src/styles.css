@@ -253,7 +253,8 @@ h3 {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  /* nav is a normal flex sibling below this now (see .nav), not an overlay, so
+     nothing here needs to reserve space for it any more */
 }
 .tab-hidden {
   display: none;
@@ -792,10 +793,13 @@ textarea.input {
 
 /* ---------- bottom navigation ---------- */
 .nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  /* a normal flex child of .app now, not position: fixed - fixed positioning is
+     relative to the *layout* viewport on iOS, which the keyboard never shrinks
+     (only the *visual* viewport does), so the nav kept ending up in the wrong place
+     (hidden behind the keyboard, or appearing to jump) whenever it opened. .app's
+     own height already tracks the real visible area correctly (see --app-h in
+     main.tsx), so a plain flex item here just sits at the true bottom for free. */
+  flex-shrink: 0;
   z-index: 30;
   display: flex;
   justify-content: center;
@@ -909,7 +913,15 @@ textarea.input {
 /* ---------- bottom sheets ---------- */
 .sheet-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* height (from --app-h), not inset: 0 (which pins bottom: 0 too) - a fixed
+     element's bottom: 0 anchors to the *layout* viewport on iOS, which the keyboard
+     never shrinks, so a field near the top of the sheet could end up covered by the
+     keyboard with nothing able to scroll it into view. --app-h already tracks the
+     real visible (keyboard-aware) height - see the same reasoning on .ai-screen. */
+  height: var(--app-h, 100dvh);
   z-index: 50;
   background: var(--overlay);
   display: flex;
@@ -920,7 +932,7 @@ textarea.input {
 .sheet {
   width: 100%;
   max-width: 640px;
-  max-height: 92dvh;
+  max-height: calc(var(--app-h, 100dvh) * 0.92);
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--surface);
