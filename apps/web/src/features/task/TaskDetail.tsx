@@ -522,8 +522,8 @@ export function NewTaskSheet({ open, onClose }: { open: boolean; onClose: () => 
           <TaskFields v={v} set={(k, val) => setV((o) => ({ ...o, [k]: val }))} hasCustomRule={false} />
           <div class="actions-row">
             <Button onClick={onClose}>{tr('common.cancel')}</Button>
-            <Button variant="primary" type="submit" busy={busy} disabled={!v.title.trim()}>
-              {tr('common.save')}
+            <Button variant="primary" icon="spark" type="submit" busy={busy} disabled={!v.title.trim()}>
+              {tr('task.add_cta')}
             </Button>
           </div>
         </form>

@@ -195,6 +195,7 @@ export const en = {
   'task.delete_confirm': 'Delete this task permanently?',
   'task.cancel_confirm': 'Cancel this task? Its reminders will stop.',
   'task.new': 'New task',
+  'task.add_cta': 'Add task',
   'task.window.morning': 'Morning',
   'task.window.afternoon': 'Afternoon',
   'task.window.evening': 'Evening',

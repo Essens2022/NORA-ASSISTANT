@@ -254,7 +254,7 @@ describe('NORA web – end to end', () => {
     await dialog.getByLabel('Titlu').fill('Plătește asigurarea');
     await dialog.getByLabel('Data').fill(toZoned(new Date(Date.now() + 3 * 86400000), 'Europe/Rome').date);
     await dialog.getByRole('group', { name: 'Tip' }).getByRole('button', { name: 'Plată' }).click();
-    await dialog.getByRole('button', { name: 'Salvează' }).click();
+    await dialog.getByRole('button', { name: 'Adaugă task' }).click();
     await dialog.getByRole('heading', { name: 'Plătește asigurarea' }).waitFor();
     expect([...store.tasks.values()].some((t) => t.title === 'Plătește asigurarea' && t.kind === 'payment')).toBe(true);
     await dialog.getByRole('button', { name: 'Perfect, mulțumesc' }).click();

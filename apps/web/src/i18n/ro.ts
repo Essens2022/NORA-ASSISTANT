@@ -197,6 +197,7 @@ export const ro: Record<MessageKey, string> = {
   'task.delete_confirm': 'Ștergi definitiv acest task?',
   'task.cancel_confirm': 'Anulezi acest task? Reminderele se opresc.',
   'task.new': 'Task nou',
+  'task.add_cta': 'Adaugă task',
   'task.window.morning': 'Dimineața',
   'task.window.afternoon': 'După-amiaza',
   'task.window.evening': 'Seara',

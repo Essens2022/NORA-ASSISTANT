@@ -280,12 +280,13 @@ h3 {
   transform: none;
 }
 .btn-primary {
-  background: var(--blue);
-  border-color: var(--blue);
+  background: var(--gradient-brand);
+  border-color: transparent;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(79, 124, 255, 0.3);
 }
 .btn-primary:not(:disabled):active {
-  background: var(--blue-dark);
+  filter: brightness(0.92);
 }
 .btn-ghost {
   border-color: transparent;
@@ -2406,7 +2407,7 @@ textarea.input {
     background: var(--hover);
   }
   .btn-primary:not(:disabled):hover {
-    background: var(--blue-hover);
+    filter: brightness(1.05);
   }
   .btn-danger:hover {
     background: var(--error-soft);

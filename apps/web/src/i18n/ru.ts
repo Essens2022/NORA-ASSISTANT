@@ -197,6 +197,7 @@ export const ru: Record<MessageKey, string> = {
   'task.delete_confirm': 'Удалить это дело навсегда?',
   'task.cancel_confirm': 'Отменить это дело? Напоминания прекратятся.',
   'task.new': 'Новое дело',
+  'task.add_cta': 'Добавить дело',
   'task.window.morning': 'Утром',
   'task.window.afternoon': 'Днём',
   'task.window.evening': 'Вечером',

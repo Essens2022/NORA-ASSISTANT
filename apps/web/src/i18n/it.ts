@@ -197,6 +197,7 @@ export const it: Record<MessageKey, string> = {
   'task.delete_confirm': 'Eliminare definitivamente questa attività?',
   'task.cancel_confirm': 'Annullare questa attività? I promemoria si fermano.',
   'task.new': 'Nuova attività',
+  'task.add_cta': 'Aggiungi attività',
   'task.window.morning': 'Mattina',
   'task.window.afternoon': 'Pomeriggio',
   'task.window.evening': 'Sera',
