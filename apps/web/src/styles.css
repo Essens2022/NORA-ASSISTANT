@@ -59,6 +59,7 @@
   --r-btn: 14px;
   --r-modal: 24px;
   --nav-h: 64px;
+  --kb-gap: 0px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --t-micro: 150ms;
   --t-modal: 220ms;
@@ -774,12 +775,7 @@ textarea.input {
 
 /* ---------- bottom navigation ---------- */
 .nav {
-  /* sticky, not fixed: on iOS Safari (especially the standalone/home-screen PWA),
-     a fixed element gets detached and repainted at the wrong spot the moment the
-     keyboard opens and the browser auto-scrolls a focused input into view - it can
-     end up floating mid-screen instead of staying at the bottom. Sticky participates
-     in the page's normal scroll instead of fighting it, so it tracks correctly. */
-  position: sticky;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
@@ -789,6 +785,22 @@ textarea.input {
   background: var(--nav-bg);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
+}
+/* On iOS (especially the standalone/home-screen PWA), the keyboard shrinks only the
+   *visual* viewport while position:fixed sizes against the unshrunk *layout*
+   viewport - and Safari's own "scroll the focused input into view" then detaches
+   fixed elements, landing this bar mid-screen instead of at the true bottom (see
+   --kb-gap, tracked from visualViewport in main.tsx). Rather than chase a moving
+   target, just hide it while the keyboard covers it, like any chat app does while
+   typing - the composer above it doesn't need it and this sidesteps the bug outright. */
+html.kb-open .nav {
+  display: none;
+}
+html.kb-open .main {
+  padding-bottom: 0;
+}
+html.kb-open .ai-screen {
+  height: var(--app-h, 100dvh);
 }
 .nav-item {
   flex: 1;
@@ -914,6 +926,11 @@ textarea.input {
   border-radius: var(--r-modal) var(--r-modal) 0 0;
   padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
   animation: sheet-in var(--t-modal) var(--ease);
+}
+/* same keyboard-vs-viewport mismatch as .ai-screen: cap to the actually visible
+   height once the keyboard is up, instead of a dvh figure that ignores it. */
+html.kb-open .sheet {
+  max-height: calc(var(--app-h, 100dvh) * 0.92);
 }
 .sheet-handle {
   width: 36px;

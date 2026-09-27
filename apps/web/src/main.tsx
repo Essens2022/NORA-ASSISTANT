@@ -84,11 +84,31 @@ window.addEventListener('offline', () => setState({ online: false }));
 // cycle, tall enough that the whole page scrolls as one block (briefing included)
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
+//
+// The keyboard makes this worse: on iOS (especially the standalone/home-screen PWA)
+// the keyboard shrinks only the *visual* viewport, not the *layout* viewport that
+// position:fixed and 100dvh size against - and opening a text input makes Safari
+// scroll the page to bring it into view, a scroll it then frequently fails to undo
+// (a known WebKit bug). That combination is what makes the bottom nav "fly away"
+// mid-screen and content look like it vanished. The fix: track the gap between the
+// two viewports, hide the (otherwise-misplaced) nav while the keyboard covers it,
+// and nudge the browser to re-clamp its scroll-vs-fixed-position bookkeeping on
+// every viewport change instead of leaving it stuck on a stale offset.
 const setAppHeight = () => {
-  document.documentElement.style.setProperty('--app-h', `${window.visualViewport?.height ?? window.innerHeight}px`);
+  const vv = window.visualViewport;
+  const h = vv?.height ?? window.innerHeight;
+  document.documentElement.style.setProperty('--app-h', `${h}px`);
+  const gap = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
+  document.documentElement.style.setProperty('--kb-gap', `${gap}px`);
+  document.documentElement.classList.toggle('kb-open', gap > 120);
+  // re-apply the current scroll position: a same-value scrollTo is a no-op for the
+  // user but makes Safari recompute fixed-element placement against the live
+  // viewport instead of the stale one it scrolled to when the keyboard opened.
+  requestAnimationFrame(() => window.scrollTo(window.scrollX, window.scrollY));
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);
+window.visualViewport?.addEventListener('scroll', setAppHeight);
 window.addEventListener('resize', setAppHeight);
 window.addEventListener('orientationchange', setAppHeight);
 
