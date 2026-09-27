@@ -39,9 +39,25 @@ let registration: Promise<ServiceWorkerRegistration | null> | null = null;
 
 export function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator) || import.meta.env.DEV) return Promise.resolve(null);
-  registration ??= navigator.serviceWorker
-    .register(`${import.meta.env.BASE_URL}sw.js?api=${encodeURIComponent(config.apiUrl)}&key=${encodeURIComponent(config.supabaseAnonKey)}`, { scope: import.meta.env.BASE_URL })
-    .catch(() => null);
+  if (!registration) {
+    // A standalone/home-screen PWA keeps running whatever JS it already loaded until
+    // it's actually reloaded - installing a new build's service worker in the
+    // background does nothing for an app the person never force-quits, so a fix can
+    // ship and still never reach them. Reload once the moment a new one takes over,
+    // and prod it to check for one every time the app comes back to the foreground.
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloaded) return;
+      reloaded = true;
+      location.reload();
+    });
+    registration = navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js?api=${encodeURIComponent(config.apiUrl)}&key=${encodeURIComponent(config.supabaseAnonKey)}`, { scope: import.meta.env.BASE_URL })
+      .catch(() => null);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) void registration?.then((r) => r?.update());
+    });
+  }
   return registration;
 }
 

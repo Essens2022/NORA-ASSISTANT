@@ -59,7 +59,6 @@
   --r-btn: 14px;
   --r-modal: 24px;
   --nav-h: 64px;
-  --kb-gap: 0px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --t-micro: 150ms;
   --t-modal: 220ms;
@@ -789,10 +788,12 @@ textarea.input {
 /* On iOS (especially the standalone/home-screen PWA), the keyboard shrinks only the
    *visual* viewport while position:fixed sizes against the unshrunk *layout*
    viewport - and Safari's own "scroll the focused input into view" then detaches
-   fixed elements, landing this bar mid-screen instead of at the true bottom (see
-   --kb-gap, tracked from visualViewport in main.tsx). Rather than chase a moving
-   target, just hide it while the keyboard covers it, like any chat app does while
-   typing - the composer above it doesn't need it and this sidesteps the bug outright. */
+   fixed elements, landing this bar mid-screen instead of at the true bottom (some iOS
+   versions don't even report the viewport shrinking in standalone mode, so this can't
+   be detected from viewport geometry - .kb-open is set from focus/blur in main.tsx
+   instead, which always fires). Rather than chase a moving target, just hide it while
+   the keyboard covers it, like any chat app does while typing - the composer above it
+   doesn't need it and this sidesteps the bug outright. */
 html.kb-open .nav {
   display: none;
 }

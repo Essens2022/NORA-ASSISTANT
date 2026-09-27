@@ -84,32 +84,54 @@ window.addEventListener('offline', () => setState({ online: false }));
 // cycle, tall enough that the whole page scrolls as one block (briefing included)
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
-//
-// The keyboard makes this worse: on iOS (especially the standalone/home-screen PWA)
-// the keyboard shrinks only the *visual* viewport, not the *layout* viewport that
-// position:fixed and 100dvh size against - and opening a text input makes Safari
-// scroll the page to bring it into view, a scroll it then frequently fails to undo
-// (a known WebKit bug). That combination is what makes the bottom nav "fly away"
-// mid-screen and content look like it vanished. The fix: track the gap between the
-// two viewports, hide the (otherwise-misplaced) nav while the keyboard covers it,
-// and nudge the browser to re-clamp its scroll-vs-fixed-position bookkeeping on
-// every viewport change instead of leaving it stuck on a stale offset.
 const setAppHeight = () => {
   const vv = window.visualViewport;
-  const h = vv?.height ?? window.innerHeight;
-  document.documentElement.style.setProperty('--app-h', `${h}px`);
-  const gap = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
-  document.documentElement.style.setProperty('--kb-gap', `${gap}px`);
-  document.documentElement.classList.toggle('kb-open', gap > 120);
+  document.documentElement.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
   // re-apply the current scroll position: a same-value scrollTo is a no-op for the
   // user but makes Safari recompute fixed-element placement against the live
-  // viewport instead of the stale one it scrolled to when the keyboard opened.
+  // viewport instead of a stale one it scrolled to earlier.
   requestAnimationFrame(() => window.scrollTo(window.scrollX, window.scrollY));
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);
 window.visualViewport?.addEventListener('scroll', setAppHeight);
 window.addEventListener('resize', setAppHeight);
+
+// The keyboard makes all of this worse: on iOS (especially the standalone/home-screen
+// PWA) the keyboard shrinks only the *visual* viewport, not the *layout* viewport that
+// position:fixed and 100dvh size against - and opening a text input makes Safari
+// scroll the page to bring it into view, a scroll it then frequently fails to undo (a
+// known WebKit bug). That's what makes the bottom nav "fly away" mid-screen and other
+// content look like it vanished. Worse, on some iOS versions the standalone PWA never
+// even reports the visualViewport shrinking, so sizing the layout off of it doesn't
+// pick up the keyboard opening at all. Focus/blur on the field itself is the one signal
+// that's always reliable, so use that instead: the moment a text field is focused, hide
+// the (otherwise-misplaced) nav and let the composer/sheet claim the full app height,
+// no viewport-geometry guessing required.
+let kbHideAt = 0;
+const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+document.addEventListener(
+  'focusin',
+  (e) => {
+    if (!isTextField(e.target)) return;
+    kbHideAt = 0;
+    document.documentElement.classList.add('kb-open');
+  },
+  { capture: true },
+);
+document.addEventListener(
+  'focusout',
+  (e) => {
+    if (!isTextField(e.target)) return;
+    // focus can hop straight from one field to another (e.g. Tab) - give that a beat
+    // before deciding the keyboard is actually closing, instead of flashing the nav.
+    const at = (kbHideAt = Date.now());
+    setTimeout(() => {
+      if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
+    }, 100);
+  },
+  { capture: true },
+);
 window.addEventListener('orientationchange', setAppHeight);
 
 // Coming back to the app: refresh (reminders may have changed statuses meanwhile)
