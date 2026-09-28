@@ -10,21 +10,25 @@ import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/ac
 import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
 import { primeSpeech, tts } from '../../services/voice/tts.ts';
-import { unlockAudio } from '../../utils/chime.ts';
 import { nowLocal, todayLocal } from '../../utils/time.ts';
 
-// iOS only lets audio start (speech synthesis, an <audio> element, an AudioContext)
-// inside a real user gesture - and, on this screen, doing that claims the device's
-// audio session from whatever else was playing (seen on device: opening NORA at all
-// silenced Spotify, and it stayed silenced even after leaving the app again). Doing
-// it once, eagerly, the moment the person touches *anything* in the whole app - as
-// this used to, from main.tsx - grabbed that session long before there was any
-// reply to speak, and for no reason if they never end up using voice at all. Unlock
-// right here instead, on the two taps that can actually lead to NORA speaking (the
-// mic, and sending a message that might get a spoken reply) - never earlier.
+// iOS only lets audio start (speech synthesis, an <audio> element) inside a real
+// user gesture - and, on this screen, doing that claims the device's audio session
+// from whatever else was playing (seen on device: opening NORA at all silenced
+// Spotify, and it stayed silenced even after leaving the app again). Doing it once,
+// eagerly, the moment the person touches *anything* in the whole app - as this used
+// to, from main.tsx - grabbed that session long before there was any reply to
+// speak, and for no reason if they never end up using voice at all. Unlock right
+// here instead, on the two taps that can actually lead to NORA speaking (the mic,
+// and sending a message that might get a spoken reply) - never earlier.
+// unlockAudio() (utils/chime.ts) deliberately stays out of this: it opens its own
+// AudioContext and, once open, that context is never closed - it's what was still
+// holding the audio session claim after the mic was released, so Spotify never came
+// back on its own the way it does after ChatGPT's mic (seen on device). It's only
+// for playChime()'s notification sound (reminders), a real, occasional interrupt,
+// not something every single voice turn needs to pay for.
 const unlockVoiceAudio = () => {
   primeSpeech();
-  unlockAudio();
   tts.unlock();
 };
 
