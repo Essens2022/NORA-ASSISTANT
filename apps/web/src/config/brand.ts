@@ -8,7 +8,8 @@ export const brand = {
   appName: 'NORA',
   /** Localised tagline lives in i18n (`brand.tagline`); this is the canonical English one. */
   tagline: "Tell me once. I'll remember.",
-  supportEmail: 'support@nora.app',
+  // temporary, personal inbox until a dedicated support@ address exists for the app
+  supportEmail: 'ionbondari16@gmail.com',
   urls: {
     privacy: '/privacy',
     terms: '/terms',
