@@ -1029,10 +1029,7 @@ html.kb-open.kb-vv .ai-footer {
   margin: 0;
   padding: 8px 0 8px;
   transform: translateY(calc(-1 * var(--kb, 0px)));
-  /* bridges the gap between --kb samples (see the 40ms poll in main.tsx) with a
-     little momentum instead of a hard linear snap between them - reads as one
-     continuous glide rather than a string of small steps */
-  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 90ms linear;
   will-change: transform;
 }
 html.kb-open.kb-vv .ai-scroll {
