@@ -135,14 +135,6 @@
   box-sizing: border-box;
 }
 html {
-  height: 100%;
-  /* the document itself never scrolls - .app is a fixed-position shell that owns all
-     scrolling internally (see .app/.main below). Without this, focusing a text field
-     on iOS lets the *document* scroll to reveal it, which also drags along anything
-     else on the page (header, nav, the voice button) since they're not otherwise
-     contained - exactly like a normal web page, not like a native chat app where only
-     the message list ever moves. */
-  overflow: hidden;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* no rubber-band / pull-to-refresh: the app stays put like a native one */
@@ -150,8 +142,6 @@ html {
   background: var(--bg);
 }
 body {
-  height: 100%;
-  overflow: hidden;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -239,26 +229,13 @@ h3 {
 
 /* ---------- layout ---------- */
 .app {
-  /* fixed, sized from visualViewport (--app-h, tracked in main.tsx) instead of a
-     normal-flow page: this is the whole app's viewport-equivalent, and it's the only
-     thing that ever resizes when the keyboard opens - nothing inside it (header, nav,
-     the voice button/composer) needs its own scroll or positioning tricks, they're
-     just normal flex children of a box that's always exactly the right size. */
-  position: fixed;
-  inset: 0;
-  height: var(--app-h, 100dvh);
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 .main {
   flex: 1;
-  min-height: 0;
-  /* the one and only scroll container for tabs that don't manage their own (Activity,
-     Calendar, Memory, Profile) - the AI tab manages its own internal scroll instead
-     (see .ai-scroll) and is sized to fit here exactly, so this never needs to scroll
-     while it's the active tab. */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .tab-hidden {
   display: none;
@@ -812,24 +789,31 @@ textarea.input {
 
 /* ---------- bottom navigation ---------- */
 .nav {
-  /* a normal flex child of .app now, not position:fixed - .app itself is the fixed,
-     correctly-sized shell (see above), so nothing inside it needs its own fixed
-     positioning to "find" the bottom of the screen; it's just always there. This is
-     also what fixes the old bug where this bar would detach and float mid-screen the
-     moment the keyboard opened: that only happened because it was fixed against a
-     viewport that didn't account for the keyboard, while everything else on the page
-     scrolled - now there's no page scroll to get out of sync with. */
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
   display: flex;
   justify-content: center;
   background: var(--nav-bg);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
 }
-/* Still hidden while a text field is focused: on a real phone the keyboard would
-   otherwise cover it, and the composer right above it doesn't need it anyway. */
+/* On iOS (especially the standalone/home-screen PWA), the keyboard shrinks only the
+   *visual* viewport while position:fixed sizes against the unshrunk *layout*
+   viewport - and Safari's own "scroll the focused input into view" then detaches
+   fixed elements, landing this bar mid-screen instead of at the true bottom (some iOS
+   versions don't even report the viewport shrinking in standalone mode, so this can't
+   be detected from viewport geometry - .kb-open is set from focus/blur in main.tsx
+   instead, which always fires). Rather than chase a moving target, just hide it while
+   the keyboard covers it, like any chat app does while typing - the composer above it
+   doesn't need it and this sidesteps the bug outright. */
 html.kb-open .nav {
   display: none;
+}
+html.kb-open .main {
+  padding-bottom: 0;
 }
 .nav-item {
   flex: 1;
@@ -1000,15 +984,51 @@ html.kb-open .nav {
   display: flex;
   flex-direction: column;
   /* fixed, not min-: the voice button and composer must never be pushed below the
-     fold on a short phone - the conversation scrolls inside .ai-scroll instead. This
-     is sized to exactly fill .main (itself sized to exactly fill the fixed .app
-     shell), so it never needs its own scroll-into-view tricks for the keyboard - when
-     .app resizes for the keyboard (see --app-h in main.tsx), this and everything in
-     it just resizes right along with it, landing the voice button/composer exactly
-     above the keyboard the same way they already sit exactly above the nav bar. */
+     fold on a short phone – the briefing/chat scroll inside .ai-scroll instead.
+     --app-h (set in main.tsx from visualViewport) instead of 100dvh: iOS Safari can
+     report a stale dvh right after a long background/foreground cycle, which made
+     .ai-screen taller than the real viewport and let the whole page (briefing
+     included) scroll as one block until the app was fully restarted. */
   height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
   padding-bottom: 16px;
   overflow: hidden;
+}
+/* overflow:hidden + a fixed height mean anything that doesn't fit is gone for good -
+   no scroll can recover it, and worse, with no extra page height there's nowhere TO
+   scroll even if something could. On iOS the keyboard covers part of the screen like a
+   physical overlay, outside the DOM entirely; the only way anything below it becomes
+   reachable is if the page is taller than one screen, giving the browser's own
+   "scroll the focused field into view" real room to work with.
+   Add exactly one keyboard's worth of extra height (an iPhone keyboard is roughly
+   260px), not open-ended growth: .ai-scroll below
+   keeps its own contained, independent scroll (same as at rest) instead of merging
+   into one long page - so scrolling through the conversation never also drags the
+   (sticky) footer through this extra slack and past its correct spot above the
+   keyboard. overflow stays visible so the footer, sitting right at this taller edge,
+   is never clipped. */
+html.kb-open .ai-screen {
+  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom) + 260px);
+  overflow: visible;
+}
+/* Once the field has been scrolled into place (see the ~650ms timer in main.tsx),
+   drop that extra 260px entirely instead of just leaving it unused - it's the only
+   thing a swipe could scroll into to drag the (sticky) footer away from the keyboard
+   and open a gap, so once it's done its one job, it shouldn't still be there to grab. */
+html.kb-open.kb-settled .ai-screen {
+  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
+}
+/* the voice button and composer must stay put once scrolled to, not keep drifting
+   past with the rest of the (now scrollable) page - sticky pins them to the bottom
+   of the screen while the conversation above scrolls underneath, same as they
+   already behave at rest. The 260px slack on .ai-screen (while settling) gives
+   sticky the room below it needs to actually stick, instead of running out of
+   container to stick within. */
+html.kb-open .ai-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  padding-top: 8px;
+  margin-top: -8px;
 }
 .ai-scroll {
   flex: 1;
