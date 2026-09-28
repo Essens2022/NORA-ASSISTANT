@@ -102,7 +102,21 @@ const setAppHeight = () => {
   // Dropping the term removes that source of noise; the 400px ceiling is a second,
   // unconditional backstop against any future spike, however it's caused - no iPhone
   // keyboard is taller than that, so nothing legitimate is ever clamped.
-  const kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
+  let kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
+  // Safety rail: whatever the true cause (this formula assumes the layout viewport
+  // behind position:fixed stays full-height while the keyboard is open, which is the
+  // whole reason --kb needs computing at all - if that assumption is ever wrong on a
+  // given device/iOS version, the footer overshoots and its solid background ends up
+  // covering the header/briefing above it instead of just the keyboard below it,
+  // reported as "the whole top gets pushed away, only the button's background shows").
+  // Never let the translate push the footer's top edge above where the header and
+  // briefing need to end, no matter what the raw keyboard measurement says.
+  // the footer's own math (see .ai-footer in styles.css) is bottom:0 relative to the
+  // full layout viewport (window.innerHeight) translated up by --kb, so the cap has
+  // to be expressed against that same baseline, not the shrunk visual one
+  const footerH = document.querySelector<HTMLElement>('.ai-footer')?.offsetHeight ?? 180;
+  const headReserve = (document.querySelector<HTMLElement>('.ai-head')?.offsetHeight ?? 0) + (document.querySelector<HTMLElement>('.briefing')?.offsetHeight ?? 0) + 24;
+  kb = Math.min(kb, Math.max(0, window.innerHeight - footerH - headReserve));
   root.style.setProperty('--kb', `${kb}px`);
   // Latched, not toggled: once this device has proven it reports the keyboard at all,
   // stay on the floating/fixed footer for the rest of the session instead of flipping
