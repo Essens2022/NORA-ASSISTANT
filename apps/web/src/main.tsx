@@ -2,7 +2,8 @@ import { render } from 'preact';
 import { App } from './App.tsx';
 import { setLang } from './i18n/index.ts';
 import { flushQueue, track } from './services/api.ts';
-import { completeHandoff, watchHandoff } from './services/auth.ts';
+import { Browser } from '@capacitor/browser';
+import { completeHandoff, isStandalone, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
 import { getState, setState, type Tab } from './state/store.ts';
@@ -40,10 +41,13 @@ void setLang('en').then(() => {
   requestAnimationFrame(() => setTimeout(() => track('tti_ms', Math.round(performance.now())), 0));
 });
 
-// Google sign-in from the installed app comes back through an in-app browser (iOS)
+// Google sign-in from the installed app comes back through an in-app browser (iOS Safari View / Android Custom Tab)
 if (new URLSearchParams(location.search).has('handoff')) setState({ handoff: 'working' });
 void completeHandoff().then((r) => setState({ handoff: r === 'handed' || r === 'failed' ? r : null }));
-watchHandoff(() => undefined);
+// once the app has claimed the parked session, the Custom Tab has done its job
+watchHandoff(() => {
+  if (isStandalone()) void Browser.close().catch(() => undefined);
+});
 initAuth();
 // Audio (speech synthesis, an <audio> element, an AudioContext) only starts inside
 // a real user gesture on iOS - but unlocking it on the very first touch anywhere in

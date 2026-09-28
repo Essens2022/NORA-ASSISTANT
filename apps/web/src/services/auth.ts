@@ -2,6 +2,7 @@
 // PWAs (magic links would open the browser instead); Google / Apple are behind flags.
 
 import { AuthClient, type Session } from '@supabase/auth-js';
+import { Browser } from '@capacitor/browser';
 import { config, isConfigured } from '../config/brand.ts';
 
 export const auth: InstanceType<typeof AuthClient> | null = isConfigured()
@@ -40,9 +41,10 @@ export async function verifyCode(email: string, token: string) {
 
 export async function signInWith(provider: 'google' | 'apple') {
   if (!auth) throw new Error('not_configured');
+  const native = isStandalone();
   let redirectTo = location.origin + import.meta.env.BASE_URL;
-  if (isStandalone()) {
-    // iOS opens the provider in a separate in-app browser; see handoff below
+  if (native) {
+    // iOS/Android open the provider in a separate in-app browser; see handoff below
     const nonce = randomNonce();
     try {
       localStorage.setItem(HANDOFF_KEY, JSON.stringify({ n: nonce, t: Date.now() }));
@@ -51,8 +53,13 @@ export async function signInWith(provider: 'google' | 'apple') {
     }
     redirectTo += `?handoff=${nonce}`;
   }
-  const { error } = await auth.signInWithOAuth({ provider, options: { redirectTo } });
+  // On Android, skip Supabase's default window.location.assign (Capacitor's
+  // WebView bounces that to a full, chrome-visible system browser tab since
+  // accounts.google.com isn't the app's own origin) and open a Custom Tab
+  // instead - visually integrated, and it closes itself once handed off.
+  const { data, error } = await auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: native } });
   if (error) throw error;
+  if (native && data.url) await Browser.open({ url: data.url });
 }
 
 // ----------------------------------------------------------------------------
@@ -69,7 +76,12 @@ const HANDOFF_KEY = 'nora.handoff';
 const HANDOFF_TTL_MS = 30 * 60_000;
 
 export function isStandalone(): boolean {
-  return matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+  const capacitor = (window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  return (
+    matchMedia('(display-mode: standalone)').matches ||
+    (navigator as { standalone?: boolean }).standalone === true ||
+    capacitor?.isNativePlatform?.() === true
+  );
 }
 
 function randomNonce(): string {
