@@ -12,6 +12,14 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://norakeep.com',
     androidScheme: 'https',
+    // Capacitor only treats a navigation as "inside the app" when the host
+    // matches server.url exactly (Bridge.launchIntent, @capacitor/android).
+    // Any redirect the live site issues on load (e.g. a canonical www/host
+    // redirect) lands on a host it doesn't recognize, so it fires an
+    // external ACTION_VIEW intent instead - kicking the whole session out
+    // to the system browser (Chrome), address bar and all, on first launch.
+    // Listing both forms here keeps any such redirect inside the WebView.
+    allowNavigation: ['norakeep.com', '*.norakeep.com'],
   },
   android: {
     backgroundColor: '#F7F9FC',
