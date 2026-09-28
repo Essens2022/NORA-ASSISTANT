@@ -9,7 +9,24 @@ import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
 import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
+import { primeSpeech, tts } from '../../services/voice/tts.ts';
+import { unlockAudio } from '../../utils/chime.ts';
 import { nowLocal, todayLocal } from '../../utils/time.ts';
+
+// iOS only lets audio start (speech synthesis, an <audio> element, an AudioContext)
+// inside a real user gesture - and, on this screen, doing that claims the device's
+// audio session from whatever else was playing (seen on device: opening NORA at all
+// silenced Spotify, and it stayed silenced even after leaving the app again). Doing
+// it once, eagerly, the moment the person touches *anything* in the whole app - as
+// this used to, from main.tsx - grabbed that session long before there was any
+// reply to speak, and for no reason if they never end up using voice at all. Unlock
+// right here instead, on the two taps that can actually lead to NORA speaking (the
+// mic, and sending a message that might get a spoken reply) - never earlier.
+const unlockVoiceAudio = () => {
+  primeSpeech();
+  unlockAudio();
+  tts.unlock();
+};
 
 const DRAFT_KEY = 'nora.draft';
 const MIC_EXPLAINED = 'nora.mic_explained';
@@ -53,6 +70,7 @@ export function AIScreen() {
   useEffect(() => () => cancelVoice(), []);
 
   const startVoice = async (skipExplain = false) => {
+    unlockVoiceAudio(); // synchronously inside the tap, before any await below
     if (!skipExplain && voice === 'idle') {
       let explained = false;
       try {
@@ -74,6 +92,7 @@ export function AIScreen() {
     e.preventDefault();
     const text = draft.trim();
     if (!text) return;
+    unlockVoiceAudio(); // synchronously inside the tap: a text message can get a spoken reply too
     setDraft('');
     // the textarea's grown height is set directly on the element (not via CSS), so
     // clearing the draft alone wouldn't shrink it back down

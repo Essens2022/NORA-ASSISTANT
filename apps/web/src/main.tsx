@@ -4,8 +4,6 @@ import { setLang } from './i18n/index.ts';
 import { flushQueue, track } from './services/api.ts';
 import { completeHandoff, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
-import { primeSpeech, tts } from './services/voice/tts.ts';
-import { unlockAudio } from './utils/chime.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
 import { getState, setState, type Tab } from './state/store.ts';
 import { applyTheme } from './utils/theme.ts';
@@ -47,14 +45,15 @@ if (new URLSearchParams(location.search).has('handoff')) setState({ handoff: 'wo
 void completeHandoff().then((r) => setState({ handoff: r === 'handed' || r === 'failed' ? r : null }));
 watchHandoff(() => undefined);
 initAuth();
-// iOS: sound and speech only work after a touch – unlock both on the first one
-const unlockAll = () => {
-  primeSpeech();
-  unlockAudio();
-  tts.unlock();
-};
-addEventListener('pointerdown', unlockAll, { once: true, capture: true });
-addEventListener('keydown', unlockAll, { once: true, capture: true });
+// Audio (speech synthesis, an <audio> element, an AudioContext) only starts inside
+// a real user gesture on iOS - but unlocking it on the very first touch anywhere in
+// the whole app, unconditionally, claimed the device's audio session before there
+// was ever anything to say, and kept it claimed even if voice was never touched -
+// on device this silenced whatever else was playing (Spotify) the moment NORA was
+// merely opened, and it never came back (seen on video). Unlocked instead, right on
+// the two taps that can actually lead to NORA speaking - see AIScreen.tsx's
+// unlockVoiceAudio (mic press, sending a message) and ReminderAlert.tsx (a
+// reminder's own screen, which deliberately does interrupt other audio to be heard).
 void registerServiceWorker();
 
 if (deepTask) {

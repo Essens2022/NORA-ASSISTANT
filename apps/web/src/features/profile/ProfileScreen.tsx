@@ -243,7 +243,16 @@ function VoicePicker({ lang }: { lang: Lang }) {
           saveVoice(lang, v || null);
         }}
       />
-      <Button small icon="speaker" onClick={() => void tts.speak(trIn(lang, 'prof.voice_test'), lang, { voiceURI: sel || null })}>
+      <Button
+        small
+        icon="speaker"
+        onClick={() => {
+          // cloud TTS needs an unlocked <audio> element from *this* gesture - its own
+          // speak() fetches the clip first, so by the time play() runs the tap is over
+          tts.unlock();
+          void tts.speak(trIn(lang, 'prof.voice_test'), lang, { voiceURI: sel || null });
+        }}
+      >
         {tr('prof.voice_preview')}
       </Button>
     </div>
