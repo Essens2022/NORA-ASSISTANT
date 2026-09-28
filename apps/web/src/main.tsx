@@ -80,46 +80,55 @@ window.addEventListener('online', () => {
 });
 window.addEventListener('offline', () => setState({ online: false }));
 
-// 100dvh used to need a JS-computed stand-in (a stale dvh right after a long
-// background/foreground cycle was a known iOS Safari bug, and separately, the
-// keyboard only shrank the *visual* viewport, not the *layout* one 100dvh sizes
-// against). Both of those are gone with interactive-widget=resizes-content
-// (index.html): the browser now animates 100dvh itself, live, for the keyboard -
-// in lockstep with its own slide, frame-accurate. A value we mirrored into a
-// custom property from visualViewport's resize/scroll events used to update one
-// tick behind that native animation, and for one frame the sticky footer (see
-// .ai-footer in styles.css) would be laid out against the *old* height while
-// already rendered at the new one - it landed stuck mid-card, overlapping the
-// briefing (seen on video). Plain 100dvh has no such gap to fall into.
+// 100dvh used to need a JS-computed stand-in for a stale dvh right after a long
+// background/foreground cycle, a known iOS Safari bug - that's gone, plain 100dvh
+// is trustworthy again. The keyboard is a separate story: interactive-widget=
+// resizes-content (index.html) *asks* the browser to shrink the layout viewport
+// (and so 100dvh) for the keyboard itself, the same way a native app's window
+// would - but on this device, with this keyboard (seen on video: Gboard, not
+// Apple's own), that request is silently ignored - window.innerHeight stays the
+// full, un-shrunk height throughout, only visualViewport.height actually drops.
+// 100dvh then never shrinks either, so the sticky footer (bottom:0 of a screen
+// that's still "full height" as far as layout is concerned) sits at the true
+// bottom of the *unshrunk* page - which the keyboard is now covering. Detect
+// that gap directly (innerHeight vs. visualViewport.height) and ride it with a
+// transform, exactly the amount the browser refused to do on its own - a
+// transform never touches layout/height, only compositing, so this can't
+// re-open the timing race the height-driven version of this had (the footer's
+// container never changes size; only the footer's own paint position does).
+// Where interactive-widget *is* honoured, innerHeight already shrinks with
+// visualViewport, this gap comes out ~0, and the transform is a no-op - so the
+// same code is correct whether or not this device's keyboard cooperates.
+const setKbOffset = () => {
+  const vv = window.visualViewport;
+  let kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
+  // Never let the lift push the footer's top edge above where the header and
+  // briefing need to end, no matter what the raw keyboard measurement says -
+  // the one thing that's gone wrong here before (the whole top pushed away,
+  // only the footer's own background left showing).
+  const footerH = document.querySelector<HTMLElement>('.ai-footer')?.offsetHeight ?? 180;
+  const headReserve = (document.querySelector<HTMLElement>('.ai-head')?.offsetHeight ?? 0) + (document.querySelector<HTMLElement>('.briefing')?.offsetHeight ?? 0) + 24;
+  kb = Math.min(kb, Math.max(0, window.innerHeight - footerH - headReserve));
+  document.documentElement.style.setProperty('--kb', `${kb}px`);
+};
+setKbOffset();
+window.visualViewport?.addEventListener('resize', setKbOffset);
+window.visualViewport?.addEventListener('scroll', setKbOffset);
+window.addEventListener('resize', setKbOffset);
+window.addEventListener('orientationchange', setKbOffset);
 
-// The keyboard makes all of this worse: on iOS (especially the standalone/home-screen
-// PWA) the keyboard shrinks only the *visual* viewport, not the *layout* viewport that
-// position:fixed and 100dvh size against - and opening a text input makes Safari
-// scroll the page to bring it into view, a scroll it then frequently fails to undo (a
-// known WebKit bug). That's what makes the bottom nav "fly away" mid-screen and other
-// content look like it vanished. Focus/blur on the field itself is the one signal
-// that's always reliable, so use that to hide the (otherwise-misplaced) nav.
-//
-// Placing the field itself above the keyboard used to take a pile of custom scroll
-// tricks (visualViewport-based, scrollIntoView, position:fixed probes) that all
-// overshot or undershot, because none of them agreed with where the keyboard
-// actually was on a given device. Most of that is gone now: the viewport meta tag
-// (interactive-widget=resizes-content, index.html) makes the browser itself shrink
-// the page for the keyboard, so the sticky footer (.ai-footer in styles.css) is
-// simply always at the bottom of the now-shorter screen.
-//
-// One thing that shrink doesn't fix by itself: Safari still tries to "scroll the
-// focused field into view" the moment it's focused, exactly like it always did -
-// and with a sticky-positioned footer that scroll routinely overshoots (a known
-// WebKit quirk with sticky elements), dragging the *whole page*, header and all,
-// up past the top of the screen (seen on device: everything gone, just empty
-// background above the keyboard). The AI Home screen never needs the page itself
-// to scroll for this - only its own conversation does (.ai-scroll) - so while a
-// field is focused, hold the page at the top and let nothing move it: html.kb-open
-// below disables page scrolling outright, and this listener corrects any scroll
-// that sneaks in before/around that (e.g. the moment focus itself fires) straight
-// back to zero, every time, until the field loses focus.
+// Safari still tries to "scroll the focused field into view" the moment it's
+// focused, exactly like it always did - and with a sticky-positioned footer that
+// scroll routinely overshoots (a known WebKit quirk with sticky elements),
+// dragging the *whole page*, header and all, up past the top of the screen (seen
+// on device: everything gone, just empty background above the keyboard). The AI
+// Home screen never needs the page itself to scroll for this - only its own
+// conversation does (.ai-scroll) - so while a field is focused, hold the page at
+// the top and let nothing move it: html.kb-open (styles.css) disables page
+// scrolling outright, and this listener corrects any scroll that sneaks in
+// before/around that straight back to zero, every time, until focus is lost.
 let kbHideAt = 0;
+let kbPollTimer = 0;
 const holdScrollAtTop = () => {
   if (document.documentElement.classList.contains('kb-open') && (window.scrollX !== 0 || window.scrollY !== 0)) window.scrollTo(0, 0);
 };
@@ -190,6 +199,14 @@ document.addEventListener(
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
     document.documentElement.classList.add('kb-open');
+    // Belt and braces for --kb (see setKbOffset above): on a second focus right
+    // after the keyboard just closed, iOS sometimes never re-fires visualViewport's
+    // resize/scroll events for the reopen, leaving --kb stuck at its old (closed,
+    // ~0) value. Poll directly for as long as the keyboard could still be
+    // animating, so a missed event doesn't leave the footer stranded.
+    clearInterval(kbPollTimer);
+    kbPollTimer = window.setInterval(setKbOffset, 80);
+    setTimeout(() => clearInterval(kbPollTimer), 900);
   },
   { capture: true },
 );
@@ -200,6 +217,7 @@ document.addEventListener(
     // focus can hop straight from one field to another (e.g. Tab) - give that a beat
     // before deciding the keyboard is actually closing, instead of flashing the nav.
     const at = (kbHideAt = Date.now());
+    clearInterval(kbPollTimer);
     setTimeout(() => {
       if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
     }, 100);

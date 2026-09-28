@@ -988,18 +988,24 @@ html.kb-open .main {
   overflow: hidden;
 }
 /* The voice button and composer stay put at the bottom of .ai-screen, with the
-   conversation scrolling above them, whether or not the keyboard is open - sticky
-   needs no keyboard-specific height or scroll tricks at all now that the layout
-   viewport (and so .ai-screen's own height) genuinely shrinks for the
-   keyboard (interactive-widget=resizes-content, index.html): the browser leaves
-   exactly enough room above the keyboard for this row to land in, in sync with its
-   own open/close animation, the same way it already does for any native app. */
+   conversation scrolling above them. Where interactive-widget=resizes-content
+   (index.html) is honoured, the layout viewport (and so .ai-screen's own height)
+   genuinely shrinks for the keyboard and sticky alone is already enough - the
+   translateY below computes to 0 there and does nothing. Where it's ignored (seen
+   on device: happens with Gboard) .ai-screen stays full height and this sticky
+   footer's true bottom:0 sits behind the keyboard - --kb (main.tsx, measured
+   straight from the innerHeight/visualViewport gap) rides it back above by
+   exactly that much. A transform, never a height, so it can't re-open the
+   layout-timing race a JS-driven height once had. */
 .ai-footer {
   position: sticky;
   bottom: 0;
   background: var(--bg);
   padding-top: 8px;
   margin-top: -8px;
+  transform: translateY(calc(-1 * var(--kb, 0px)));
+  transition: transform 100ms linear;
+  will-change: transform;
 }
 .ai-scroll {
   flex: 1;
@@ -1007,6 +1013,10 @@ html.kb-open .main {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* only ever non-zero on a device that ignores interactive-widget (see .ai-footer
+     above) - reserves exactly the room the footer's own lift opens up beneath the
+     conversation, so its last lines stay reachable instead of scrolling into a gap. */
+  padding-bottom: var(--kb, 0px);
 }
 .ai-head {
   display: flex;
