@@ -253,23 +253,21 @@ document.addEventListener(
     clearInterval(kbPollTimer);
     kbPollTimer = window.setInterval(setAppHeight, 80);
     setTimeout(() => clearInterval(kbPollTimer), 900);
-    // Instant (not 'smooth') so it never runs its own animation against the
-    // keyboard's, and exactly one pass, once the keyboard has settled: a call made
-    // earlier, mid-slide, is measured against a viewport that's still changing and
-    // lands the field far too high (a big gap under it), then visibly drops back -
-    // that drop was the "tick". Too early (<~100ms) and the keyboard hasn't made
-    // room yet, so the field doesn't move at all and the lock freezes it under it.
-    const viewportTracks = () => document.documentElement.classList.contains('kb-vv');
-    setTimeout(() => {
-      // the viewport reports the keyboard: the footer is already riding it via --kb
-      // (see .kb-vv in styles.css) and the page must stay put - no scroll at all
-      if (viewportTracks()) window.scrollTo(0, 0);
-      else el.scrollIntoView({ block: 'end', behavior: 'auto' });
-    }, 320);
-    clearTimeout(scrollLockTimer);
-    scrollLockTimer = window.setTimeout(() => {
-      scrollLockY = viewportTracks() ? 0 : window.scrollY;
-    }, 700);
+    // Once this device has proven (via .kb-vv) that the footer can ride the keyboard
+    // by itself (see .ai-footer's transform in styles.css), the page must never be
+    // touched at all - it doesn't scroll, so there's nothing to correct. Forcing a
+    // scrollTo(0,0) here regardless, as a "just in case", was its own bug: it landed
+    // as a second, separate snap a beat after the smooth transform-driven rise had
+    // already finished, which read as the bar opening twice. Only the *first* time
+    // this device is seen (before .kb-vv is proven true) does the old scroll-based
+    // approach still apply, and that's the one place scrollIntoView still runs.
+    if (!document.documentElement.classList.contains('kb-vv')) {
+      setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 320);
+      clearTimeout(scrollLockTimer);
+      scrollLockTimer = window.setTimeout(() => {
+        scrollLockY = window.scrollY;
+      }, 700);
+    }
   },
   { capture: true },
 );
@@ -283,17 +281,19 @@ document.addEventListener(
     clearTimeout(scrollLockTimer);
     clearInterval(kbPollTimer);
     scrollLockY = null;
+    const usesViewport = document.documentElement.classList.contains('kb-vv');
     // when the footer rides the viewport, keep it riding until the keyboard has
     // actually finished sliding down (~300ms) - dropping it back into the page
     // layout mid-slide would make it jump ahead of the keyboard
-    const wait = document.documentElement.classList.contains('kb-vv') ? 380 : 100;
+    const wait = usesViewport ? 380 : 100;
     setTimeout(() => {
       if (kbHideAt !== at) return;
       document.documentElement.classList.remove('kb-open');
-      // the keyboard is gone and the extra scroll room with it - put the page back
-      // exactly where it rests without a keyboard, so the bar returns to its spot
-      // above the nav instead of wherever the closing keyboard happened to leave it
-      window.scrollTo(0, 0);
+      // the page never scrolled in the first place in this mode (see focusin above),
+      // so there's nothing to put back - doing it anyway landed as a second, distinct
+      // snap right after the transform-driven fall had already finished, which read
+      // as the bar closing twice.
+      if (!usesViewport) window.scrollTo(0, 0);
     }, wait);
   },
   { capture: true },
