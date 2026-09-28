@@ -146,6 +146,7 @@ const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el
 // standard chat behaviour; otherwise the only way out is the keyboard's own "done"
 // key. Only the field's own container (the composer with its send button) is exempt,
 // so tapping "send" or a suggestion never yanks the keyboard away mid-action.
+let dismissedAt = 0;
 document.addEventListener(
   'pointerdown',
   (e) => {
@@ -154,10 +155,29 @@ document.addEventListener(
     const t = e.target;
     if (!(t instanceof Element)) return;
     if (isTextField(t) || t.closest('.composer, .field, label')) return;
+    dismissedAt = Date.now();
     (active as HTMLElement).blur();
   },
   { capture: true },
 );
+// The same tap that dismissed the keyboard must not re-open it. Blurring collapses
+// the keyboard and the layout snaps back under the still-descending finger - so the
+// synthetic mousedown/click iOS fires *after* touchend lands on whatever is now at
+// that spot, and if that's the composer (which just moved up into place), it takes
+// focus again and the keyboard pops straight back. Swallow those follow-up events for
+// a moment after a dismiss when they'd land on a text field.
+for (const type of ['mousedown', 'click'] as const)
+  document.addEventListener(
+    type,
+    (e) => {
+      if (Date.now() - dismissedAt > 500) return;
+      const t = e.target;
+      if (!(t instanceof Element) || !(isTextField(t) || t.closest('.composer'))) return;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    { capture: true },
+  );
 document.addEventListener(
   'focusin',
   (e) => {
