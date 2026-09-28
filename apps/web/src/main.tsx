@@ -101,14 +101,15 @@ window.addEventListener('resize', setAppHeight);
 // content look like it vanished. Focus/blur on the field itself is the one signal
 // that's always reliable, so use that to hide the (otherwise-misplaced) nav.
 //
-// Placing the field itself above the keyboard is a different story: on this device
-// nothing we can measure from JS - not visualViewport, not scrollIntoView's own idea
-// of "the viewport", not even getBoundingClientRect() on a position:fixed probe - ends
-// up agreeing with where the keyboard actually is, because every one of them is
-// derived from the same unshrunk layout viewport under the hood. Every custom scroll
-// calculation we tried either overshot or undershot. Safari's own default "scroll the
-// focused field into view" behaviour, left alone with no JS fighting it, placed the
-// field correctly in the very first test before any of this - so don't override it.
+// Placing the field itself above the keyboard used to be a different story: every
+// custom scroll calculation we tried (visualViewport-based, scrollIntoView, even
+// getBoundingClientRect() on a position:fixed probe) overshot or undershot, because on
+// this device none of them agree with where the keyboard actually is. But the deeper
+// problem, found afterwards, was that the page had nowhere TO scroll at all - .ai-screen
+// was capped to exactly one screen's height with overflow hidden, so there was no slack
+// for any scroll (ours or Safari's own) to move into. Now that .kb-open gives it real
+// room (see .ai-screen in styles.css), retry the simple, native way: ask the browser to
+// scroll the field into view itself, after a beat for the keyboard's open animation.
 let kbHideAt = 0;
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 document.addEventListener(
@@ -117,6 +118,8 @@ document.addEventListener(
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
     document.documentElement.classList.add('kb-open');
+    const el = e.target as HTMLElement;
+    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
   },
   { capture: true },
 );
