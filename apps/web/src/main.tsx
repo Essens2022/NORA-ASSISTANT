@@ -157,6 +157,14 @@ const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el
 // so tapping "send" or a suggestion never yanks the keyboard away mid-action.
 let dismissedAt = 0;
 let dismissTarget: Element | null = null;
+// Only the AI Home composer floats independently above the keyboard (see .ai-footer
+// in styles.css) while the conversation/briefing behind it stay in their normal,
+// undisturbed layout - so "tap outside to dismiss" there routinely lands on real
+// content (a task card) that was never the point of the tap. Everywhere else (a
+// dialog's own field, e.g. the reschedule sheet's "Ora"), the field and the buttons
+// around it move together normally, so a tap that reaches a *button* is a deliberate
+// press on it (e.g. "Salvează") and must go through even though it also dismisses.
+let strictDismiss = false;
 document.addEventListener(
   'pointerdown',
   (e) => {
@@ -171,18 +179,22 @@ document.addEventListener(
     if (isTextField(t) || t.closest('.composer, .field, label')) return;
     dismissedAt = Date.now();
     dismissTarget = t;
+    strictDismiss = !!(active as HTMLElement).closest('.ai-footer');
     (active as HTMLElement).blur();
   },
   { capture: true },
 );
 // The tap that dismisses the keyboard must not also hit something it never aimed
-// at. Blurring collapses the keyboard and the layout snaps back under the
-// still-descending finger - so the synthetic mousedown/click iOS fires *after*
-// touchend lands on whatever is now at that spot: the composer (re-opening the
-// keyboard), or the briefing's task card (opening its detail sheet - seen on video).
-// Swallow the follow-up events only when they land on a *different* element than
-// the one the finger actually touched - a deliberate tap on a button (e.g. "Save"
-// in a form with the keyboard up) still goes through, like in any native app.
+// at. Blurring collapses the keyboard and the layout can shift under the
+// still-descending finger, so the synthetic mousedown/click iOS fires *after*
+// touchend lands on whatever is now at that spot - the composer (re-opening the
+// keyboard), or (on the AI Home screen specifically) the briefing's task card,
+// opening its detail sheet the instant you were just trying to put the keyboard
+// away (seen on video). There: swallow the follow-up outright, the same way a
+// dismiss tap works in any native app. Elsewhere: only swallow it when it would
+// land somewhere *other* than what the finger actually touched, so a deliberate
+// press on a real button (e.g. "Salvează" right after typing in the field next to
+// it) still goes through.
 for (const type of ['mousedown', 'click'] as const)
   document.addEventListener(
     type,
@@ -191,7 +203,7 @@ for (const type of ['mousedown', 'click'] as const)
       // click only fires after it lifts - any *new* pointerdown resets this anyway
       if (Date.now() - dismissedAt > 1500 || !dismissTarget) return;
       const t = e.target;
-      if (t instanceof Node && dismissTarget.contains(t)) return;
+      if (!strictDismiss && t instanceof Node && dismissTarget.contains(t)) return;
       e.preventDefault();
       e.stopPropagation();
     },
