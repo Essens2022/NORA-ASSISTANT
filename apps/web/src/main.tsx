@@ -147,32 +147,40 @@ const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el
 // key. Only the field's own container (the composer with its send button) is exempt,
 // so tapping "send" or a suggestion never yanks the keyboard away mid-action.
 let dismissedAt = 0;
+let dismissTarget: Element | null = null;
 document.addEventListener(
   'pointerdown',
   (e) => {
+    // a new finger-down is a new, deliberate tap: whatever guard the previous
+    // dismiss set up is over (it only ever targets that gesture's own phantom click)
+    dismissedAt = 0;
+    dismissTarget = null;
     const active = document.activeElement;
     if (!isTextField(active)) return;
     const t = e.target;
     if (!(t instanceof Element)) return;
     if (isTextField(t) || t.closest('.composer, .field, label')) return;
     dismissedAt = Date.now();
+    dismissTarget = t;
     (active as HTMLElement).blur();
   },
   { capture: true },
 );
-// The same tap that dismissed the keyboard must not re-open it. Blurring collapses
-// the keyboard and the layout snaps back under the still-descending finger - so the
-// synthetic mousedown/click iOS fires *after* touchend lands on whatever is now at
-// that spot, and if that's the composer (which just moved up into place), it takes
-// focus again and the keyboard pops straight back. Swallow those follow-up events for
-// a moment after a dismiss when they'd land on a text field.
+// The tap that dismisses the keyboard must not also hit something it never aimed
+// at. Blurring collapses the keyboard and the layout snaps back under the
+// still-descending finger - so the synthetic mousedown/click iOS fires *after*
+// touchend lands on whatever is now at that spot: the composer (re-opening the
+// keyboard), or the briefing's task card (opening its detail sheet - seen on video).
+// Swallow the follow-up events only when they land on a *different* element than
+// the one the finger actually touched - a deliberate tap on a button (e.g. "Save"
+// in a form with the keyboard up) still goes through, like in any native app.
 for (const type of ['mousedown', 'click'] as const)
   document.addEventListener(
     type,
     (e) => {
-      if (Date.now() - dismissedAt > 500) return;
+      if (Date.now() - dismissedAt > 500 || !dismissTarget) return;
       const t = e.target;
-      if (!(t instanceof Element) || !(isTextField(t) || t.closest('.composer'))) return;
+      if (t instanceof Node && dismissTarget.contains(t)) return;
       e.preventDefault();
       e.stopPropagation();
     },
@@ -193,9 +201,10 @@ document.addEventListener(
     // spot, under the keyboard); a single late call visibly catches up a beat after.
     // Re-aligning several times while it opens tracks the keyboard instead, and each
     // call is idempotent once the field is already at the bottom edge.
-    // two passes, not four: each pass is a visible step, so fewer of them reads
-    // smoother - one mid-slide, one once the keyboard has fully settled
-    for (const ms of [150, 380]) setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), ms);
+    // one pass, once the keyboard has settled: a mid-slide pass measured against a
+    // viewport that's still changing lands the field far too high (a big gap under
+    // it) and then visibly drops back - that drop *was* the "tick".
+    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 320);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
       scrollLockY = window.scrollY;
