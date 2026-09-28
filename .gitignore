@@ -7,3 +7,17 @@ dist
 supabase/.temp
 supabase/.branches
 apps/web/e2e-shots
+
+# Android (TWA): regenerated fresh by android/generate-project.mjs on every CI run
+# from twa-manifest.json - never hand-edited, so never committed. The signing
+# keystore is a secret (GitHub Actions secret ANDROID_KEYSTORE_BASE64), never here.
+android/android.keystore
+android/app
+android/build.gradle
+android/gradle
+android/gradle.properties
+android/gradlew
+android/gradlew.bat
+android/settings.gradle
+android/*.apk
+android/*.aab

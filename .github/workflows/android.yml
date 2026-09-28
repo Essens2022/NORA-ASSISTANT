@@ -1,0 +1,71 @@
+name: Build Android (TWA)
+# Wraps the live PWA (norakeep.com) in a Trusted Web Activity shell for Google Play.
+# `bubblewrap init` always prompts interactively (no flag skips it - confirmed by
+# reading its source) so this uses @bubblewrap/core directly to scaffold the project
+# from android/twa-manifest.json, then `bubblewrap build` (which IS documented to run
+# non-interactively via env vars) compiles and signs it.
+on:
+  push:
+    branches: [main]
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: android/package-lock.json
+
+      - uses: actions/setup-java@v4
+        id: java
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        id: android-sdk
+
+      - name: Install extra SDK components bubblewrap needs
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+
+      - name: Restore the signing keystore from secrets
+        working-directory: android
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
+
+      - name: Point bubblewrap at the JDK/SDK it already has, no prompts
+        run: |
+          mkdir -p "$HOME/.bubblewrap"
+          cat > "$HOME/.bubblewrap/config.json" <<EOF
+          {"jdkPath": "${{ steps.java.outputs.path }}", "androidSdkPath": "${{ steps.android-sdk.outputs.android-sdk-root || env.ANDROID_HOME }}"}
+          EOF
+
+      - working-directory: android
+        run: npm ci
+
+      - name: Generate the Android project from twa-manifest.json
+        working-directory: android
+        run: node generate-project.mjs
+
+      - name: Build & sign the APK and AAB
+        working-directory: android
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: npx bubblewrap build --skipPwaValidation --manifest=./twa-manifest.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nora-android
+          path: |
+            android/app-release-signed.apk
+            android/app-release-bundle.aab
+          if-no-files-found: error
+          retention-days: 30
