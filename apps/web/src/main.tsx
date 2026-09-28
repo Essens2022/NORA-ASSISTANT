@@ -134,7 +134,11 @@ document.addEventListener(
     scrollLockY = null; // free to move while the field is still being positioned
     document.documentElement.classList.add('kb-open');
     const el = e.target as HTMLElement;
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
+    // instant, not 'smooth': animating this at the same time as the keyboard's own
+    // slide-up animation is what made the field's rise look janky/stuttery - two
+    // independent animations fighting for the same 300ms. Snapping it into place
+    // immediately lets the keyboard's animation be the only one the eye tracks.
+    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 350);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
       scrollLockY = window.scrollY;
