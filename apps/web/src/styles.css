@@ -268,22 +268,6 @@ h3 {
   line-height: 20px;
   padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
 }
-.build-badge {
-  position: fixed;
-  left: 6px;
-  bottom: calc(env(safe-area-inset-bottom) + 2px);
-  z-index: 90;
-  font-size: 9px;
-  line-height: 1;
-  color: var(--text-2);
-  opacity: 0.35;
-  pointer-events: none;
-  font-family: monospace;
-}
-html.kb-open .build-badge {
-  display: none;
-}
-
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex;

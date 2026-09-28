@@ -67,13 +67,6 @@ export function App() {
       <TaskDetailHost />
       <ReminderAlert />
       <Toasts />
-      {/* Temporary but harmless: lets us tell at a glance whether a device is running
-          this deploy or a stale cached one (a real, recurring source of confusion on
-          iOS standalone PWAs, which can silently keep running old code for a long
-          time) - "0.1.0" alone never changes so it can't answer that question. */}
-      <div class="build-badge" aria-hidden="true">
-        {__BUILD_ID__}
-      </div>
     </div>
   );
 }
