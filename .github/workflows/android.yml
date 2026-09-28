@@ -34,6 +34,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # dist/ is gitignored and only used as Capacitor's fallback asset dir
+      # (the app actually loads the live site via capacitor.config.ts's
+      # server.url), but `cap sync` still expects it to exist.
+      - name: Build the web app (fallback assets only - app loads norakeep.com live)
+        working-directory: apps/web
+        run: npm run build
+
+      # capacitor-cordova-android-plugins/ and other generated config are
+      # gitignored (Capacitor's own convention - regenerated, not committed),
+      # so this has to run before Gradle can resolve the project.
+      - name: Sync Capacitor (regenerates plugin project + config)
+        working-directory: apps/web
+        run: npx cap sync android
+
       - name: Restore the signing keystore from secrets
         working-directory: apps/web/android
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
