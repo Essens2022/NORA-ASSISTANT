@@ -784,6 +784,17 @@ textarea.input {
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
 }
+/* Safari still tries to "scroll the focused field into view" on its own the moment
+   it's focused, same as always - and with the footer sitting sticky rather than in
+   plain flow, that scroll routinely overshoots and drags the whole page (header
+   included) up past the top of the screen, a known WebKit quirk with sticky
+   elements. Nothing on the AI Home screen actually needs the *page* to scroll for
+   this - only the conversation does, in its own contained .ai-scroll - so disable
+   page scrolling outright while a field has focus; main.tsx's own scroll listener
+   is a second backstop for the instant right around focus, before this take hold. */
+html.kb-open {
+  overflow: hidden;
+}
 /* Hidden while typing, just to give the conversation more room - the viewport meta
    tag (interactive-widget=resizes-content, index.html) makes iOS/Android actually
    shrink the layout viewport for the keyboard now, so this fixed bar rides up with

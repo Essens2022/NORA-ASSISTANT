@@ -109,12 +109,27 @@ window.addEventListener('resize', setAppHeight);
 // Placing the field itself above the keyboard used to take a pile of custom scroll
 // tricks (visualViewport-based, scrollIntoView, position:fixed probes) that all
 // overshot or undershot, because none of them agreed with where the keyboard
-// actually was on a given device. None of that is needed any more: the viewport
-// meta tag (interactive-widget=resizes-content, index.html) makes the browser
-// itself shrink the page for the keyboard, so the sticky footer (.ai-footer in
-// styles.css) is simply always at the bottom of the now-shorter screen - nothing
-// to scroll, lock, or fight a rubber-band on.
+// actually was on a given device. Most of that is gone now: the viewport meta tag
+// (interactive-widget=resizes-content, index.html) makes the browser itself shrink
+// the page for the keyboard, so the sticky footer (.ai-footer in styles.css) is
+// simply always at the bottom of the now-shorter screen.
+//
+// One thing that shrink doesn't fix by itself: Safari still tries to "scroll the
+// focused field into view" the moment it's focused, exactly like it always did -
+// and with a sticky-positioned footer that scroll routinely overshoots (a known
+// WebKit quirk with sticky elements), dragging the *whole page*, header and all,
+// up past the top of the screen (seen on device: everything gone, just empty
+// background above the keyboard). The AI Home screen never needs the page itself
+// to scroll for this - only its own conversation does (.ai-scroll) - so while a
+// field is focused, hold the page at the top and let nothing move it: html.kb-open
+// below disables page scrolling outright, and this listener corrects any scroll
+// that sneaks in before/around that (e.g. the moment focus itself fires) straight
+// back to zero, every time, until the field loses focus.
 let kbHideAt = 0;
+const holdScrollAtTop = () => {
+  if (document.documentElement.classList.contains('kb-open') && (window.scrollX !== 0 || window.scrollY !== 0)) window.scrollTo(0, 0);
+};
+window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 // Tapping anywhere outside the field you're typing in dismisses the keyboard - the
