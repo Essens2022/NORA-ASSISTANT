@@ -307,6 +307,8 @@ export const ro: Record<MessageKey, string> = {
   'prof.memory_delete_all_confirm': 'Ștergi tot ce ține minte NORA despre preferințele tale?',
   'prof.personalization': 'Învață preferințele mele',
   'prof.privacy': 'Confidențialitate și date',
+  'prof.privacy_policy': 'Politica de confidențialitate',
+  'prof.terms': 'Termeni și condiții',
   'prof.export': 'Descarcă datele mele',
   'prof.delete_account': 'Șterge contul',
   'prof.delete_account_body': 'Se șterg definitiv contul, task-urile, reminderele și memoria. Nu se poate anula.',

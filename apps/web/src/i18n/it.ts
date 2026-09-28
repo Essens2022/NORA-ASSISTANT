@@ -307,6 +307,8 @@ export const it: Record<MessageKey, string> = {
   'prof.memory_delete_all_confirm': 'Eliminare tutto ciò che NORA ricorda delle tue preferenze?',
   'prof.personalization': 'Impara le mie preferenze',
   'prof.privacy': 'Privacy e dati',
+  'prof.privacy_policy': 'Informativa sulla privacy',
+  'prof.terms': 'Termini di servizio',
   'prof.export': 'Scarica i miei dati',
   'prof.delete_account': 'Elimina account',
   'prof.delete_account_body': 'Elimina definitivamente account, attività, promemoria e memoria. Non si può annullare.',

@@ -305,6 +305,8 @@ export const en = {
   'prof.memory_delete_all_confirm': 'Delete everything NORA remembers about your preferences?',
   'prof.personalization': 'Learn my preferences',
   'prof.privacy': 'Privacy & data',
+  'prof.privacy_policy': 'Privacy Policy',
+  'prof.terms': 'Terms of Service',
   'prof.export': 'Download my data',
   'prof.delete_account': 'Delete account',
   'prof.delete_account_body': 'This permanently deletes your account, tasks, reminders and memory. It cannot be undone.',

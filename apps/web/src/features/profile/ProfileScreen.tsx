@@ -1,5 +1,6 @@
 import { LANGS, type Lang, type Preferences, type SoundLevel } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { brand } from '../../config/brand.ts';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Confirm, Input, Section, Segmented, Select, Toggle } from '../../components/ui.tsx';
 import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr, trIn } from '../../i18n/index.ts';
@@ -357,6 +358,18 @@ function PrivacyControls() {
   const [busy, setBusy] = useState(false);
   return (
     <>
+      <a class="row" href={brand.urls.privacy} target="_blank" rel="noopener">
+        <span class="row-text">
+          <span class="row-label">{tr('prof.privacy_policy')}</span>
+        </span>
+        <Icon name="chevron" size={18} class="chev" />
+      </a>
+      <a class="row" href={brand.urls.terms} target="_blank" rel="noopener">
+        <span class="row-text">
+          <span class="row-label">{tr('prof.terms')}</span>
+        </span>
+        <Icon name="chevron" size={18} class="chev" />
+      </a>
       <Button
         icon="list"
         busy={busy}

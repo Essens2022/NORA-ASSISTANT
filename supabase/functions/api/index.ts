@@ -467,7 +467,7 @@ async function deleteAccount(ctx: Ctx) {
   return { ok: true };
 }
 
-const METRIC_NAMES = new Set(['app_open', 'tti_ms', 'voice_start', 'voice_roundtrip_ms', 'onboarding_done', 'notification_opened', 'client_error']);
+const METRIC_NAMES = new Set(['app_open', 'tti_ms', 'voice_start', 'voice_roundtrip_ms', 'onboarding_done', 'notification_opened', 'client_error', 'push_enable_result']);
 async function metric(ctx: Ctx) {
   const body = await readJson<{ name?: string; value?: number; props?: Record<string, unknown> }>(ctx.req);
   if (!body.name || !METRIC_NAMES.has(body.name)) throw new HttpError(400, 'invalid_metric');

@@ -307,6 +307,8 @@ export const ru: Record<MessageKey, string> = {
   'prof.memory_delete_all_confirm': 'Удалить всё, что NORA помнит о твоих предпочтениях?',
   'prof.personalization': 'Запоминать мои предпочтения',
   'prof.privacy': 'Конфиденциальность и данные',
+  'prof.privacy_policy': 'Политика конфиденциальности',
+  'prof.terms': 'Условия использования',
   'prof.export': 'Скачать мои данные',
   'prof.delete_account': 'Удалить аккаунт',
   'prof.delete_account_body': 'Аккаунт, дела, напоминания и память будут удалены навсегда. Это нельзя отменить.',
