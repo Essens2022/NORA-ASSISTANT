@@ -93,7 +93,16 @@ const setAppHeight = () => {
   const vv = window.visualViewport;
   const root = document.documentElement;
   root.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
-  const kb = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+  // vv.offsetTop used to be subtracted here too, to account for the page itself
+  // being scrolled - but this mode never lets the page scroll (see the pointerdown
+  // guards below), so offsetTop should stay 0 anyway, and during the keyboard's own
+  // close animation it briefly reported nonsense that made this formula spike well
+  // past any real keyboard height - translating the composer clean off the top of
+  // the screen for the better part of a second (seen on video: it just vanished).
+  // Dropping the term removes that source of noise; the 400px ceiling is a second,
+  // unconditional backstop against any future spike, however it's caused - no iPhone
+  // keyboard is taller than that, so nothing legitimate is ever clamped.
+  const kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
   root.style.setProperty('--kb', `${kb}px`);
   root.classList.toggle('kb-vv', kb > 80);
 };
