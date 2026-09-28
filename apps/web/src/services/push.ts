@@ -37,6 +37,32 @@ function setPushOptedOut(off: boolean) {
 
 let registration: Promise<ServiceWorkerRegistration | null> | null = null;
 
+// The service-worker update above only kicks in when sw.js itself changes - which it
+// almost never does, so an installed app brought back from the background keeps
+// running the JS it loaded days ago even though every deploy since shipped new,
+// differently-hashed bundles. Ask the server for the current index.html on every
+// resume and compare its main bundle with the one actually running; on a mismatch,
+// reload (unless the person is mid-typing - then the next resume gets it).
+let checkingBuild = false;
+async function reloadIfNewBuild() {
+  if (checkingBuild || import.meta.env.DEV) return;
+  checkingBuild = true;
+  try {
+    const running = document.querySelector<HTMLScriptElement>('script[type="module"][src*="/assets/index-"]')?.src;
+    if (!running) return;
+    const html = await (await fetch(`${import.meta.env.BASE_URL}index.html`, { cache: 'no-store' })).text();
+    const latest = html.match(/assets\/index-[^"']+\.js/)?.[0];
+    if (!latest || running.endsWith(latest)) return;
+    const el = document.activeElement;
+    if (el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+    location.reload();
+  } catch {
+    /* offline or blocked: nothing to do, the next resume tries again */
+  } finally {
+    checkingBuild = false;
+  }
+}
+
 export function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator) || import.meta.env.DEV) return Promise.resolve(null);
   if (!registration) {
@@ -55,7 +81,9 @@ export function registerServiceWorker(): Promise<ServiceWorkerRegistration | nul
       .register(`${import.meta.env.BASE_URL}sw.js?api=${encodeURIComponent(config.apiUrl)}&key=${encodeURIComponent(config.supabaseAnonKey)}`, { scope: import.meta.env.BASE_URL })
       .catch(() => null);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) void registration?.then((r) => r?.update());
+      if (document.hidden) return;
+      void registration?.then((r) => r?.update());
+      void reloadIfNewBuild();
     });
   }
   return registration;

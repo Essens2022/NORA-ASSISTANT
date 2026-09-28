@@ -178,7 +178,9 @@ for (const type of ['mousedown', 'click'] as const)
   document.addEventListener(
     type,
     (e) => {
-      if (Date.now() - dismissedAt > 500 || !dismissTarget) return;
+      // generous window: a slower press keeps the finger down longer, and the phantom
+      // click only fires after it lifts - any *new* pointerdown resets this anyway
+      if (Date.now() - dismissedAt > 1500 || !dismissTarget) return;
       const t = e.target;
       if (t instanceof Node && dismissTarget.contains(t)) return;
       e.preventDefault();
@@ -195,15 +197,11 @@ document.addEventListener(
     document.documentElement.classList.add('kb-open');
     const el = e.target as HTMLElement;
     // Instant (not 'smooth') so it never runs its own animation against the
-    // keyboard's - and repeated across the keyboard's ~300ms slide-up rather than
-    // fired once: a single early call runs before the keyboard has made room (the
-    // field then simply doesn't move, and the lock below freezes it in that wrong
-    // spot, under the keyboard); a single late call visibly catches up a beat after.
-    // Re-aligning several times while it opens tracks the keyboard instead, and each
-    // call is idempotent once the field is already at the bottom edge.
-    // one pass, once the keyboard has settled: a mid-slide pass measured against a
-    // viewport that's still changing lands the field far too high (a big gap under
-    // it) and then visibly drops back - that drop *was* the "tick".
+    // keyboard's, and exactly one pass, once the keyboard has settled: a call made
+    // earlier, mid-slide, is measured against a viewport that's still changing and
+    // lands the field far too high (a big gap under it), then visibly drops back -
+    // that drop was the "tick". Too early (<~100ms) and the keyboard hasn't made
+    // room yet, so the field doesn't move at all and the lock freezes it under it.
     setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 320);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
