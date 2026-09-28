@@ -993,14 +993,20 @@ html.kb-open .main {
   padding-bottom: 16px;
   overflow: hidden;
 }
-/* overflow:hidden means anything that doesn't fit is gone for good - no scroll can
-   ever recover it. That's fine at rest (the voice button/composer are sized to always
-   fit), but with the keyboard up there may genuinely not be room for the briefing,
-   voice button and composer all at once, and the voice button/composer are exactly
-   what must stay reachable. Let the whole screen scroll as one unit in that case,
-   instead of silently clipping them out of existence. */
+/* overflow:hidden + a fixed height mean anything that doesn't fit is gone for good -
+   no scroll can recover it, and worse, with no extra page height there's nowhere TO
+   scroll even if something could. On iOS the keyboard covers part of the screen like a
+   physical overlay, outside the DOM entirely; the only way anything below it becomes
+   reachable is if the page is taller than one screen, giving the browser's own
+   "scroll the focused field into view" real room to work with. So once the keyboard is
+   up: stop capping the height (let it grow to fit its content), stop clipping
+   (overflow visible), and pad the bottom generously - more than any real keyboard - so
+   there's always slack to scroll the voice button/composer up into view. */
 html.kb-open .ai-screen {
-  overflow-y: auto;
+  height: auto;
+  min-height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
+  overflow: visible;
+  padding-bottom: 45vh;
 }
 .ai-scroll {
   flex: 1;
