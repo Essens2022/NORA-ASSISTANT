@@ -124,6 +124,22 @@ const enforceScrollLock = () => {
   if (scrollLockY !== null && (window.scrollX !== 0 || window.scrollY !== scrollLockY)) window.scrollTo(0, scrollLockY);
 };
 window.addEventListener('scroll', enforceScrollLock, { passive: true });
+// The scrollTo-based lock above only *corrects* the position after the fact - on a
+// real touch drag, the finger's own movement scrolls the page immediately and
+// synchronously, so by the time our correction runs, it's already visibly moved and
+// snapped back: the "rubber band" feel. Stop the drag from ever starting instead:
+// while a field has focus, block touch-scrolling everywhere except inside a container
+// that's actually meant to scroll (the conversation, a sheet) - there's nothing
+// elastic about a bar that simply never receives the touch that would move it.
+document.addEventListener(
+  'touchmove',
+  (e) => {
+    if (!document.documentElement.classList.contains('kb-open')) return;
+    if (e.target instanceof Element && e.target.closest('.ai-scroll, .sheet')) return;
+    e.preventDefault();
+  },
+  { passive: false },
+);
 
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 document.addEventListener(
@@ -136,9 +152,10 @@ document.addEventListener(
     const el = e.target as HTMLElement;
     // instant, not 'smooth': animating this at the same time as the keyboard's own
     // slide-up animation is what made the field's rise look janky/stuttery - two
-    // independent animations fighting for the same 300ms. Snapping it into place
-    // immediately lets the keyboard's animation be the only one the eye tracks.
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 350);
+    // independent animations fighting for the same ~250-300ms. Snapping it into
+    // place near the start of that window (not after it) is what makes it read as
+    // "arriving with" the keyboard instead of visibly catching up a beat later.
+    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 60);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
       scrollLockY = window.scrollY;
