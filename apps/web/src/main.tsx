@@ -84,9 +84,18 @@ window.addEventListener('offline', () => setState({ online: false }));
 // cycle, tall enough that the whole page scrolls as one block (briefing included)
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
+// --kb: how much of the layout viewport the keyboard currently covers, straight from
+// visualViewport - on iOS this updates *during* the keyboard's slide (many samples per
+// opening), which is what lets the composer glide with it instead of jumping. `kb-vv`
+// marks that the device actually reports it; when it doesn't (some standalone-PWA
+// builds never do), the focus-driven fallback below takes over instead.
 const setAppHeight = () => {
   const vv = window.visualViewport;
-  document.documentElement.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
+  const root = document.documentElement;
+  root.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
+  const kb = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+  root.style.setProperty('--kb', `${kb}px`);
+  root.classList.toggle('kb-vv', kb > 80);
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);
@@ -202,10 +211,16 @@ document.addEventListener(
     // lands the field far too high (a big gap under it), then visibly drops back -
     // that drop was the "tick". Too early (<~100ms) and the keyboard hasn't made
     // room yet, so the field doesn't move at all and the lock freezes it under it.
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 320);
+    const viewportTracks = () => document.documentElement.classList.contains('kb-vv');
+    setTimeout(() => {
+      // the viewport reports the keyboard: the footer is already riding it via --kb
+      // (see .kb-vv in styles.css) and the page must stay put - no scroll at all
+      if (viewportTracks()) window.scrollTo(0, 0);
+      else el.scrollIntoView({ block: 'end', behavior: 'auto' });
+    }, 320);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
-      scrollLockY = window.scrollY;
+      scrollLockY = viewportTracks() ? 0 : window.scrollY;
     }, 700);
   },
   { capture: true },
@@ -219,6 +234,10 @@ document.addEventListener(
     const at = (kbHideAt = Date.now());
     clearTimeout(scrollLockTimer);
     scrollLockY = null;
+    // when the footer rides the viewport, keep it riding until the keyboard has
+    // actually finished sliding down (~300ms) - dropping it back into the page
+    // layout mid-slide would make it jump ahead of the keyboard
+    const wait = document.documentElement.classList.contains('kb-vv') ? 380 : 100;
     setTimeout(() => {
       if (kbHideAt !== at) return;
       document.documentElement.classList.remove('kb-open');
@@ -226,7 +245,7 @@ document.addEventListener(
       // exactly where it rests without a keyboard, so the bar returns to its spot
       // above the nav instead of wherever the closing keyboard happened to leave it
       window.scrollTo(0, 0);
-    }, 100);
+    }, wait);
   },
   { capture: true },
 );

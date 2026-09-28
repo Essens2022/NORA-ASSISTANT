@@ -1009,6 +1009,32 @@ html.kb-open .ai-footer {
   padding-top: 8px;
   margin-top: -8px;
 }
+/* When the device reports the keyboard through visualViewport (.kb-vv, see main.tsx),
+   the footer doesn't need the page to scroll at all: it's pinned to the bottom of
+   the layout viewport and translated up by exactly the keyboard's current height,
+   sampled continuously while the keyboard slides - so it rides the keyboard up and
+   back down, with a short transition smoothing the gaps between samples. The extra
+   260px of page room is dropped (nothing to scroll into = nothing to drag), and the
+   conversation gets bottom padding so its last lines aren't hidden under the footer. */
+html.kb-open.kb-vv .ai-screen {
+  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+html.kb-open.kb-vv .ai-footer {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  z-index: 40;
+  margin: 0;
+  padding: 8px 0 8px;
+  transform: translateY(calc(-1 * var(--kb, 0px)));
+  transition: transform 90ms linear;
+  will-change: transform;
+}
+html.kb-open.kb-vv .ai-scroll {
+  padding-bottom: 150px;
+}
 .ai-scroll {
   flex: 1;
   min-height: 0;
