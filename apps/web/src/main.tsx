@@ -111,15 +111,23 @@ window.addEventListener('resize', setAppHeight);
 // room (see .ai-screen in styles.css), retry the simple, native way: ask the browser to
 // scroll the field into view itself, after a beat for the keyboard's open animation.
 let kbHideAt = 0;
+let kbSettleTimer = 0;
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 document.addEventListener(
   'focusin',
   (e) => {
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
+    document.documentElement.classList.remove('kb-settled');
     document.documentElement.classList.add('kb-open');
     const el = e.target as HTMLElement;
     setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
+    // the extra room below the footer (.ai-screen's padding, see styles.css) only
+    // exists to give that scrollIntoView something to scroll into - once it's done,
+    // drop it: otherwise it's just slack a swipe can drag the footer through, opening
+    // a gap between it and the keyboard that was never really there.
+    clearTimeout(kbSettleTimer);
+    kbSettleTimer = window.setTimeout(() => document.documentElement.classList.add('kb-settled'), 650);
   },
   { capture: true },
 );
@@ -130,8 +138,9 @@ document.addEventListener(
     // focus can hop straight from one field to another (e.g. Tab) - give that a beat
     // before deciding the keyboard is actually closing, instead of flashing the nav.
     const at = (kbHideAt = Date.now());
+    clearTimeout(kbSettleTimer);
     setTimeout(() => {
-      if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
+      if (kbHideAt === at) document.documentElement.classList.remove('kb-open', 'kb-settled');
     }, 100);
   },
   { capture: true },

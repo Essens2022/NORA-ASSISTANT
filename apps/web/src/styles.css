@@ -1010,11 +1010,19 @@ html.kb-open .ai-screen {
   height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom) + 260px);
   overflow: visible;
 }
+/* Once the field has been scrolled into place (see the ~650ms timer in main.tsx),
+   drop that extra 260px entirely instead of just leaving it unused - it's the only
+   thing a swipe could scroll into to drag the (sticky) footer away from the keyboard
+   and open a gap, so once it's done its one job, it shouldn't still be there to grab. */
+html.kb-open.kb-settled .ai-screen {
+  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
+}
 /* the voice button and composer must stay put once scrolled to, not keep drifting
    past with the rest of the (now scrollable) page - sticky pins them to the bottom
    of the screen while the conversation above scrolls underneath, same as they
-   already behave at rest. The 45vh spacer on .ai-screen gives sticky the room below
-   it needs to actually stick, instead of running out of container to stick within. */
+   already behave at rest. The 260px slack on .ai-screen (while settling) gives
+   sticky the room below it needs to actually stick, instead of running out of
+   container to stick within. */
 html.kb-open .ai-footer {
   position: sticky;
   bottom: 0;
