@@ -4,7 +4,7 @@ import type { AssistantReply, Lang, Preferences, Profile, Task } from '@nora/cor
 import { getLang, setFormat, setLang, tr, type MessageKey } from '../i18n/index.ts';
 import { api, ApiError, flushQueue, newRequestId, sendOrQueue, track } from '../services/api.ts';
 import { auth } from '../services/auth.ts';
-import { syncSubscription } from '../services/push.ts';
+import { enablePush, isPushOptedOut, pushStatus, syncSubscription } from '../services/push.ts';
 import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.ts';
 import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
 import { clearMemoryCache, prefetchMemory } from '../features/memory/MemoryScreen.tsx';
@@ -51,6 +51,32 @@ export function initAuth() {
   });
 }
 
+const PUSH_NUDGE_KEY = 'nora.push_nudge_at';
+const PUSH_NUDGE_EVERY_MS = 3 * 24 * 3600_000; // not naggy, but keeps coming back until actually decided
+// Onboarding offers this once; anyone who tapped "later" there (or whose own
+// subscribe attempt quietly failed - see enablePush in services/push.ts) had no
+// other way back to it except finding the toggle in Profile themselves. That
+// meant every person this happened to needed the exact same manual fix walked
+// through by hand (seen for real, more than once) instead of the app just
+// asking again - remind them itself, occasionally, on a normal return visit,
+// until permission is actually decided one way or the other.
+function maybeNudgePush(lang: Lang) {
+  if (pushStatus() !== 'default' || isPushOptedOut()) return;
+  let last = 0;
+  try {
+    last = Number(localStorage.getItem(PUSH_NUDGE_KEY) ?? 0);
+  } catch {
+    /* ignore */
+  }
+  if (Date.now() - last < PUSH_NUDGE_EVERY_MS) return;
+  try {
+    localStorage.setItem(PUSH_NUDGE_KEY, String(Date.now()));
+  } catch {
+    /* ignore */
+  }
+  toast(tr('onb.notif_body'), { label: tr('onb.notif_enable'), run: () => void enablePush(lang) }, 8000, 'info');
+}
+
 interface Bootstrap {
   profile: Profile;
   onboarded_at: string | null;
@@ -85,6 +111,9 @@ export async function bootstrap() {
       if (n) void refreshTasks();
     });
     void syncSubscription(b.profile.ui_lang).catch(() => {});
+    // only on a *return* visit - during onboarding itself, pushStatus() is still
+    // 'default' before the person has even seen that screen's own ask yet
+    if (b.onboarded_at) maybeNudgePush(b.profile.ui_lang);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       // this device's token is invalid – sign out here only, never revoke the user's other devices
