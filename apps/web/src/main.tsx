@@ -103,6 +103,13 @@ const setAppHeight = () => {
   // unconditional backstop against any future spike, however it's caused - no iPhone
   // keyboard is taller than that, so nothing legitimate is ever clamped.
   let kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
+  // Safari lays its own "prev/next field, Done" accessory bar on *top* of the
+  // keyboard for any focused text field - that's OS chrome, not part of the page,
+  // so it never shows up in visualViewport.height. Riding --kb alone lands the
+  // composer's bottom edge right where that bar starts, so its send button ends
+  // up hidden behind it (seen on device: the row got cut off right above the
+  // keyboard, not fully clear of it). Push past it too, by its standard height.
+  if (kb > 0) kb += 44;
   // Safety rail: whatever the true cause (this formula assumes the layout viewport
   // behind position:fixed stays full-height while the keyboard is open, which is the
   // whole reason --kb needs computing at all - if that assumption is ever wrong on a
