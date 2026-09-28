@@ -1,13 +1,11 @@
-name: Build Android (TWA)
-# Wraps the live PWA (norakeep.com) in a Trusted Web Activity shell for Google Play.
-# `bubblewrap init` always prompts interactively (no flag skips it - confirmed by
-# reading its source) so this uses @bubblewrap/core directly to scaffold the project
-# from android/twa-manifest.json, then `bubblewrap build` (which IS documented to run
-# non-interactively via env vars) compiles and signs it.
+name: Build Android (Capacitor)
+# Wraps the live PWA (norakeep.com) in a Capacitor WebView shell for Google Play.
+# Unlike the old TWA/bubblewrap build, apps/web/android is a real, committed
+# native Gradle project - no scaffolding step, no interactive-prompt issues.
 on:
   push:
     branches: [main]
-    paths: ['android/**', '.github/workflows/android.yml']
+    paths: ['apps/web/android/**', 'apps/web/capacitor.config.ts', '.github/workflows/android.yml']
   workflow_dispatch:
 
 jobs:
@@ -20,67 +18,41 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: android/package-lock.json
 
       - uses: actions/setup-java@v4
-        id: java
         with:
           distribution: temurin
           java-version: '17'
 
       # v4, not v3: v3's default package list still includes the discontinued
-      # "tools" package, which fails outright with "Failed to find package
-      # 'tools'" on today's SDK repository (seen on the first real run here).
+      # "tools" package, which fails outright on today's SDK repository.
       - uses: android-actions/setup-android@v4
 
-      - name: Install extra SDK components bubblewrap needs
-        run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-          # bubblewrap's own SDK path check (AndroidSdkTools.validatePath, read
-          # straight from its source) only looks for a legacy "tools" or "bin"
-          # folder directly under the SDK root - neither exists in the modern
-          # cmdline-tools layout setup-android installs, so it fails immediately
-          # with "The provided androidSdk isn't correct" before ever touching
-          # the real cmdline-tools it goes on to use. It's a pure existence
-          # check (confirmed reading the source), so an empty folder satisfies it.
-          mkdir -p "$ANDROID_HOME/tools"
+      - name: Install extra SDK components
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
-      - name: Restore the signing keystore from secrets
-        working-directory: android
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
-
-      - name: Point bubblewrap at the JDK/SDK it already has, no prompts
-        # $JAVA_HOME/$ANDROID_HOME are real shell env vars exported by the two
-        # setup actions above - not the same thing as the `env.` *expression*
-        # context, which only sees vars declared with an `env:` key, so this
-        # has to be plain shell substitution inside `run:`, not `${{ }}`.
-        run: |
-          mkdir -p "$HOME/.bubblewrap"
-          cat > "$HOME/.bubblewrap/config.json" <<EOF
-          {"jdkPath": "$JAVA_HOME", "androidSdkPath": "$ANDROID_HOME"}
-          EOF
-          cat "$HOME/.bubblewrap/config.json"
-
-      - working-directory: android
+      - name: Install dependencies
         run: npm ci
 
-      - name: Generate the Android project from twa-manifest.json
-        working-directory: android
-        run: node generate-project.mjs
+      - name: Restore the signing keystore from secrets
+        working-directory: apps/web/android
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
-      - name: Build & sign the APK and AAB
-        working-directory: android
+      - name: Build & sign the release APK and AAB
+        working-directory: apps/web/android
         env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: npx bubblewrap build --skipPwaValidation --manifest=./twa-manifest.json
+          ANDROID_KEYSTORE_PATH: ../android.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease bundleRelease
 
       - uses: actions/upload-artifact@v4
         with:
           name: nora-android
           path: |
-            android/app-release-signed.apk
-            android/app-release-bundle.aab
+            apps/web/android/app/build/outputs/apk/release/app-release.apk
+            apps/web/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30

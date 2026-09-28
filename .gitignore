@@ -8,17 +8,13 @@ supabase/.temp
 supabase/.branches
 apps/web/e2e-shots
 
-# Android (TWA): regenerated fresh by android/generate-project.mjs on every CI run
-# from twa-manifest.json - never hand-edited, so never committed. The signing
-# keystore is a secret (GitHub Actions secret ANDROID_KEYSTORE_BASE64), never here.
-android/android.keystore
-android/app
-android/build.gradle
-android/gradle
-android/gradle.properties
-android/gradlew
-android/gradlew.bat
-android/settings.gradle
-android/manifest-checksum.txt
-android/*.apk
-android/*.aab
+# Android (Capacitor): apps/web/android is a real generated native project and
+# IS committed (Capacitor's own convention, unlike bubblewrap) - it has its own
+# .gitignore for build output/local.properties/copied web assets. Only the
+# signing keystore secret needs an extra rule here.
+apps/web/android/android.keystore
+
+# Local source images for icon/splash generation (npx @capacitor/assets) -
+# kept out of git since they're just intermediates for the committed,
+# already-generated android/app/src/main/res/** outputs.
+apps/web/assets
