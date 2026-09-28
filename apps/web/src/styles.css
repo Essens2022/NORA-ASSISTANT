@@ -978,6 +978,15 @@ html.kb-open .main {
   padding-bottom: 16px;
   overflow: hidden;
 }
+/* overflow:hidden means anything that doesn't fit is gone for good - no scroll can
+   ever recover it. That's fine at rest (the voice button/composer are sized to always
+   fit), but with the keyboard up there may genuinely not be room for the briefing,
+   voice button and composer all at once, and the voice button/composer are exactly
+   what must stay reachable. Let the whole screen scroll as one unit in that case,
+   instead of silently clipping them out of existence. */
+html.kb-open .ai-screen {
+  overflow-y: auto;
+}
 .ai-scroll {
   flex: 1;
   min-height: 0;
