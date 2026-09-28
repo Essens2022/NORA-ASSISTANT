@@ -28,8 +28,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-        id: android-sdk
+      # v4, not v3: v3's default package list still includes the discontinued
+      # "tools" package, which fails outright with "Failed to find package
+      # 'tools'" on today's SDK repository (seen on the first real run here).
+      - uses: android-actions/setup-android@v4
 
       - name: Install extra SDK components bubblewrap needs
         run: |
@@ -41,11 +43,16 @@ jobs:
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
       - name: Point bubblewrap at the JDK/SDK it already has, no prompts
+        # $JAVA_HOME/$ANDROID_HOME are real shell env vars exported by the two
+        # setup actions above - not the same thing as the `env.` *expression*
+        # context, which only sees vars declared with an `env:` key, so this
+        # has to be plain shell substitution inside `run:`, not `${{ }}`.
         run: |
           mkdir -p "$HOME/.bubblewrap"
           cat > "$HOME/.bubblewrap/config.json" <<EOF
-          {"jdkPath": "${{ steps.java.outputs.path }}", "androidSdkPath": "${{ steps.android-sdk.outputs.android-sdk-root || env.ANDROID_HOME }}"}
+          {"jdkPath": "$JAVA_HOME", "androidSdkPath": "$ANDROID_HOME"}
           EOF
+          cat "$HOME/.bubblewrap/config.json"
 
       - working-directory: android
         run: npm ci
