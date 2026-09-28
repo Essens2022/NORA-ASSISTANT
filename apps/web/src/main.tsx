@@ -104,7 +104,15 @@ const setAppHeight = () => {
   // keyboard is taller than that, so nothing legitimate is ever clamped.
   const kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
   root.style.setProperty('--kb', `${kb}px`);
-  root.classList.toggle('kb-vv', kb > 80);
+  // Latched, not toggled: once this device has proven it reports the keyboard at all,
+  // stay on the floating/fixed footer for the rest of the session instead of flipping
+  // back to the sticky, in-flow one below --kb's 80px threshold on every open. That
+  // flip changes the footer's CSS position (sticky -> fixed) and the conversation's
+  // reserved bottom padding in the very same instant the transform starts animating
+  // it upward - for one frame the two are out of step, and the conversation shows
+  // through right where the footer hasn't caught up to yet. Deciding this once and
+  // never switching back removes the seam entirely for every open after the first.
+  if (kb > 80) root.classList.add('kb-vv');
   // .ai-scroll reserves space at its own bottom so the conversation doesn't run in
   // under the now-floating footer (see html.kb-open.kb-vv .ai-footer/.ai-scroll) -
   // that reserve has to match the footer's real height exactly, or a sliver of
