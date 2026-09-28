@@ -150,12 +150,14 @@ document.addEventListener(
     scrollLockY = null; // free to move while the field is still being positioned
     document.documentElement.classList.add('kb-open');
     const el = e.target as HTMLElement;
-    // instant, not 'smooth': animating this at the same time as the keyboard's own
-    // slide-up animation is what made the field's rise look janky/stuttery - two
-    // independent animations fighting for the same ~250-300ms. Snapping it into
-    // place near the start of that window (not after it) is what makes it read as
-    // "arriving with" the keyboard instead of visibly catching up a beat later.
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 60);
+    // Instant (not 'smooth') so it never runs its own animation against the
+    // keyboard's - and repeated across the keyboard's ~300ms slide-up rather than
+    // fired once: a single early call runs before the keyboard has made room (the
+    // field then simply doesn't move, and the lock below freezes it in that wrong
+    // spot, under the keyboard); a single late call visibly catches up a beat after.
+    // Re-aligning several times while it opens tracks the keyboard instead, and each
+    // call is idempotent once the field is already at the bottom edge.
+    for (const ms of [60, 180, 320, 480]) setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), ms);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
       scrollLockY = window.scrollY;
@@ -173,7 +175,12 @@ document.addEventListener(
     clearTimeout(scrollLockTimer);
     scrollLockY = null;
     setTimeout(() => {
-      if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
+      if (kbHideAt !== at) return;
+      document.documentElement.classList.remove('kb-open');
+      // the keyboard is gone and the extra scroll room with it - put the page back
+      // exactly where it rests without a keyboard, so the bar returns to its spot
+      // above the nav instead of wherever the closing keyboard happened to leave it
+      window.scrollTo(0, 0);
     }, 100);
   },
   { capture: true },
