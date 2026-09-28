@@ -1008,6 +1008,18 @@ html.kb-open .ai-screen {
   overflow: visible;
   padding-bottom: 45vh;
 }
+/* the voice button and composer must stay put once scrolled to, not keep drifting
+   past with the rest of the (now scrollable) page - sticky pins them to the bottom
+   of the screen while the conversation above scrolls underneath, same as they
+   already behave at rest. The 45vh spacer on .ai-screen gives sticky the room below
+   it needs to actually stick, instead of running out of container to stick within. */
+html.kb-open .ai-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  padding-top: 8px;
+  margin-top: -8px;
+}
 .ai-scroll {
   flex: 1;
   min-height: 0;

@@ -128,26 +128,31 @@ export function AIScreen() {
 
       {!online && <p class="offline-note">{tr('ai.offline')}</p>}
 
-      <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+      {/* wrapped so the two stick together at the bottom of the screen while the
+          keyboard is open (see .ai-footer in styles.css) - the conversation above
+          scrolls, this stays put instead of scrolling away with it */}
+      <div class="ai-footer">
+        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
 
-      <form class="composer" onSubmit={submit}>
-        <label class="sr-only" for="composer-input">
-          {tr('ai.input_placeholder')}
-        </label>
-        <input
-          id="composer-input"
-          class="composer-input"
-          value={draft}
-          maxLength={2000}
-          autocomplete="off"
-          placeholder={tr('ai.input_placeholder')}
-          onInput={(e) => setDraft((e.target as HTMLInputElement).value)}
-          enterKeyHint="send"
-        />
-        <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
-          <Icon name="send" size={18} />
-        </button>
-      </form>
+        <form class="composer" onSubmit={submit}>
+          <label class="sr-only" for="composer-input">
+            {tr('ai.input_placeholder')}
+          </label>
+          <input
+            id="composer-input"
+            class="composer-input"
+            value={draft}
+            maxLength={2000}
+            autocomplete="off"
+            placeholder={tr('ai.input_placeholder')}
+            onInput={(e) => setDraft((e.target as HTMLInputElement).value)}
+            enterKeyHint="send"
+          />
+          <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
+            <Icon name="send" size={18} />
+          </button>
+        </form>
+      </div>
 
       <Sheet open={explainMic} onClose={() => setExplainMic(false)} title={tr('onb.mic_title')}>
         <p class="muted">{tr('onb.mic_body')}</p>
