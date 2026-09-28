@@ -207,6 +207,11 @@ describe('NORA web – end to end', () => {
     await input.fill('Ce am mâine?');
     await input.press('Enter');
     await page.getByText('Mâine ai: 9 Întâlnire.').waitFor();
+    // the nav bar is hidden while a text field is focused (it'd otherwise sit under
+    // an open keyboard on a real phone) - pressing Enter doesn't blur the field any
+    // more than it would on a real device, so dismiss it explicitly before the next
+    // test tries to tap a nav item, same as a real user tapping away first would.
+    await input.blur();
   }, 30_000);
 
   it('activity shows sections; task persists after reload', async () => {
