@@ -19,5 +19,6 @@ android/gradle.properties
 android/gradlew
 android/gradlew.bat
 android/settings.gradle
+android/manifest-checksum.txt
 android/*.apk
 android/*.aab
