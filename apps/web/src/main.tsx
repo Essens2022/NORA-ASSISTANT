@@ -209,6 +209,7 @@ for (const type of ['mousedown', 'click'] as const)
     },
     { capture: true },
   );
+let kbPollTimer = 0;
 document.addEventListener(
   'focusin',
   (e) => {
@@ -217,6 +218,16 @@ document.addEventListener(
     scrollLockY = null; // free to move while the field is still being positioned
     document.documentElement.classList.add('kb-open');
     const el = e.target as HTMLElement;
+    // Belt and braces for --kb (see setAppHeight above): on a second focus that
+    // follows quickly after the keyboard just closed, iOS sometimes never re-fires
+    // visualViewport's resize/scroll events for the reopen - --kb is then stuck at
+    // its old (closed, ~0) value, .kb-vv never turns back on, and the composer just
+    // sits at its resting spot, under the keyboard, not riding up with it. Poll
+    // directly for as long as the keyboard could still be animating, so a missed
+    // event doesn't leave the footer stranded.
+    clearInterval(kbPollTimer);
+    kbPollTimer = window.setInterval(setAppHeight, 80);
+    setTimeout(() => clearInterval(kbPollTimer), 900);
     // Instant (not 'smooth') so it never runs its own animation against the
     // keyboard's, and exactly one pass, once the keyboard has settled: a call made
     // earlier, mid-slide, is measured against a viewport that's still changing and
@@ -245,6 +256,7 @@ document.addEventListener(
     // before deciding the keyboard is actually closing, instead of flashing the nav.
     const at = (kbHideAt = Date.now());
     clearTimeout(scrollLockTimer);
+    clearInterval(kbPollTimer);
     scrollLockY = null;
     // when the footer rides the viewport, keep it riding until the keyboard has
     // actually finished sliding down (~300ms) - dropping it back into the page
