@@ -75,6 +75,10 @@ export function AIScreen() {
     const text = draft.trim();
     if (!text) return;
     setDraft('');
+    // the textarea's grown height is set directly on the element (not via CSS), so
+    // clearing the draft alone wouldn't shrink it back down
+    const textarea = (e.currentTarget as HTMLFormElement)?.querySelector('.composer-input') as HTMLTextAreaElement | null;
+    if (textarea) textarea.style.height = 'auto';
     const ok = await sendText(text);
     if (!ok) setDraft((d) => d || text); // never lose typed input
   };
@@ -138,15 +142,29 @@ export function AIScreen() {
           <label class="sr-only" for="composer-input">
             {tr('ai.input_placeholder')}
           </label>
-          <input
+          <textarea
             id="composer-input"
             class="composer-input"
+            rows={1}
             value={draft}
             maxLength={2000}
             autocomplete="off"
             placeholder={tr('ai.input_placeholder')}
-            onInput={(e) => setDraft((e.target as HTMLInputElement).value)}
-            enterKeyHint="send"
+            onInput={(e) => {
+              const el = e.target as HTMLTextAreaElement;
+              setDraft(el.value);
+              // grow with the text, like WhatsApp, instead of scrolling sideways in one line
+              el.style.height = 'auto';
+              el.style.height = `${el.scrollHeight}px`;
+            }}
+            onKeyDown={(e) => {
+              // Enter sends (matches the old <input> behaviour); Shift+Enter makes a new line
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                (e.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
+              }
+            }}
+            enterkeyhint="send"
           />
           <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
             <Icon name="send" size={18} />

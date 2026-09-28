@@ -999,15 +999,15 @@ html.kb-open .main {
    physical overlay, outside the DOM entirely; the only way anything below it becomes
    reachable is if the page is taller than one screen, giving the browser's own
    "scroll the focused field into view" real room to work with.
-   Add exactly one keyboard's worth of extra height (an iPhone keyboard with the
-   QuickType suggestion bar is ~330-350px), not open-ended growth: .ai-scroll below
+   Add exactly one keyboard's worth of extra height (an iPhone keyboard is roughly
+   260px), not open-ended growth: .ai-scroll below
    keeps its own contained, independent scroll (same as at rest) instead of merging
    into one long page - so scrolling through the conversation never also drags the
    (sticky) footer through this extra slack and past its correct spot above the
    keyboard. overflow stays visible so the footer, sitting right at this taller edge,
    is never clipped. */
 html.kb-open .ai-screen {
-  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom) + 330px);
+  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom) + 260px);
   overflow: visible;
 }
 /* the voice button and composer must stay put once scrolled to, not keep drifting
@@ -1585,7 +1585,7 @@ html.kb-open .ai-footer {
 .composer {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-end;
   background: var(--surface);
   border: 1px solid var(--control-border);
   border-radius: var(--r-input);
@@ -1603,7 +1603,15 @@ html.kb-open .ai-footer {
   border: 0;
   background: transparent;
   min-height: 44px;
+  max-height: 120px;
+  padding: 12px 0;
+  font: inherit;
   font-size: 16px;
+  line-height: 20px;
+  resize: none;
+  overflow-y: auto;
+  /* grows a line at a time as you type (like WhatsApp) instead of scrolling
+     sideways in one line - see the onInput handler in AIScreen.tsx */
 }
 .composer-input::placeholder {
   color: var(--muted);
@@ -1615,12 +1623,14 @@ html.kb-open .ai-footer {
 .composer-send {
   width: 40px;
   height: 40px;
+  margin-bottom: 2px;
   border-radius: 10px;
   border: 0;
   background: var(--blue);
   color: #fff;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   transition: background var(--t-micro) var(--ease);
 }
 .composer-send:disabled {
