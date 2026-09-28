@@ -800,9 +800,6 @@ html.kb-open .nav {
 html.kb-open .main {
   padding-bottom: 0;
 }
-html.kb-open .ai-screen {
-  height: var(--app-h, 100dvh);
-}
 .nav-item {
   flex: 1;
   max-width: 160px;
@@ -927,11 +924,6 @@ html.kb-open .ai-screen {
   border-radius: var(--r-modal) var(--r-modal) 0 0;
   padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
   animation: sheet-in var(--t-modal) var(--ease);
-}
-/* same keyboard-vs-viewport mismatch as .ai-screen: cap to the actually visible
-   height once the keyboard is up, instead of a dvh figure that ignores it. */
-html.kb-open .sheet {
-  max-height: calc(var(--app-h, 100dvh) * 0.92);
 }
 .sheet-handle {
   width: 36px;
