@@ -975,18 +975,22 @@ html.kb-open .main {
   flex-direction: column;
   /* fixed, not min-: the voice button and composer must never be pushed below the
      fold on a short phone – the briefing/chat scroll inside .ai-scroll instead.
-     --app-h (set in main.tsx from visualViewport) instead of 100dvh: iOS Safari can
-     report a stale dvh right after a long background/foreground cycle, which made
-     .ai-screen taller than the real viewport and let the whole page (briefing
-     included) scroll as one block until the app was fully restarted. */
-  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
+     Plain 100dvh, not a JS-mirrored custom property: with interactive-widget=
+     resizes-content (index.html) the browser now animates dvh itself, in the same
+     frame-accurate pass as the keyboard's own slide - a value we recomputed from
+     visualViewport on 'resize'/'scroll' events used to lag a tick behind that,
+     landing one frame where the sticky footer's container was still the old
+     (taller) height while the footer itself had already moved: it rendered stuck
+     mid-card, overlapping the briefing, with the timeline peeking out beneath it
+     (seen on video). Left alone, the native animation has no such gap to fall into. */
+  height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom));
   padding-bottom: 16px;
   overflow: hidden;
 }
 /* The voice button and composer stay put at the bottom of .ai-screen, with the
    conversation scrolling above them, whether or not the keyboard is open - sticky
    needs no keyboard-specific height or scroll tricks at all now that the layout
-   viewport (and so --app-h/.ai-screen's own height) genuinely shrinks for the
+   viewport (and so .ai-screen's own height) genuinely shrinks for the
    keyboard (interactive-widget=resizes-content, index.html): the browser leaves
    exactly enough room above the keyboard for this row to land in, in sync with its
    own open/close animation, the same way it already does for any native app. */
@@ -2207,7 +2211,7 @@ html.kb-open .main {
 /* ---------- auth / onboarding / splash ---------- */
 .auth,
 .onboarding {
-  min-height: var(--app-h, 100dvh);
+  min-height: 100dvh;
   max-width: 440px;
   margin: 0 auto;
   padding: calc(48px + env(safe-area-inset-top)) 24px 32px;

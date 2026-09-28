@@ -80,23 +80,17 @@ window.addEventListener('online', () => {
 });
 window.addEventListener('offline', () => setState({ online: false }));
 
-// iOS Safari can report a stale 100dvh right after a long background/foreground
-// cycle, tall enough that the whole page scrolls as one block (briefing included)
-// instead of just the conversation – until the app is fully restarted. Compute the
-// real visible height ourselves and keep it current, instead of trusting dvh alone.
-// With interactive-widget=resizes-content (index.html) the browser now shrinks the
-// layout viewport for the keyboard itself, so visualViewport.height already *is*
-// the keyboard-aware height - no separate --kb/transform bookkeeping needed here
-// any more, the composer's sticky positioning (see .ai-footer in styles.css) rides
-// this the same way it rides everything else.
-const setAppHeight = () => {
-  const vv = window.visualViewport;
-  document.documentElement.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
-};
-setAppHeight();
-window.visualViewport?.addEventListener('resize', setAppHeight);
-window.visualViewport?.addEventListener('scroll', setAppHeight);
-window.addEventListener('resize', setAppHeight);
+// 100dvh used to need a JS-computed stand-in (a stale dvh right after a long
+// background/foreground cycle was a known iOS Safari bug, and separately, the
+// keyboard only shrank the *visual* viewport, not the *layout* one 100dvh sizes
+// against). Both of those are gone with interactive-widget=resizes-content
+// (index.html): the browser now animates 100dvh itself, live, for the keyboard -
+// in lockstep with its own slide, frame-accurate. A value we mirrored into a
+// custom property from visualViewport's resize/scroll events used to update one
+// tick behind that native animation, and for one frame the sticky footer (see
+// .ai-footer in styles.css) would be laid out against the *old* height while
+// already rendered at the new one - it landed stuck mid-card, overlapping the
+// briefing (seen on video). Plain 100dvh has no such gap to fall into.
 
 // The keyboard makes all of this worse: on iOS (especially the standalone/home-screen
 // PWA) the keyboard shrinks only the *visual* viewport, not the *layout* viewport that
@@ -212,15 +206,11 @@ document.addEventListener(
   },
   { capture: true },
 );
-window.addEventListener('orientationchange', setAppHeight);
-
 // Coming back to the app: refresh (reminders may have changed statuses meanwhile)
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) hiddenAt = Date.now();
   else {
-    // the browser's own viewport figures can still be settling right at this instant
-    requestAnimationFrame(setAppHeight);
     try {
       navigator.clearAppBadge?.();
     } catch {
