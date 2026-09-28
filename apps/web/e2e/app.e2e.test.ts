@@ -165,24 +165,20 @@ const shot = async (name: string) => {
 };
 
 describe('NORA web – end to end', () => {
-  it('onboarding: promise first, notification permission explained, can skip', async () => {
+  it('onboarding: one screen, one tap - asks for notifications in the same gesture and finishes', async () => {
     await page.goto(base);
     await page.getByRole('heading', { name: 'Spui o singură dată' }).waitFor();
     await expect(page.getByText('Spune-mi o dată. Eu țin minte.')).toBeTruthy();
+    // the notification blurb only shows where the browser can actually ask for it
+    await expect(page.getByText('Permite notificările ca NORA')).toBeTruthy();
     await shot('01-onboarding');
     await page.getByRole('button', { name: 'Începe' }).click();
-    // the notification step is shown only where the browser can ask for permission
-    const later = page.getByRole('button', { name: 'Mai târziu' });
-    const home = page.getByRole('button', { name: 'Vorbește cu NORA' });
-    await Promise.race([later.waitFor(), home.waitFor()]);
-    if (await later.isVisible()) {
-      await page.getByRole('button', { name: 'Permite notificările' }).waitFor();
-      await shot('02-onboarding-notifications');
-      await later.click();
-    }
-    await home.waitFor();
+    // that one tap both requests notification permission (headless Chromium
+    // resolves it without a real dialog) and finishes onboarding - no second,
+    // separately-skippable screen any more
+    await page.getByRole('button', { name: 'Vorbește cu NORA' }).waitFor();
     expect(onboardedAt).not.toBeNull();
-    await shot('03-home-empty');
+    await shot('02-home-empty');
   }, 30_000);
 
   it('spec test A in the UI: "Mâine am o întâlnire." → "La ce oră?" → "9"', async () => {
