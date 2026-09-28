@@ -105,6 +105,14 @@ const setAppHeight = () => {
   const kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
   root.style.setProperty('--kb', `${kb}px`);
   root.classList.toggle('kb-vv', kb > 80);
+  // .ai-scroll reserves space at its own bottom so the conversation doesn't run in
+  // under the now-floating footer (see html.kb-open.kb-vv .ai-footer/.ai-scroll) -
+  // that reserve has to match the footer's real height exactly, or a sliver of
+  // conversation peeks out from behind it. A hand-picked pixel number drifts out of
+  // sync the moment the footer's own size changes (as it did once already, when the
+  // voice button/composer were made more compact) - measure it instead.
+  const footer = document.querySelector<HTMLElement>('.ai-footer');
+  if (footer) root.style.setProperty('--footer-h', `${footer.offsetHeight}px`);
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);

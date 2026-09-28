@@ -1033,7 +1033,10 @@ html.kb-open.kb-vv .ai-footer {
   will-change: transform;
 }
 html.kb-open.kb-vv .ai-scroll {
-  padding-bottom: 150px;
+  /* --footer-h: the floating footer's real, measured height (main.tsx) - a guessed
+     fixed number here was ~30px short of the actual footer, so the conversation's
+     last lines were never fully covered and could show through right at its edge. */
+  padding-bottom: calc(var(--footer-h, 180px) + 16px);
 }
 .ai-scroll {
   flex: 1;
