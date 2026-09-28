@@ -2376,9 +2376,38 @@ html.kb-open .ai-footer {
   margin-top: 12px;
   padding-top: 8px;
 }
+/* compact on the AI screen only: the conversation needs the room more than a large
+   idle button does - a smaller circle sitting close to the composer reads as one
+   "input area" and hands ~60px back to the chat above it */
 .ai-screen .voice {
-  margin: 8px 0 12px;
+  margin: 2px 0 6px;
   flex-shrink: 0;
+}
+.ai-screen .voice-stage {
+  width: 88px;
+  height: 88px;
+}
+.ai-screen .voice-btn {
+  width: 68px;
+  height: 68px;
+  box-shadow: 0 8px 22px rgba(79, 124, 255, 0.26);
+}
+.ai-screen .voice-state {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 18px;
+  min-height: 18px;
+}
+.ai-screen .composer {
+  padding: 3px 3px 3px 14px;
+}
+.ai-screen .composer-input {
+  min-height: 40px;
+  padding: 10px 0;
+}
+.ai-screen .composer-send {
+  width: 36px;
+  height: 36px;
 }
 
 /* OAuth hand-off page (in-app browser) */

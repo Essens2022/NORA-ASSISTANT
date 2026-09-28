@@ -157,7 +157,9 @@ document.addEventListener(
     // spot, under the keyboard); a single late call visibly catches up a beat after.
     // Re-aligning several times while it opens tracks the keyboard instead, and each
     // call is idempotent once the field is already at the bottom edge.
-    for (const ms of [60, 180, 320, 480]) setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), ms);
+    // two passes, not four: each pass is a visible step, so fewer of them reads
+    // smoother - one mid-slide, one once the keyboard has fully settled
+    for (const ms of [150, 380]) setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), ms);
     clearTimeout(scrollLockTimer);
     scrollLockTimer = window.setTimeout(() => {
       scrollLockY = window.scrollY;
