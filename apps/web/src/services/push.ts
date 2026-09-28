@@ -102,8 +102,15 @@ export async function enablePush(lang: string): Promise<PushStatus> {
   const permission = status === 'granted' ? 'granted' : await Notification.requestPermission();
   if (permission !== 'granted') return permission as PushStatus;
   setPushOptedOut(false); // an explicit re-enable always wins over a previous "off"
-  await syncSubscription(lang);
-  return 'granted';
+  const synced = await syncSubscription(lang);
+  // The OS permission prompt succeeding doesn't mean this device actually ended up
+  // with a working subscription on the server - registerServiceWorker() or the
+  // /v1/devices call can each fail on their own (seen for real: a device that went
+  // through onboarding with no error shown, yet never got a single row in `devices`
+  // - it was reporting success here regardless of whether syncSubscription() had).
+  // Report it as if permission was never secured, so the caller's UI shows the
+  // "enable" button again instead of a false "notifications are on".
+  return synced ? 'granted' : 'default';
 }
 
 /** Keep the server's copy of this device's subscription fresh (called on start). */

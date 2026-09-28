@@ -48,7 +48,13 @@ export function Onboarding() {
         busy={busy}
         onClick={async () => {
           setBusy(true);
-          await enablePush(lang).catch(() => null);
+          // the OS prompt can succeed while the actual subscription still fails
+          // silently underneath (seen for real: onboarding completed, no error
+          // shown, yet the device never registered) - track the real outcome so
+          // that stops being invisible; onboarding itself still finishes either
+          // way, Profile has its own retry if this device needs it later.
+          const result = await enablePush(lang).catch((err) => `error:${err}`);
+          track('push_enable_result', undefined, { result });
           setBusy(false);
           await finish();
         }}
