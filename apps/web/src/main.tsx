@@ -93,41 +93,25 @@ window.visualViewport?.addEventListener('resize', setAppHeight);
 window.visualViewport?.addEventListener('scroll', setAppHeight);
 window.addEventListener('resize', setAppHeight);
 
-// The keyboard makes all of this worse: on iOS (especially the standalone/home-screen
-// PWA) the keyboard shrinks only the *visual* viewport, not the *layout* viewport that
-// position:fixed and 100dvh size against - and opening a text input makes Safari
-// scroll the page to bring it into view, a scroll it then frequently fails to undo (a
-// known WebKit bug). That's what makes the bottom nav "fly away" mid-screen and other
-// content look like it vanished. Focus/blur on the field itself is the one signal
-// that's always reliable, so use that to hide the (otherwise-misplaced) nav.
+// The app shell (.app in styles.css) is position:fixed and sized from --app-h, with
+// the document itself never scrolling - so when the keyboard opens and --app-h
+// shrinks, the whole shell (and everything in it: header, nav, voice button, composer)
+// resizes as one unit, the same way it already does for e.g. rotating the phone.
+// Nothing needs its own scroll-into-view trick, and nothing can be dragged around by a
+// swipe, because there's no page scroll to drag - only the conversation itself scrolls
+// (see .ai-scroll), same as any normal chat app.
 //
-// Placing the field itself above the keyboard used to be a different story: every
-// custom scroll calculation we tried (visualViewport-based, scrollIntoView, even
-// getBoundingClientRect() on a position:fixed probe) overshot or undershot, because on
-// this device none of them agree with where the keyboard actually is. But the deeper
-// problem, found afterwards, was that the page had nowhere TO scroll at all - .ai-screen
-// was capped to exactly one screen's height with overflow hidden, so there was no slack
-// for any scroll (ours or Safari's own) to move into. Now that .kb-open gives it real
-// room (see .ai-screen in styles.css), retry the simple, native way: ask the browser to
-// scroll the field into view itself, after a beat for the keyboard's open animation.
+// The one thing still handled here: hiding the bottom nav while a text field has
+// focus (the keyboard would otherwise cover it, and the composer right above it
+// doesn't need it) - focus/blur is the only signal that's always reliable for this.
 let kbHideAt = 0;
-let kbSettleTimer = 0;
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 document.addEventListener(
   'focusin',
   (e) => {
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
-    document.documentElement.classList.remove('kb-settled');
     document.documentElement.classList.add('kb-open');
-    const el = e.target as HTMLElement;
-    setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
-    // the extra room below the footer (.ai-screen's padding, see styles.css) only
-    // exists to give that scrollIntoView something to scroll into - once it's done,
-    // drop it: otherwise it's just slack a swipe can drag the footer through, opening
-    // a gap between it and the keyboard that was never really there.
-    clearTimeout(kbSettleTimer);
-    kbSettleTimer = window.setTimeout(() => document.documentElement.classList.add('kb-settled'), 650);
   },
   { capture: true },
 );
@@ -138,9 +122,8 @@ document.addEventListener(
     // focus can hop straight from one field to another (e.g. Tab) - give that a beat
     // before deciding the keyboard is actually closing, instead of flashing the nav.
     const at = (kbHideAt = Date.now());
-    clearTimeout(kbSettleTimer);
     setTimeout(() => {
-      if (kbHideAt === at) document.documentElement.classList.remove('kb-open', 'kb-settled');
+      if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
     }, 100);
   },
   { capture: true },
