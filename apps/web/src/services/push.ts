@@ -3,6 +3,7 @@
 
 import { config } from '../config/brand.ts';
 import { api } from './api.ts';
+import { getState, subscribe } from '../state/store.ts';
 
 export type PushStatus = 'unsupported' | 'ios_needs_install' | 'default' | 'denied' | 'granted';
 
@@ -75,7 +76,21 @@ export function registerServiceWorker(): Promise<ServiceWorkerRegistration | nul
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloaded) return;
       reloaded = true;
-      location.reload();
+      // Reloading mid-handoff (Google/Apple sign-in returning through an in-app
+      // browser, see auth.ts) wipes the in-memory state that was about to show
+      // "you're connected" and drops the person straight back to the sign-in
+      // screen - even though the handoff itself already succeeded server-side
+      // (confirmed: the session really was parked, just never shown). Wait for
+      // that screen to clear (its own "continue" button navigates away anyway,
+      // which picks up the new build on its own) before reloading out from
+      // under it.
+      const doReload = () => location.reload();
+      if (!getState().handoff) return doReload();
+      const unsubscribe = subscribe(() => {
+        if (getState().handoff) return;
+        unsubscribe();
+        doReload();
+      });
     });
     registration = navigator.serviceWorker
       .register(`${import.meta.env.BASE_URL}sw.js?api=${encodeURIComponent(config.apiUrl)}&key=${encodeURIComponent(config.supabaseAnonKey)}`, { scope: import.meta.env.BASE_URL })
