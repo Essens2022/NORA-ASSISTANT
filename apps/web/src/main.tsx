@@ -235,7 +235,7 @@ document.addEventListener(
     // directly for as long as the keyboard could still be animating, so a missed
     // event doesn't leave the footer stranded.
     clearInterval(kbPollTimer);
-    kbPollTimer = window.setInterval(setAppHeight, 80);
+    kbPollTimer = window.setInterval(setAppHeight, 40);
     setTimeout(() => clearInterval(kbPollTimer), 900);
     // Instant (not 'smooth') so it never runs its own animation against the
     // keyboard's, and exactly one pass, once the keyboard has settled: a call made
