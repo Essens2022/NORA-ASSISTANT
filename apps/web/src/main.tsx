@@ -110,24 +110,35 @@ window.addEventListener('resize', setAppHeight);
 // for any scroll (ours or Safari's own) to move into. Now that .kb-open gives it real
 // room (see .ai-screen in styles.css), retry the simple, native way: ask the browser to
 // scroll the field into view itself, after a beat for the keyboard's open animation.
+// Once the field is scrolled into place, the page must stop moving entirely - no
+// amount of tuning the extra scroll room (see .ai-screen in styles.css) reliably
+// prevents a swipe from dragging it further, because how much room actually exists
+// depends on --app-h, which this device doesn't keep accurate for the keyboard. So
+// don't rely on there being "just the right amount" of room at all: once positioned,
+// actively hold the page at that scroll position - if anything (a swipe, momentum
+// scrolling) moves it, snap it straight back, every time, until the field loses focus.
 let kbHideAt = 0;
-let kbSettleTimer = 0;
+let scrollLockY: number | null = null;
+let scrollLockTimer = 0;
+const enforceScrollLock = () => {
+  if (scrollLockY !== null && (window.scrollX !== 0 || window.scrollY !== scrollLockY)) window.scrollTo(0, scrollLockY);
+};
+window.addEventListener('scroll', enforceScrollLock, { passive: true });
+
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 document.addEventListener(
   'focusin',
   (e) => {
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
-    document.documentElement.classList.remove('kb-settled');
+    scrollLockY = null; // free to move while the field is still being positioned
     document.documentElement.classList.add('kb-open');
     const el = e.target as HTMLElement;
     setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'smooth' }), 350);
-    // the extra room below the footer (.ai-screen's padding, see styles.css) only
-    // exists to give that scrollIntoView something to scroll into - once it's done,
-    // drop it: otherwise it's just slack a swipe can drag the footer through, opening
-    // a gap between it and the keyboard that was never really there.
-    clearTimeout(kbSettleTimer);
-    kbSettleTimer = window.setTimeout(() => document.documentElement.classList.add('kb-settled'), 650);
+    clearTimeout(scrollLockTimer);
+    scrollLockTimer = window.setTimeout(() => {
+      scrollLockY = window.scrollY;
+    }, 700);
   },
   { capture: true },
 );
@@ -138,9 +149,10 @@ document.addEventListener(
     // focus can hop straight from one field to another (e.g. Tab) - give that a beat
     // before deciding the keyboard is actually closing, instead of flashing the nav.
     const at = (kbHideAt = Date.now());
-    clearTimeout(kbSettleTimer);
+    clearTimeout(scrollLockTimer);
+    scrollLockY = null;
     setTimeout(() => {
-      if (kbHideAt === at) document.documentElement.classList.remove('kb-open', 'kb-settled');
+      if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
     }, 100);
   },
   { capture: true },
