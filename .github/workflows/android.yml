@@ -37,6 +37,14 @@ jobs:
         run: |
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          # bubblewrap's own SDK path check (AndroidSdkTools.validatePath, read
+          # straight from its source) only looks for a legacy "tools" or "bin"
+          # folder directly under the SDK root - neither exists in the modern
+          # cmdline-tools layout setup-android installs, so it fails immediately
+          # with "The provided androidSdk isn't correct" before ever touching
+          # the real cmdline-tools it goes on to use. It's a pure existence
+          # check (confirmed reading the source), so an empty folder satisfies it.
+          mkdir -p "$ANDROID_HOME/tools"
 
       - name: Restore the signing keystore from secrets
         working-directory: android
