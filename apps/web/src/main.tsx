@@ -142,6 +142,22 @@ document.addEventListener(
 );
 
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+// Tapping anywhere outside the field you're typing in dismisses the keyboard - the
+// standard chat behaviour; otherwise the only way out is the keyboard's own "done"
+// key. Only the field's own container (the composer with its send button) is exempt,
+// so tapping "send" or a suggestion never yanks the keyboard away mid-action.
+document.addEventListener(
+  'pointerdown',
+  (e) => {
+    const active = document.activeElement;
+    if (!isTextField(active)) return;
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    if (isTextField(t) || t.closest('.composer, .field, label')) return;
+    (active as HTMLElement).blur();
+  },
+  { capture: true },
+);
 document.addEventListener(
   'focusin',
   (e) => {
