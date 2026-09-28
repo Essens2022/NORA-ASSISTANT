@@ -784,15 +784,10 @@ textarea.input {
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
 }
-/* On iOS (especially the standalone/home-screen PWA), the keyboard shrinks only the
-   *visual* viewport while position:fixed sizes against the unshrunk *layout*
-   viewport - and Safari's own "scroll the focused input into view" then detaches
-   fixed elements, landing this bar mid-screen instead of at the true bottom (some iOS
-   versions don't even report the viewport shrinking in standalone mode, so this can't
-   be detected from viewport geometry - .kb-open is set from focus/blur in main.tsx
-   instead, which always fires). Rather than chase a moving target, just hide it while
-   the keyboard covers it, like any chat app does while typing - the composer above it
-   doesn't need it and this sidesteps the bug outright. */
+/* Hidden while typing, just to give the conversation more room - the viewport meta
+   tag (interactive-widget=resizes-content, index.html) makes iOS/Android actually
+   shrink the layout viewport for the keyboard now, so this fixed bar rides up with
+   everything else on its own and no longer needs hiding to stay correctly placed. */
 html.kb-open .nav {
   display: none;
 }
@@ -977,66 +972,19 @@ html.kb-open .main {
   padding-bottom: 16px;
   overflow: hidden;
 }
-/* overflow:hidden + a fixed height mean anything that doesn't fit is gone for good -
-   no scroll can recover it, and worse, with no extra page height there's nowhere TO
-   scroll even if something could. On iOS the keyboard covers part of the screen like a
-   physical overlay, outside the DOM entirely; the only way anything below it becomes
-   reachable is if the page is taller than one screen, giving the browser's own
-   "scroll the focused field into view" real room to work with.
-   Add exactly one keyboard's worth of extra height (an iPhone keyboard is roughly
-   260px), not open-ended growth: .ai-scroll below
-   keeps its own contained, independent scroll (same as at rest) instead of merging
-   into one long page - so scrolling through the conversation never also drags the
-   (sticky) footer through this extra slack and past its correct spot above the
-   keyboard. overflow stays visible so the footer, sitting right at this taller edge,
-   is never clipped. */
-html.kb-open .ai-screen {
-  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom) + 260px);
-  overflow: visible;
-}
-/* the voice button and composer must stay put once scrolled to, not keep drifting
-   past with the rest of the (now scrollable) page - sticky pins them to the bottom
-   of the screen while the conversation above scrolls underneath, same as they
-   already behave at rest. Whether a swipe *could* still drag them through the extra
-   260px above is handled in JS (main.tsx locks the scroll position once settled) -
-   this rule just keeps them correctly placed for as long as anything does scroll.
-   The 260px slack gives sticky the room below it needs to actually stick, instead
-   of running out of container to stick within. */
-html.kb-open .ai-footer {
+/* The voice button and composer stay put at the bottom of .ai-screen, with the
+   conversation scrolling above them, whether or not the keyboard is open - sticky
+   needs no keyboard-specific height or scroll tricks at all now that the layout
+   viewport (and so --app-h/.ai-screen's own height) genuinely shrinks for the
+   keyboard (interactive-widget=resizes-content, index.html): the browser leaves
+   exactly enough room above the keyboard for this row to land in, in sync with its
+   own open/close animation, the same way it already does for any native app. */
+.ai-footer {
   position: sticky;
   bottom: 0;
   background: var(--bg);
   padding-top: 8px;
   margin-top: -8px;
-}
-/* When the device reports the keyboard through visualViewport (.kb-vv, see main.tsx),
-   the footer doesn't need the page to scroll at all: it's pinned to the bottom of
-   the layout viewport and translated up by exactly the keyboard's current height,
-   sampled continuously while the keyboard slides - so it rides the keyboard up and
-   back down, with a short transition smoothing the gaps between samples. The extra
-   260px of page room is dropped (nothing to scroll into = nothing to drag), and the
-   conversation gets bottom padding so its last lines aren't hidden under the footer. */
-html.kb-open.kb-vv .ai-screen {
-  height: calc(var(--app-h, 100dvh) - var(--nav-h) - env(safe-area-inset-bottom));
-  overflow: hidden;
-}
-html.kb-open.kb-vv .ai-footer {
-  position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 0;
-  z-index: 40;
-  margin: 0;
-  padding: 8px 0 8px;
-  transform: translateY(calc(-1 * var(--kb, 0px)));
-  transition: transform 90ms linear;
-  will-change: transform;
-}
-html.kb-open.kb-vv .ai-scroll {
-  /* --footer-h: the floating footer's real, measured height (main.tsx) - a guessed
-     fixed number here was ~30px short of the actual footer, so the conversation's
-     last lines were never fully covered and could show through right at its edge. */
-  padding-bottom: calc(var(--footer-h, 180px) + 16px);
 }
 .ai-scroll {
   flex: 1;

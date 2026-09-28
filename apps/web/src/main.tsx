@@ -84,64 +84,14 @@ window.addEventListener('offline', () => setState({ online: false }));
 // cycle, tall enough that the whole page scrolls as one block (briefing included)
 // instead of just the conversation – until the app is fully restarted. Compute the
 // real visible height ourselves and keep it current, instead of trusting dvh alone.
-// --kb: how much of the layout viewport the keyboard currently covers, straight from
-// visualViewport - on iOS this updates *during* the keyboard's slide (many samples per
-// opening), which is what lets the composer glide with it instead of jumping. `kb-vv`
-// marks that the device actually reports it; when it doesn't (some standalone-PWA
-// builds never do), the focus-driven fallback below takes over instead.
+// With interactive-widget=resizes-content (index.html) the browser now shrinks the
+// layout viewport for the keyboard itself, so visualViewport.height already *is*
+// the keyboard-aware height - no separate --kb/transform bookkeeping needed here
+// any more, the composer's sticky positioning (see .ai-footer in styles.css) rides
+// this the same way it rides everything else.
 const setAppHeight = () => {
   const vv = window.visualViewport;
-  const root = document.documentElement;
-  root.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
-  // vv.offsetTop used to be subtracted here too, to account for the page itself
-  // being scrolled - but this mode never lets the page scroll (see the pointerdown
-  // guards below), so offsetTop should stay 0 anyway, and during the keyboard's own
-  // close animation it briefly reported nonsense that made this formula spike well
-  // past any real keyboard height - translating the composer clean off the top of
-  // the screen for the better part of a second (seen on video: it just vanished).
-  // Dropping the term removes that source of noise; the 400px ceiling is a second,
-  // unconditional backstop against any future spike, however it's caused - no iPhone
-  // keyboard is taller than that, so nothing legitimate is ever clamped.
-  let kb = vv ? Math.min(400, Math.max(0, window.innerHeight - vv.height)) : 0;
-  // Safari lays its own "prev/next field, Done" accessory bar on *top* of the
-  // keyboard for any focused text field - that's OS chrome, not part of the page,
-  // so it never shows up in visualViewport.height. Riding --kb alone lands the
-  // composer's bottom edge right where that bar starts, so its send button ends
-  // up hidden behind it (seen on device: the row got cut off right above the
-  // keyboard, not fully clear of it). Push past it too, by its standard height.
-  if (kb > 0) kb += 44;
-  // Safety rail: whatever the true cause (this formula assumes the layout viewport
-  // behind position:fixed stays full-height while the keyboard is open, which is the
-  // whole reason --kb needs computing at all - if that assumption is ever wrong on a
-  // given device/iOS version, the footer overshoots and its solid background ends up
-  // covering the header/briefing above it instead of just the keyboard below it,
-  // reported as "the whole top gets pushed away, only the button's background shows").
-  // Never let the translate push the footer's top edge above where the header and
-  // briefing need to end, no matter what the raw keyboard measurement says.
-  // the footer's own math (see .ai-footer in styles.css) is bottom:0 relative to the
-  // full layout viewport (window.innerHeight) translated up by --kb, so the cap has
-  // to be expressed against that same baseline, not the shrunk visual one
-  const footerH = document.querySelector<HTMLElement>('.ai-footer')?.offsetHeight ?? 180;
-  const headReserve = (document.querySelector<HTMLElement>('.ai-head')?.offsetHeight ?? 0) + (document.querySelector<HTMLElement>('.briefing')?.offsetHeight ?? 0) + 24;
-  kb = Math.min(kb, Math.max(0, window.innerHeight - footerH - headReserve));
-  root.style.setProperty('--kb', `${kb}px`);
-  // Latched, not toggled: once this device has proven it reports the keyboard at all,
-  // stay on the floating/fixed footer for the rest of the session instead of flipping
-  // back to the sticky, in-flow one below --kb's 80px threshold on every open. That
-  // flip changes the footer's CSS position (sticky -> fixed) and the conversation's
-  // reserved bottom padding in the very same instant the transform starts animating
-  // it upward - for one frame the two are out of step, and the conversation shows
-  // through right where the footer hasn't caught up to yet. Deciding this once and
-  // never switching back removes the seam entirely for every open after the first.
-  if (kb > 80) root.classList.add('kb-vv');
-  // .ai-scroll reserves space at its own bottom so the conversation doesn't run in
-  // under the now-floating footer (see html.kb-open.kb-vv .ai-footer/.ai-scroll) -
-  // that reserve has to match the footer's real height exactly, or a sliver of
-  // conversation peeks out from behind it. A hand-picked pixel number drifts out of
-  // sync the moment the footer's own size changes (as it did once already, when the
-  // voice button/composer were made more compact) - measure it instead.
-  const footer = document.querySelector<HTMLElement>('.ai-footer');
-  if (footer) root.style.setProperty('--footer-h', `${footer.offsetHeight}px`);
+  document.documentElement.style.setProperty('--app-h', `${vv?.height ?? window.innerHeight}px`);
 };
 setAppHeight();
 window.visualViewport?.addEventListener('resize', setAppHeight);
@@ -156,45 +106,15 @@ window.addEventListener('resize', setAppHeight);
 // content look like it vanished. Focus/blur on the field itself is the one signal
 // that's always reliable, so use that to hide the (otherwise-misplaced) nav.
 //
-// Placing the field itself above the keyboard used to be a different story: every
-// custom scroll calculation we tried (visualViewport-based, scrollIntoView, even
-// getBoundingClientRect() on a position:fixed probe) overshot or undershot, because on
-// this device none of them agree with where the keyboard actually is. But the deeper
-// problem, found afterwards, was that the page had nowhere TO scroll at all - .ai-screen
-// was capped to exactly one screen's height with overflow hidden, so there was no slack
-// for any scroll (ours or Safari's own) to move into. Now that .kb-open gives it real
-// room (see .ai-screen in styles.css), retry the simple, native way: ask the browser to
-// scroll the field into view itself, after a beat for the keyboard's open animation.
-// Once the field is scrolled into place, the page must stop moving entirely - no
-// amount of tuning the extra scroll room (see .ai-screen in styles.css) reliably
-// prevents a swipe from dragging it further, because how much room actually exists
-// depends on --app-h, which this device doesn't keep accurate for the keyboard. So
-// don't rely on there being "just the right amount" of room at all: once positioned,
-// actively hold the page at that scroll position - if anything (a swipe, momentum
-// scrolling) moves it, snap it straight back, every time, until the field loses focus.
+// Placing the field itself above the keyboard used to take a pile of custom scroll
+// tricks (visualViewport-based, scrollIntoView, position:fixed probes) that all
+// overshot or undershot, because none of them agreed with where the keyboard
+// actually was on a given device. None of that is needed any more: the viewport
+// meta tag (interactive-widget=resizes-content, index.html) makes the browser
+// itself shrink the page for the keyboard, so the sticky footer (.ai-footer in
+// styles.css) is simply always at the bottom of the now-shorter screen - nothing
+// to scroll, lock, or fight a rubber-band on.
 let kbHideAt = 0;
-let scrollLockY: number | null = null;
-let scrollLockTimer = 0;
-const enforceScrollLock = () => {
-  if (scrollLockY !== null && (window.scrollX !== 0 || window.scrollY !== scrollLockY)) window.scrollTo(0, scrollLockY);
-};
-window.addEventListener('scroll', enforceScrollLock, { passive: true });
-// The scrollTo-based lock above only *corrects* the position after the fact - on a
-// real touch drag, the finger's own movement scrolls the page immediately and
-// synchronously, so by the time our correction runs, it's already visibly moved and
-// snapped back: the "rubber band" feel. Stop the drag from ever starting instead:
-// while a field has focus, block touch-scrolling everywhere except inside a container
-// that's actually meant to scroll (the conversation, a sheet) - there's nothing
-// elastic about a bar that simply never receives the touch that would move it.
-document.addEventListener(
-  'touchmove',
-  (e) => {
-    if (!document.documentElement.classList.contains('kb-open')) return;
-    if (e.target instanceof Element && e.target.closest('.ai-scroll, .sheet')) return;
-    e.preventDefault();
-  },
-  { passive: false },
-);
 
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 // Tapping anywhere outside the field you're typing in dismisses the keyboard - the
@@ -255,40 +175,12 @@ for (const type of ['mousedown', 'click'] as const)
     },
     { capture: true },
   );
-let kbPollTimer = 0;
 document.addEventListener(
   'focusin',
   (e) => {
     if (!isTextField(e.target)) return;
     kbHideAt = 0;
-    scrollLockY = null; // free to move while the field is still being positioned
     document.documentElement.classList.add('kb-open');
-    const el = e.target as HTMLElement;
-    // Belt and braces for --kb (see setAppHeight above): on a second focus that
-    // follows quickly after the keyboard just closed, iOS sometimes never re-fires
-    // visualViewport's resize/scroll events for the reopen - --kb is then stuck at
-    // its old (closed, ~0) value, .kb-vv never turns back on, and the composer just
-    // sits at its resting spot, under the keyboard, not riding up with it. Poll
-    // directly for as long as the keyboard could still be animating, so a missed
-    // event doesn't leave the footer stranded.
-    clearInterval(kbPollTimer);
-    kbPollTimer = window.setInterval(setAppHeight, 80);
-    setTimeout(() => clearInterval(kbPollTimer), 900);
-    // Once this device has proven (via .kb-vv) that the footer can ride the keyboard
-    // by itself (see .ai-footer's transform in styles.css), the page must never be
-    // touched at all - it doesn't scroll, so there's nothing to correct. Forcing a
-    // scrollTo(0,0) here regardless, as a "just in case", was its own bug: it landed
-    // as a second, separate snap a beat after the smooth transform-driven rise had
-    // already finished, which read as the bar opening twice. Only the *first* time
-    // this device is seen (before .kb-vv is proven true) does the old scroll-based
-    // approach still apply, and that's the one place scrollIntoView still runs.
-    if (!document.documentElement.classList.contains('kb-vv')) {
-      setTimeout(() => el.scrollIntoView({ block: 'end', behavior: 'auto' }), 320);
-      clearTimeout(scrollLockTimer);
-      scrollLockTimer = window.setTimeout(() => {
-        scrollLockY = window.scrollY;
-      }, 700);
-    }
   },
   { capture: true },
 );
@@ -299,23 +191,9 @@ document.addEventListener(
     // focus can hop straight from one field to another (e.g. Tab) - give that a beat
     // before deciding the keyboard is actually closing, instead of flashing the nav.
     const at = (kbHideAt = Date.now());
-    clearTimeout(scrollLockTimer);
-    clearInterval(kbPollTimer);
-    scrollLockY = null;
-    const usesViewport = document.documentElement.classList.contains('kb-vv');
-    // when the footer rides the viewport, keep it riding until the keyboard has
-    // actually finished sliding down (~300ms) - dropping it back into the page
-    // layout mid-slide would make it jump ahead of the keyboard
-    const wait = usesViewport ? 380 : 100;
     setTimeout(() => {
-      if (kbHideAt !== at) return;
-      document.documentElement.classList.remove('kb-open');
-      // the page never scrolled in the first place in this mode (see focusin above),
-      // so there's nothing to put back - doing it anyway landed as a second, distinct
-      // snap right after the transform-driven fall had already finished, which read
-      // as the bar closing twice.
-      if (!usesViewport) window.scrollTo(0, 0);
-    }, wait);
+      if (kbHideAt === at) document.documentElement.classList.remove('kb-open');
+    }, 100);
   },
   { capture: true },
 );
