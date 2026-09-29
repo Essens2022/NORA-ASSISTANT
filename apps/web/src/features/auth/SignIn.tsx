@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { Capacitor } from '@capacitor/core';
 import { Logo } from '../../components/Logo.tsx';
 import { Button, Input } from '../../components/ui.tsx';
 import { feature, isConfigured } from '../../config/brand.ts';
@@ -6,11 +7,18 @@ import { DEFAULT_LOCALE, detectDeviceLang, tr } from '../../i18n/index.ts';
 import { deviceTimezone } from '../../services/api.ts';
 import { sendCode, signInWith, verifyCode } from '../../services/auth.ts';
 
+// On the website, Google OAuth is a plain browser redirect and works fine.
+// In the Android app it currently bounces through a separate browser/Custom
+// Tab, which reads as broken/unprofessional rather than "signed in" - so
+// hide it there until native Google Sign-In (no browser at all) replaces
+// this OAuth-redirect flow. Email sign-in is unaffected either way.
+const googleLoginAvailable = feature('google_login') && !Capacitor.isNativePlatform();
+
 export function SignIn() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   // Google first when it's available; email code stays one tap away
-  const [step, setStep] = useState<'choice' | 'email' | 'code'>(feature('google_login') ? 'choice' : 'email');
+  const [step, setStep] = useState<'choice' | 'email' | 'code'>(googleLoginAvailable ? 'choice' : 'email');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,7 +103,7 @@ export function SignIn() {
             <Button variant="primary" type="submit" full busy={busy} disabled={!/^\S+@\S+\.\S+$/.test(email)}>
               {tr('auth.send_code')}
             </Button>
-            {feature('google_login') && (
+            {googleLoginAvailable && (
               <button type="button" class="auth-alt" onClick={() => setStep('choice')}>
                 {tr('auth.back_to_google')}
               </button>
