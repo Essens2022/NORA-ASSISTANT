@@ -180,6 +180,12 @@ export function watchHandoff(onDone: () => void) {
   setInterval(() => {
     if (pendingHandoff() && document.visibilityState === 'visible') void check();
   }, 2000);
+  // On Android the WebView's own visibilitychange/focus don't reliably fire
+  // when a Custom Tab (a separate Activity on top of the app) is dismissed,
+  // so the checks above can miss the moment sign-in actually finished. The
+  // Browser plugin fires this the instant its Custom Tab closes (by the user
+  // or by our own Browser.close() call below) - a direct, reliable signal.
+  Browser.addListener('browserFinished', () => void check()).catch(() => undefined);
   void check();
 }
 

@@ -46,7 +46,7 @@ export const ro: Record<MessageKey, string> = {
   'auth.oauth_failed': 'Logarea cu Google nu a mers. Încearcă din nou sau folosește emailul.',
   'auth.handoff_working': 'Te conectez…',
   'auth.handoff_done_title': 'Te-ai conectat',
-  'auth.handoff_done_body': 'Apasă „Gata” / „Done” sus ca să revii în NORA.',
+  'auth.handoff_done_body': 'Închide această fereastră (X sau „Gata”/„Done” sus) ca să revii în NORA.',
   'auth.handoff_failed_body': 'Închide această fereastră și deschide din nou NORA.',
   'alert.kicker': 'E momentul',
   'alert.kicker_named': '{name}, e momentul',

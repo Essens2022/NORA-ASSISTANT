@@ -46,7 +46,7 @@ export const it: Record<MessageKey, string> = {
   'auth.oauth_failed': 'L\'accesso con Google non è riuscito. Riprova o usa l\'email.',
   'auth.handoff_working': 'Accesso in corso…',
   'auth.handoff_done_title': 'Accesso effettuato',
-  'auth.handoff_done_body': 'Tocca «Fine» in alto per tornare a NORA.',
+  'auth.handoff_done_body': 'Chiudi questa finestra (X o «Fine» in alto) per tornare a NORA.',
   'auth.handoff_failed_body': 'Chiudi questa finestra e riapri NORA.',
   'alert.kicker': 'È il momento',
   'alert.kicker_named': '{name}, è il momento',

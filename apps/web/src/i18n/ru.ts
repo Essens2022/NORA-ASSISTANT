@@ -46,7 +46,7 @@ export const ru: Record<MessageKey, string> = {
   'auth.oauth_failed': 'Не удалось войти через Google. Попробуйте ещё раз или используйте email.',
   'auth.handoff_working': 'Выполняю вход…',
   'auth.handoff_done_title': 'Вход выполнен',
-  'auth.handoff_done_body': 'Нажмите «Готово» вверху, чтобы вернуться в NORA.',
+  'auth.handoff_done_body': 'Закройте это окно (X или «Готово» вверху), чтобы вернуться в NORA.',
   'auth.handoff_failed_body': 'Закройте это окно и снова откройте NORA.',
   'alert.kicker': 'Пора',
   'alert.kicker_named': '{name}, пора',

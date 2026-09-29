@@ -44,7 +44,7 @@ export const en = {
   'auth.oauth_failed': 'Google sign-in didn\'t work. Try again or use email.',
   'auth.handoff_working': 'Signing you in…',
   'auth.handoff_done_title': 'You\'re signed in',
-  'auth.handoff_done_body': 'Tap “Done” at the top to go back to NORA.',
+  'auth.handoff_done_body': 'Close this window (X or “Done” at the top) to go back to NORA.',
   'auth.handoff_failed_body': 'Close this window and open NORA again.',
   'alert.kicker': 'It\'s time',
   'alert.kicker_named': '{name}, it\'s time',
