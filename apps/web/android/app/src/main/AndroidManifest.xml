@@ -32,4 +32,10 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Voice input (NORA's mic button, getUserMedia). Without this declared
+         here, the runtime permission prompt Capacitor's WebChromeClient shows
+         is auto-denied by the OS before the user ever sees it. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 </manifest>
