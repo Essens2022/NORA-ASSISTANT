@@ -3,6 +3,7 @@
 
 import { AuthClient, type Session } from '@supabase/auth-js';
 import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { config, isConfigured } from '../config/brand.ts';
 
 export const auth: InstanceType<typeof AuthClient> | null = isConfigured()
@@ -76,11 +77,16 @@ const HANDOFF_KEY = 'nora.handoff';
 const HANDOFF_TTL_MS = 30 * 60_000;
 
 export function isStandalone(): boolean {
-  const capacitor = (window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  // Capacitor.isNativePlatform() - imported directly (not read off window.Capacitor,
+  // which a production bundler can tree-shake away as an unused, #__PURE__-annotated
+  // side effect if nothing else forces @capacitor/core's global-init to survive,
+  // silently making this always false - confirmed live: Google sign-in kept bouncing
+  // to a full external browser instead of a Custom Tab, meaning this check was
+  // failing even in a build that otherwise had the Custom Tab code path).
   return (
     matchMedia('(display-mode: standalone)').matches ||
     (navigator as { standalone?: boolean }).standalone === true ||
-    capacitor?.isNativePlatform?.() === true
+    Capacitor.isNativePlatform()
   );
 }
 
