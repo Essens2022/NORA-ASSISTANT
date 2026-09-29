@@ -5,14 +5,9 @@ import { Button, Input } from '../../components/ui.tsx';
 import { feature, isConfigured } from '../../config/brand.ts';
 import { DEFAULT_LOCALE, detectDeviceLang, tr } from '../../i18n/index.ts';
 import { deviceTimezone } from '../../services/api.ts';
-import { sendCode, signInWith, verifyCode } from '../../services/auth.ts';
+import { sendCode, signInWith, signInWithGoogleNative, verifyCode } from '../../services/auth.ts';
 
-// On the website, Google OAuth is a plain browser redirect and works fine.
-// In the Android app it currently bounces through a separate browser/Custom
-// Tab, which reads as broken/unprofessional rather than "signed in" - so
-// hide it there until native Google Sign-In (no browser at all) replaces
-// this OAuth-redirect flow. Email sign-in is unaffected either way.
-const googleLoginAvailable = feature('google_login') && !Capacitor.isNativePlatform();
+const googleLoginAvailable = feature('google_login');
 
 export function SignIn() {
   const [email, setEmail] = useState('');
@@ -53,11 +48,15 @@ export function SignIn() {
     setBusy(true);
     setError(null);
     try {
-      await signInWith(provider); // navigates away to the provider
+      if (provider === 'google' && Capacitor.isNativePlatform()) {
+        await signInWithGoogleNative(); // native account picker, no browser; onAuthStateChange takes it from here
+      } else {
+        await signInWith(provider); // navigates away to the provider
+      }
     } catch {
       setError(tr('auth.oauth_failed'));
-      setBusy(false);
     }
+    setBusy(false);
   };
 
   const verify = async (e: Event) => {

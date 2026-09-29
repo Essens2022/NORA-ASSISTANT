@@ -33,6 +33,11 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true,
     },
+    // Only Google is used (native sign-in, Credential Manager) - the other
+    // providers' SDKs aren't bundled into the APK.
+    SocialLogin: {
+      providers: { google: true, facebook: false, apple: false, twitter: false },
+    },
   },
 };
 

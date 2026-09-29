@@ -4,6 +4,7 @@
 import { AuthClient, type Session } from '@supabase/auth-js';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { config, isConfigured } from '../config/brand.ts';
 
 export const auth: InstanceType<typeof AuthClient> | null = isConfigured()
@@ -45,7 +46,8 @@ export async function signInWith(provider: 'google' | 'apple') {
   const native = isStandalone();
   let redirectTo = location.origin + import.meta.env.BASE_URL;
   if (native) {
-    // iOS/Android open the provider in a separate in-app browser; see handoff below
+    // iOS opens the provider in a separate in-app browser; see handoff below.
+    // (Android uses signInWithGoogleNative() instead - no browser at all.)
     const nonce = randomNonce();
     try {
       localStorage.setItem(HANDOFF_KEY, JSON.stringify({ n: nonce, t: Date.now() }));
@@ -54,13 +56,36 @@ export async function signInWith(provider: 'google' | 'apple') {
     }
     redirectTo += `?handoff=${nonce}`;
   }
-  // On Android, skip Supabase's default window.location.assign (Capacitor's
-  // WebView bounces that to a full, chrome-visible system browser tab since
-  // accounts.google.com isn't the app's own origin) and open a Custom Tab
-  // instead - visually integrated, and it closes itself once handed off.
   const { data, error } = await auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: native } });
   if (error) throw error;
   if (native && data.url) await Browser.open({ url: data.url });
+}
+
+let googleInitialized = false;
+
+/**
+ * Native Google Sign-In on Android (Credential Manager - the account-picker
+ * dialog Android itself shows, no browser involved at all): replaces the
+ * OAuth-redirect dance in signInWith('google') for the installed app, where
+ * bouncing out to any browser - however well it hands the session back -
+ * still reads as "kicked out of the app", not as a native sign-in.
+ * Requires config.googleWebClientId (Google Cloud's "Web application" OAuth
+ * client - the same one Supabase's Google provider already uses server-side)
+ * and, in Google Cloud Console only, an "Android" OAuth client registered
+ * with this app's package name + release-keystore SHA-1.
+ */
+export async function signInWithGoogleNative() {
+  if (!auth) throw new Error('not_configured');
+  if (!config.googleWebClientId) throw new Error('google_not_configured');
+  if (!googleInitialized) {
+    await SocialLogin.initialize({ google: { webClientId: config.googleWebClientId } });
+    googleInitialized = true;
+  }
+  const { result } = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+  const idToken = 'idToken' in result ? result.idToken : null;
+  if (!idToken) throw new Error('google_no_id_token');
+  const { error } = await auth.signInWithIdToken({ provider: 'google', token: idToken });
+  if (error) throw error;
 }
 
 // ----------------------------------------------------------------------------

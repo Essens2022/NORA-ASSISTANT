@@ -20,6 +20,12 @@ export const config = {
   supabaseUrl: String(env.VITE_SUPABASE_URL ?? ''),
   supabaseAnonKey: String(env.VITE_SUPABASE_ANON_KEY ?? ''),
   apiUrl: String(env.VITE_API_URL || `${env.VITE_SUPABASE_URL ?? ''}/functions/v1/api`),
+  // The "Web application" OAuth client (Google Cloud Console) - same one already
+  // used server-side by Supabase's Google provider. Required for native Google
+  // Sign-In on Android (Credential Manager needs it as the ID token's audience),
+  // separate from the Android OAuth client (package name + SHA-1, registered in
+  // the console only, never referenced from app code).
+  googleWebClientId: String(env.VITE_GOOGLE_WEB_CLIENT_ID ?? ''),
 };
 
 export type Feature = 'google_login' | 'apple_login' | 'experimental_voice';

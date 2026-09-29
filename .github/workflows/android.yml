@@ -54,6 +54,15 @@ jobs:
         working-directory: apps/web/android
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
+      # SHA-1 (not the SHA-256 already in assetlinks.json) is what Google Cloud
+      # Console's Android OAuth client wants, for native Google Sign-In
+      # (Credential Manager). Not a secret - it's meant to be public/registered.
+      - name: Print the release keystore's SHA-1 (for the Google Cloud Android OAuth client)
+        working-directory: apps/web/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: keytool -list -v -keystore android.keystore -alias nora -storepass "$ANDROID_KEYSTORE_PASSWORD" | grep --color=never "SHA1:"
+
       - name: Build & sign the release APK and AAB
         working-directory: apps/web/android
         env:
