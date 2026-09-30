@@ -984,7 +984,12 @@ html.kb-open .main {
      mid-card, overlapping the briefing, with the timeline peeking out beneath it
      (seen on video). Left alone, the native animation has no such gap to fall into. */
   height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom));
-  padding-bottom: 16px;
+  /* Breathing room above the nav bar when the keyboard is closed - but with
+     it open (--kb > 0, see .ai-footer's translateY below) this same gap sat
+     between the composer and the keyboard's own top edge, no longer flush
+     against it as intended. Shrinks itself out once --kb passes 16px, which
+     any genuinely open keyboard's height always does. */
+  padding-bottom: max(0px, 16px - var(--kb, 0px));
   overflow: hidden;
 }
 /* The voice button and composer stay put at the bottom of .ai-screen, with the
