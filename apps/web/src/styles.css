@@ -4983,7 +4983,7 @@ html.kb-open .main {
 
 :root[data-theme='light'] .activity-screen .act-range,
 :root[data-theme='light'] .memory-screen .mem-search,
-:root[data-theme='light'] .memory-screen .chip,
+:root[data-theme='light'] .memory-screen .chip:not(.selected),
 :root[data-theme='light'] .profile-screen .input,
 :root[data-theme='light'] .profile-screen select,
 :root[data-theme='light'] .profile-screen .segmented {
@@ -4995,8 +4995,8 @@ html.kb-open .main {
   color: var(--muted);
 }
 
-:root[data-theme='light'] .activity-screen .chip,
-:root[data-theme='light'] .memory-screen .chip {
+:root[data-theme='light'] .activity-screen .chip:not(.selected),
+:root[data-theme='light'] .memory-screen .chip:not(.selected) {
   color: var(--text-2);
 }
 
