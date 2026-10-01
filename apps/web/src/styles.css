@@ -4928,6 +4928,18 @@ html.kb-open .main {
   background: linear-gradient(135deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
 }
 
+/* .composer-send:disabled (styles.css, ui.tsx's base button rules) sets a
+   muted grey color meant for a plain grey disabled background - but this
+   button's background always stays the vibrant blue/violet gradient above,
+   disabled or not (there's no separate "greyed out" look for it), so that
+   grey color just read as a low-contrast, washed-out arrow on top of a
+   colourful button in both themes. Keeps the icon white regardless of
+   disabled state, matching the background it's actually sitting on. */
+.composer-send,
+.composer-send:disabled {
+  color: #fff;
+}
+
 .sheet,
 .dialog {
   border-color: var(--approved-line);
