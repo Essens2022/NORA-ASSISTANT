@@ -2,10 +2,11 @@
 // from conversation, plus ideas/notes/moments the user asks to keep, all
 // already stored server-side via the assistant's `remember` action (or added
 // here directly with the + button).
+import type { IconName } from '../../components/Icon.tsx';
 import type { MemoryItem, MemoryKind } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
-import { Button, Confirm, EmptyState, Input, Sheet } from '../../components/ui.tsx';
+import { Button, Confirm, EmptyState, IconButton, Input, Sheet } from '../../components/ui.tsx';
 import { relativeFromNow, tr, type MessageKey } from '../../i18n/index.ts';
 import { api } from '../../services/api.ts';
 import { toast, toastError } from '../../state/store.ts';
@@ -23,12 +24,12 @@ export function clearMemoryCache() {
 }
 
 // display order: what the user actively captures first, what NORA inferred after
-const CATEGORIES: Array<{ kind: MemoryKind; label: MessageKey }> = [
-  { kind: 'idea', label: 'mem.ideas' },
-  { kind: 'note', label: 'mem.notes' },
-  { kind: 'moment', label: 'mem.moments' },
-  { kind: 'preference', label: 'mem.preferences' },
-  { kind: 'fact', label: 'mem.facts' },
+const CATEGORIES: Array<{ kind: MemoryKind; label: MessageKey; icon: IconName; color: string }> = [
+  { kind: 'idea', label: 'mem.ideas', icon: 'spark', color: 'kind-warning' },
+  { kind: 'note', label: 'mem.notes', icon: 'file', color: 'kind-blue' },
+  { kind: 'moment', label: 'mem.moments', icon: 'pin', color: 'kind-pink' },
+  { kind: 'preference', label: 'mem.preferences', icon: 'repeat', color: 'kind-success' },
+  { kind: 'fact', label: 'mem.facts', icon: 'bookmark', color: 'kind-purple' },
 ];
 // only these are offered when adding a memory by hand - preference/fact are
 // settings-like values NORA derives from conversation, not something to type in directly
@@ -56,11 +57,8 @@ export function MemoryScreen() {
     <div class="screen memory-screen">
       <header class="screen-head">
         <h1>{tr('mem.title')}</h1>
-        <Button small icon="plus" onClick={() => setAdding(true)}>
-          {tr('mem.add')}
-        </Button>
+        <IconButton icon="plus" label={tr('mem.add')} onClick={() => setAdding(true)} />
       </header>
-      <p class="hint mem-hint">{tr('mem.hint')}</p>
 
       {items === null ? (
         <div class="skeleton-list" aria-busy="true" aria-label={tr('common.loading')}>
@@ -75,17 +73,20 @@ export function MemoryScreen() {
         </EmptyState>
       ) : (
         <>
-          <label class="sr-only" for="mem-search">
-            {tr('mem.search')}
-          </label>
-          <input
-            id="mem-search"
-            class="input mem-search"
-            value={query}
-            maxLength={80}
-            placeholder={tr('mem.search')}
-            onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
-          />
+          <div class="mem-search-wrap">
+            <Icon name="search" size={18} class="mem-search-icon" />
+            <label class="sr-only" for="mem-search">
+              {tr('mem.search')}
+            </label>
+            <input
+              id="mem-search"
+              class="input mem-search"
+              value={query}
+              maxLength={80}
+              placeholder={tr('mem.search')}
+              onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
+            />
+          </div>
 
           {present.size > 1 && (
             <div class="chips mem-filter" role="group" aria-label={tr('mem.title')}>
@@ -101,7 +102,7 @@ export function MemoryScreen() {
           )}
 
           {CATEGORIES.filter((c) => !filter || filter === c.kind).map((c) => (
-            <MemoryGroup key={c.kind} title={tr(c.label)} items={filtered.filter((m) => m.kind === c.kind)} onChanged={load} />
+            <MemoryGroup key={c.kind} category={c} items={filtered.filter((m) => m.kind === c.kind)} onChanged={load} />
           ))}
 
           {filtered.length === 0 && (query || filter) && <p class="muted pad">{tr('mem.no_match')}</p>}
@@ -176,14 +177,22 @@ function AddMemorySheet({ open, onClose, onAdded }: { open: boolean; onClose: ()
   );
 }
 
-function MemoryGroup({ title, items, onChanged }: { title: string; items: MemoryItem[]; onChanged: () => void }) {
+function MemoryGroup({
+  category,
+  items,
+  onChanged,
+}: {
+  category: { kind: MemoryKind; label: MessageKey; icon: IconName; color: string };
+  items: MemoryItem[];
+  onChanged: () => void;
+}) {
   const [editing, setEditing] = useState<string | null>(null);
   const [value, setValue] = useState('');
   if (!items.length) return null;
   return (
     <section class="group">
       <h2 class="group-title">
-        {title} <span class="count">{items.length}</span>
+        {tr(category.label)} <span class="count">{items.length}</span>
       </h2>
       <ul class="memory-list">
         {items.map((m) => (
@@ -214,6 +223,9 @@ function MemoryGroup({ title, items, onChanged }: { title: string; items: Memory
               </form>
             ) : (
               <>
+                <span class={`kind-badge square ${category.color}`} aria-hidden="true">
+                  <Icon name={category.icon} size={17} />
+                </span>
                 <span class="memory-body">
                   <span class="memory-text">{m.value}</span>
                   {relativeFromNow(m.created_at) && <span class="memory-meta">{relativeFromNow(m.created_at)}</span>}
@@ -228,7 +240,7 @@ function MemoryGroup({ title, items, onChanged }: { title: string; items: Memory
                       setValue(m.value);
                     }}
                   >
-                    <Icon name="edit" size={16} />
+                    <Icon name="edit" size={15} />
                   </button>
                   <button
                     type="button"
@@ -239,7 +251,7 @@ function MemoryGroup({ title, items, onChanged }: { title: string; items: Memory
                       onChanged();
                     }}
                   >
-                    <Icon name="trash" size={16} />
+                    <Icon name="trash" size={15} />
                   </button>
                 </span>
               </>

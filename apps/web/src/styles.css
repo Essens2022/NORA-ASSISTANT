@@ -670,6 +670,9 @@ textarea.input {
   width: 28px;
   height: 28px;
 }
+.kind-badge.square {
+  border-radius: 12px;
+}
 .kind-chip {
   display: inline-flex;
   align-items: center;
@@ -2220,6 +2223,20 @@ html.kb-open .main {
 }
 .mem-search {
   margin-bottom: 12px;
+}
+.mem-search-wrap {
+  position: relative;
+}
+.mem-search-wrap .mem-search {
+  padding-left: 40px;
+}
+.mem-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
 }
 .mem-filter {
   margin-bottom: 20px;
@@ -4667,11 +4684,15 @@ html.kb-open .main {
 
 .memory-screen .mem-search {
   min-height: 44px;
-  padding: 0 13px;
+  padding: 0 13px 0 40px;
   margin: 0 0 10px;
-  border: 1px solid var(--approved-line);
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
   border-radius: 14px;
   background: rgba(17,26,42,.94);
+  color: #d8e0ee;
+}
+.memory-screen .mem-search::placeholder {
+  color: #7c879c;
 }
 
 .memory-screen .mem-filter {
@@ -4688,9 +4709,10 @@ html.kb-open .main {
   flex: 0 0 auto;
   min-height: 30px;
   padding: 0 12px;
-  border: 1px solid var(--approved-line);
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
   border-radius: 999px;
   background: rgba(13,22,38,.96);
+  color: #9aa6bd;
 }
 
 .memory-screen .chip.selected {
@@ -4705,7 +4727,7 @@ html.kb-open .main {
 
 .memory-screen .group-title {
   margin: 0 4px 6px;
-  color: var(--approved-muted);
+  color: var(--approved-muted, #8e9ab0);
   font-size: 11px;
 }
 
@@ -4718,10 +4740,15 @@ html.kb-open .main {
 .memory-screen .memory-list li {
   min-height: 62px;
   padding: 10px 12px;
-  border: 1px solid var(--approved-line) !important;
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12)) !important;
   border-radius: 16px;
   background: rgba(17,26,42,.94);
   box-shadow: 0 7px 18px rgba(0,0,0,.12);
+  color: #d8e0ee;
+}
+
+.memory-screen .icon-btn {
+  color: #9aa6bd;
 }
 
 .memory-screen .memory-text {
@@ -4732,7 +4759,7 @@ html.kb-open .main {
 .memory-screen .memory-meta {
   margin-top: 3px;
   font-size: 10px;
-  color: var(--approved-muted);
+  color: var(--approved-muted, #8e9ab0);
 }
 
 /* PROFILE */
