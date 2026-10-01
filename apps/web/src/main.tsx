@@ -143,13 +143,40 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 // collapses and reappears *during* a scroll gesture - turning overflow off
 // right then (mid-scroll, scrollY > 0) would yank the content back to 0 out
 // from under the person's finger (seen on device as a jump/micro-stutter).
-// Only ever turning it off while already at rest at the top avoids that;
-// turning it ON (there's new overflow, e.g. more tasks loaded in) is always
-// safe immediately, nothing to lose there.
+// But leaving it scrollable and just waiting for scrollY to settle at 0 on
+// its own (an earlier version of this) turned out worse: switching from a
+// taller tab to Profilo can momentarily still report the old, taller
+// scrollHeight (the ResizeObserver callback racing the tab-panel's own
+// display toggle), so Profilo briefly looked scrollable - and a flick
+// during that exact window left it scrolled with nothing to ever bring it
+// back (seen on a real recording: the title scrolled off and stayed gone).
+// Snapping to the top before dropping scrollability guarantees it always
+// actually lands there instead of just hoping it already has - but never
+// while a finger is actively down, which would be the exact "yanked out
+// from under the finger" jank this is meant to avoid. touchend re-checks,
+// so a page that settles non-scrollable after all still gets corrected
+// the moment the finger lifts, not left stuck.
+let touching = false;
 const updatePageScrollable = () => {
   const scrollable = document.documentElement.scrollHeight > window.innerHeight + 1;
-  if (scrollable || window.scrollY === 0) document.documentElement.classList.toggle('page-scrollable', scrollable);
+  if (scrollable) {
+    document.documentElement.classList.add('page-scrollable');
+    return;
+  }
+  if (touching) return;
+  if (window.scrollY !== 0) window.scrollTo(0, 0);
+  document.documentElement.classList.remove('page-scrollable');
 };
+window.addEventListener('touchstart', () => (touching = true), { passive: true });
+for (const type of ['touchend', 'touchcancel'] as const)
+  window.addEventListener(
+    type,
+    () => {
+      touching = false;
+      updatePageScrollable();
+    },
+    { passive: true },
+  );
 new ResizeObserver(updatePageScrollable).observe(document.body);
 window.addEventListener('resize', updatePageScrollable);
 updatePageScrollable();
