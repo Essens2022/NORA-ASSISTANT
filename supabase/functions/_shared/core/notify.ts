@@ -157,6 +157,12 @@ const STR: Record<Lang, S> = {
 
 const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+function cleanNotificationTitle(title: string): string {
+  return title
+    .replace(/\s+(?:from|da|de la|dalla|din)\s+nora\b.*$/i, '')
+    .replace(/\s+nora\b$/i, '')
+    .trim();
+}
 
 /** Title that calls the person by name when we know it: "Ion, e momentul: …". */
 function called(s: S, key: string, name: string | null, v: Record<string, string | number>): string {
@@ -211,8 +217,8 @@ export function buildNotification(
       return {
         ...base,
         sticky: important,
-        title: cap(task.title),
-        body,
+        title: 'NORA',
+        body: [cap(cleanNotificationTitle(task.title)), body].filter(Boolean).join(' · '),
         actions: [{ action: 'done', title: s.a_done }, { action: 'snooze', title: s.a_snooze }],
       };
     }
