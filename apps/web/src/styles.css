@@ -3613,3 +3613,38 @@ html.kb-open .main {
     margin-top: 5px !important;
   }
 }
+
+
+/* NORA Home cleanup v3 */
+.ai-screen { gap: 6px; padding-top: calc(10px + env(safe-area-inset-top)); }
+.ai-head { margin: 0 0 2px; }
+.ai-head .ai-avatar-thumb { width: 34px; height: 34px; }
+.ai-hero { padding: 0 0 4px; }
+.ai-hero-greet { margin-top: 0; font-size: 22px; line-height: 28px; }
+.ai-hero-sub { margin: 0; font-size: 12px; line-height: 16px; }
+.ai-hero .voice { margin: 0 0 2px; }
+.ai-hero .voice-stage { width: 112px; height: 112px; }
+.ai-hero .voice-btn { width: 82px; height: 82px; }
+.ai-hero .voice-state { margin-top: 2px; font-size: 13px; }
+.ai-quick-actions { gap: 4px; margin-top: 0; }
+.ai-quick-actions button { padding: 2px 1px; gap: 3px; font-size: 9px; line-height: 11px; }
+.ai-quick-icon { width: 32px; height: 32px; }
+.ai-screen .briefing { padding: 11px 12px; border-radius: 16px; }
+.ai-screen .brief-label { font-size: 11px; }
+.ai-screen .brief-summary { margin-top: 2px; font-size: 17px; line-height: 22px; }
+.ai-screen .brief-next { margin-top: 7px; padding: 9px 10px; grid-template-columns: 32px 1fr; column-gap: 9px; }
+.ai-screen .countdown { width: 32px; height: 32px; }
+.ai-screen .brief-next-title { font-size: 14px; line-height: 18px; }
+.ai-screen .brief-next-when, .ai-screen .brief-next-label { font-size: 11px; line-height: 14px; }
+.ai-screen .ai-scroll { min-height: 0; }
+.ai-screen .ai-footer { margin-top: 0; padding-top: 4px; }
+.ai-screen .composer { border-radius: 16px; }
+
+@media (max-height: 760px) {
+  .ai-hero-greet { font-size: 20px; line-height: 25px; }
+  .ai-hero .voice-stage { width: 96px; height: 96px; }
+  .ai-hero .voice-btn { width: 70px; height: 70px; }
+  .ai-quick-icon { width: 29px; height: 29px; }
+  .ai-screen .briefing { padding: 9px 10px; }
+  .ai-screen .brief-summary { font-size: 16px; line-height: 20px; }
+}
