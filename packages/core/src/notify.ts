@@ -158,6 +158,25 @@ const STR: Record<Lang, S> = {
 const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+function cleanPushTitle(title: string): string {
+  return title
+    .replace(/\s+(?:from|by)\s+NORA\s*$/i, '')
+    .replace(/\s+(?:da|de la)\s+NORA\s*$/i, '')
+    .replace(/\s+NORA\s*$/i, '')
+    .trim();
+}
+
+function compactClock(time: string | null | undefined, hour12: boolean | null): string {
+  if (!time) return '';
+  const [hh, mm] = time.split(':').map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return time;
+  if (hour12) {
+    const h = hh % 12 || 12;
+    return `${h}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'}`;
+  }
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
 /** Title that calls the person by name when we know it: "Ion, e momentul: …". */
 function called(s: S, key: string, name: string | null, v: Record<string, string | number>): string {
   if (name) return cap(fill(s[key], { ...v, name: `${name}, ` }));
@@ -207,11 +226,11 @@ export function buildNotification(
         return { ...base, sticky: important, title: called(s, 'soon_title', name, { ...v, min: minsLeft }), body: cap(fill(s.soon_body, { ...v, where })), actions: [{ action: 'open', title: s.a_open }, { action: 'done', title: s.a_done }] };
       }
       const when = task.due_date && task.due_date !== today ? formatWhen(task.due_date, task.due_time, today, lang, hour12) : '';
-      const body = task.due_time && !when ? fill(s.main_body, v) : when ? fill(s.main_body_date, { when: cap(when) }) : fill(s.main_body_date, { when: cap(formatWhen(today, null, today, lang)) });
+      const body = task.due_time && !when ? compactClock(task.due_time, hour12) : when ? cap(when) : cap(formatWhen(today, null, today, lang));
       return {
         ...base,
         sticky: important,
-        title: cap(task.title),
+        title: cap(cleanPushTitle(task.title)),
         body,
         actions: [{ action: 'done', title: s.a_done }, { action: 'snooze', title: s.a_snooze }],
       };
