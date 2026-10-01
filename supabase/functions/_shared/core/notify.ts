@@ -170,14 +170,6 @@ const formatMainNotificationTitle = (s: string) => {
   return `${clean.toLocaleUpperCase()}${emoji}`;
 };
 
-function cleanPushTitle(title: string): string {
-  return title
-    .replace(/\s+(?:from|by)\s+NORA\s*$/i, '')
-    .replace(/\s+(?:da|de la)\s+NORA\s*$/i, '')
-    .replace(/\s+NORA\s*$/i, '')
-    .trim();
-}
-
 function compactClock(time: string | null | undefined, hour12: boolean | null): string {
   if (!time) return '';
   const [hh, mm] = time.split(':').map(Number);
@@ -242,7 +234,7 @@ export function buildNotification(
       return {
         ...base,
         sticky: important,
-        title: cap(cleanPushTitle(task.title)),
+        title: formatMainNotificationTitle(task.title),
         body,
         actions: [{ action: 'done', title: s.a_done }, { action: 'snooze', title: s.a_snooze }],
       };
