@@ -4179,7 +4179,7 @@ html.kb-open .main {
 .approved-home-head .logo-word{letter-spacing:.17em;font-weight:700}
 .approved-settings-btn{
   width:36px;height:36px;padding:0;
-  border:1px solid var(--nora-approved-line);
+  border:0;
   border-radius:50%;
   display:grid;place-items:center;
   color:#b7c2d6;
@@ -4488,7 +4488,7 @@ html.kb-open .main {
 .approved-settings-btn {
   width: 36px;
   height: 36px;
-  border: 1px solid var(--approved-line);
+  border: 0;
   border-radius: 50%;
   display: grid;
   place-items: center;
