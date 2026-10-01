@@ -3273,3 +3273,167 @@ html.kb-open .main {
     padding: 10px 11px;
   }
 }
+
+
+/* ==========================================================================
+   NORA Home structural v2
+   Real layout changes to match the approved product mockup, not just recoloring.
+   ========================================================================== */
+
+.ai-screen {
+  gap: 10px;
+}
+
+.ai-head {
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.ai-head .ai-avatar-thumb {
+  width: 38px;
+  height: 38px;
+}
+
+.ai-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex-shrink: 0;
+  padding: 2px 0 8px;
+}
+
+.ai-hero-greet {
+  margin: 2px 0 0;
+  font-size: 25px;
+  line-height: 32px;
+  font-weight: 760;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.ai-hero-sub {
+  margin: 2px 0 2px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.ai-hero .voice {
+  margin: 2px 0 4px;
+}
+
+.ai-hero .voice-stage {
+  width: 158px;
+  height: 158px;
+}
+
+.ai-hero .voice-btn {
+  width: 118px;
+  height: 118px;
+}
+
+.ai-quick-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.ai-quick-actions button {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  padding: 5px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+}
+
+.ai-quick-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, rgba(79,124,255,.95), rgba(95,82,238,.95));
+  box-shadow:
+    0 8px 18px rgba(79,124,255,.22),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.ai-quick-actions button:nth-child(2) .ai-quick-icon {
+  background: linear-gradient(145deg, #3f78ff, #46b4ff);
+}
+
+.ai-quick-actions button:nth-child(3) .ai-quick-icon {
+  background: linear-gradient(145deg, #7658f6, #b24df4);
+}
+
+.ai-quick-actions button:nth-child(4) .ai-quick-icon {
+  background: linear-gradient(145deg, #4f7cff, #ec4899);
+}
+
+.ai-quick-actions button:active .ai-quick-icon {
+  transform: scale(.94);
+}
+
+.ai-screen .briefing {
+  padding: 15px 16px;
+  border-radius: 18px;
+}
+
+.ai-screen .brief-summary {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+.ai-screen .brief-next {
+  margin-top: 10px;
+  padding: 11px 13px;
+}
+
+.ai-screen .ai-scroll {
+  min-height: 72px;
+}
+
+.ai-screen .ai-footer {
+  padding-top: 6px;
+}
+
+@media (max-height: 760px) {
+  .ai-hero-greet {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .ai-hero .voice-stage {
+    width: 128px;
+    height: 128px;
+  }
+
+  .ai-hero .voice-btn {
+    width: 94px;
+    height: 94px;
+  }
+
+  .ai-hero .voice-state {
+    margin-top: 0;
+  }
+
+  .ai-quick-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .ai-screen .briefing {
+    padding: 12px 14px;
+  }
+}

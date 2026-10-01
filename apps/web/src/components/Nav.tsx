@@ -4,8 +4,8 @@ import { Icon, type IconName } from './Icon.tsx';
 
 const TABS: Array<{ id: Tab; icon: IconName; key: 'nav.ai' | 'nav.activity' | 'nav.calendar' | 'nav.memory' | 'nav.profile' }> = [
   { id: 'ai', icon: 'spark', key: 'nav.ai' },
-  { id: 'activity', icon: 'list', key: 'nav.activity' },
   { id: 'calendar', icon: 'calendar', key: 'nav.calendar' },
+  { id: 'activity', icon: 'list', key: 'nav.activity' },
   { id: 'memory', icon: 'bookmark', key: 'nav.memory' },
   { id: 'profile', icon: 'user', key: 'nav.profile' },
 ];

@@ -117,19 +117,39 @@ export function AIScreen() {
     <div class="screen ai-screen">
       <header class="ai-head">
         <h1 class="brand">
-          <Logo size={34} withWordmark />
+          <Logo size={32} withWordmark />
         </h1>
-        <p class="greet">
-          <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />
-          <span>
-            {greet}
-            {profile?.display_name ? `, ${profile.display_name}` : ''}
-          </span>
-        </p>
+        <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />
       </header>
 
-      {/* the briefing stays put, like the voice button and composer below it – only
-          the conversation scrolls, never pushed off or hidden on a short phone */}
+      <section class="ai-hero" aria-label={tr('nav.ai')}>
+        <p class="ai-hero-greet">
+          {greet}
+          {profile?.display_name ? `, ${profile.display_name}` : ''}
+        </p>
+        <p class="ai-hero-sub">{tr('brand.tagline')}</p>
+        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+
+        <div class="ai-quick-actions">
+          <button type="button" onClick={() => setState({ tab: 'calendar' })}>
+            <span class="ai-quick-icon"><Icon name="calendar" size={20} /></span>
+            <span>{tr('cal.title')}</span>
+          </button>
+          <button type="button" onClick={() => setState({ tab: 'activity' })}>
+            <span class="ai-quick-icon"><Icon name="list" size={20} /></span>
+            <span>{tr('act.title')}</span>
+          </button>
+          <button type="button" onClick={() => setState({ tab: 'memory' })}>
+            <span class="ai-quick-icon"><Icon name="bookmark" size={20} /></span>
+            <span>{tr('mem.title')}</span>
+          </button>
+          <button type="button" onClick={() => setDraft(examples[0] ?? '')}>
+            <span class="ai-quick-icon"><Icon name="plus" size={20} /></span>
+            <span>{tr('task.new')}</span>
+          </button>
+        </div>
+      </section>
+
       <Briefing tasks={tasks} today={today} />
 
       <div class="ai-scroll" ref={listRef}>
@@ -159,8 +179,6 @@ export function AIScreen() {
           keyboard is open (see .ai-footer in styles.css) - the conversation above
           scrolls, this stays put instead of scrolling away with it */}
       <div class="ai-footer">
-        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
-
         <form class="composer" onSubmit={submit}>
           <label class="sr-only" for="composer-input">
             {tr('ai.input_placeholder')}
