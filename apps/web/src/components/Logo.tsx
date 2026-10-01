@@ -1,13 +1,16 @@
-import { NoraKitIcon } from './NoraKitIcon.tsx';
+import { brand } from '../config/brand.ts';
+// imported (not a plain /public file) so Vite gives it a content hash - a future
+// logo change ships under a brand-new URL instead of relying on the browser's
+// HTTP cache to notice the old one changed
+import logoMark from '../assets/logo-mark.png';
 
-/** The NORA logo mark + wordmark, straight from the founder-supplied brand
- * kit (branding/nora-logo.svg, branding/nora-wordmark.svg) - the real
- * approved artwork, not a recreation. */
+/** The NORA logo mark: the real brand-pack "N" artwork, not a recreation - same
+ * source image used for the app icon. */
 export function Logo({ size = 32, withWordmark = false, class: cls = '' }: { size?: number; withWordmark?: boolean; class?: string }) {
   return (
     <span class={`logo-lockup ${cls}`}>
-      <NoraKitIcon path="branding/nora-logo.svg" size={size} class="logo-mark" alt="" />
-      {withWordmark && <NoraKitIcon path="branding/nora-wordmark.svg" width={size * 3.1} height={size} class="logo-word-svg" alt="" />}
+      <img src={logoMark} width={size} height={size} class="logo-mark" alt="" />
+      {withWordmark && <span class="logo-word">{brand.appName}</span>}
     </span>
   );
 }

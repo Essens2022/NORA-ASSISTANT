@@ -4945,3 +4945,86 @@ html.kb-open .main {
     min-height: 66px;
   }
 }
+
+/* ==========================================================================
+   APPROVED NORA PRODUCTION UI — explicit Light override
+   The two "approved" blocks above hardcode dark-cinematic literals (card
+   gradients, panels, text) with no light counterpart, so picking "Chiaro"
+   in Aspetto left every card/row on every screen dark regardless. Per the
+   locked spec, light mode keeps the same geometry/hierarchy and only swaps
+   surfaces + contrast - nav bar and the header gear button are left alone
+   on purpose: both sit on their own always-dark background with a fixed
+   white KitGlyph icon (see NoraKitIcon.tsx), not something that follows
+   the app theme.
+   ========================================================================== */
+:root[data-theme='light'] {
+  --approved-bg: var(--bg);
+  --approved-panel: var(--surface);
+  --approved-panel-2: var(--elevated);
+  --approved-line: var(--border);
+  --approved-muted: var(--text-2);
+  --nora-approved-bg: var(--bg);
+  --nora-approved-panel: var(--surface);
+  --nora-approved-panel2: var(--elevated);
+  --nora-approved-line: var(--border);
+  --nora-approved-muted: var(--text-2);
+}
+
+:root[data-theme='light'] body,
+:root[data-theme='light'] .app {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(79, 124, 255, .06), transparent 34%),
+    radial-gradient(circle at 90% 8%, rgba(123, 92, 255, .05), transparent 30%),
+    var(--bg) !important;
+}
+
+:root[data-theme='light'] .approved-quick-grid button,
+:root[data-theme='light'] .ai-screen .composer,
+:root[data-theme='light'] .approved-chat-layer .composer {
+  background: linear-gradient(145deg, #ffffff, #f3f6fb) !important;
+  color: var(--text);
+}
+
+:root[data-theme='light'] .calendar-screen .cal-card,
+:root[data-theme='light'] .activity-screen .task-card,
+:root[data-theme='light'] .calendar-screen .task-card,
+:root[data-theme='light'] .memory-screen .memory-list li,
+:root[data-theme='light'] .profile-screen .prof-card,
+:root[data-theme='light'] .profile-screen .section-body {
+  background: linear-gradient(145deg, #ffffff, #f3f6fb) !important;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, .07) !important;
+  color: var(--text) !important;
+}
+
+:root[data-theme='light'] .activity-screen .act-range,
+:root[data-theme='light'] .memory-screen .mem-search,
+:root[data-theme='light'] .memory-screen .chip,
+:root[data-theme='light'] .profile-screen .input,
+:root[data-theme='light'] .profile-screen select,
+:root[data-theme='light'] .profile-screen .segmented {
+  background: #ffffff !important;
+  color: var(--text);
+}
+
+:root[data-theme='light'] .memory-screen .mem-search::placeholder {
+  color: var(--muted);
+}
+
+:root[data-theme='light'] .activity-screen .chip,
+:root[data-theme='light'] .memory-screen .chip {
+  color: var(--text-2);
+}
+
+:root[data-theme='light'] .profile-screen .prof-name,
+:root[data-theme='light'] .profile-screen .field > label,
+:root[data-theme='light'] .profile-screen .prof-account-label,
+:root[data-theme='light'] .profile-screen .row-label {
+  color: var(--text);
+}
+
+:root[data-theme='light'] .sheet,
+:root[data-theme='light'] .dialog,
+:root[data-theme='light'] .toast {
+  background: #ffffff;
+  color: var(--text);
+}
