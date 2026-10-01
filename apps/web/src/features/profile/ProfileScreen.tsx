@@ -1,7 +1,7 @@
 import { LANGS, type Lang, type Preferences, type SoundLevel } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { brand } from '../../config/brand.ts';
-import { Icon } from '../../components/Icon.tsx';
+import { Icon, type IconName } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
 import { Button, Confirm, Input, Sheet, Segmented, Select, Toggle } from '../../components/ui.tsx';
 import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr, trIn } from '../../i18n/index.ts';
@@ -35,7 +35,7 @@ export function ProfileScreen() {
         <h1>{tr('prof.title')}</h1>
       </header>
 
-      <div class="prof-card">
+      <button type="button" class="prof-card" onClick={() => setOpen('account')}>
         <div class="prof-avatar" aria-hidden="true">
           <Logo size={28} />
         </div>
@@ -43,24 +43,18 @@ export function ProfileScreen() {
           <p class="prof-name">{brand.appName}</p>
           <p class="prof-stat">{tr('prof.identity_sub')}</p>
         </div>
-      </div>
+      </button>
 
       <div class="section-body prof-rows">
-        <Row label={tr('prof.account')} value={profile.display_name || email || ''} onClick={() => setOpen('account')} />
-        <Row label={tr('prof.language')} value={LANG_NAMES[profile.ui_lang]} onClick={() => setOpen('language')} />
-        <Row label={tr('prof.voice')} value={p.voice_replies ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('voice')} />
-        <Row label={tr('prof.notifications')} value={p.notifications ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('notifications')} />
-        <Row label={tr('prof.reminders')} onClick={() => setOpen('reminders')} />
-        <Row label={tr('mem.title')} onClick={() => setState({ tab: 'memory' })} />
-        <Row label={tr('prof.region')} value={profile.timezone} onClick={() => setOpen('region')} />
-        <Row label={tr('prof.appearance')} value={tr(THEME_LABEL[currentTheme()])} onClick={() => setOpen('appearance')} />
-        <Row label={tr('prof.privacy')} onClick={() => setOpen('privacy')} />
-        <a class="row memory-link" href={`mailto:${brand.supportEmail}`}>
-          <span class="row-text">
-            <span class="row-label">{tr('prof.help')}</span>
-          </span>
-          <Icon name="chevron" size={18} class="chev" />
-        </a>
+        <Row icon="globe" color="kind-success" label={tr('prof.language')} value={LANG_NAMES[profile.ui_lang]} onClick={() => setOpen('language')} />
+        <Row icon="speaker" color="kind-blue" label={tr('prof.voice')} value={p.voice_replies ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('voice')} />
+        <Row icon="bell" color="kind-red" label={tr('prof.notifications')} value={p.notifications ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('notifications')} />
+        <Row icon="clock" color="kind-red" label={tr('prof.reminders')} onClick={() => setOpen('reminders')} />
+        <Row icon="calendar" color="kind-success" label={tr('cal.title')} value={tr('prof.connected')} onClick={() => setState({ tab: 'calendar' })} />
+        <Row icon="phone" color="kind-blue" label={tr('prof.devices')} value={tr('prof.one_device')} onClick={() => setOpen('devices')} />
+        <Row icon="spark" color="kind-warning" label={tr('prof.appearance')} value={tr(THEME_LABEL[currentTheme()])} onClick={() => setOpen('appearance')} />
+        <Row icon="shield" color="kind-purple" label={tr('prof.privacy')} onClick={() => setOpen('privacy')} />
+        <Row icon="help" color="kind-pink" label={tr('prof.help')} href={`mailto:${brand.supportEmail}`} />
       </div>
 
       <p class="version muted">{tr('prof.version', { v: __APP_VERSION__ })}</p>
@@ -72,10 +66,26 @@ export function ProfileScreen() {
             <span class="prof-account-label">{tr('prof.email')}</span>
             <span class="prof-account-value muted">{email}</span>
           </div>
+          <button type="button" class="row memory-link" onClick={() => { setOpen(null); setState({ tab: 'memory' }); }}>
+            <span class="row-text">
+              <span class="row-label">{tr('mem.title')}</span>
+            </span>
+            <Icon name="chevron" size={18} class="chev" />
+          </button>
           <button type="button" class="prof-account-action" onClick={() => void signOut()}>
             <Icon name="back" size={18} />
             <span>{tr('prof.logout')}</span>
           </button>
+        </div>
+      </Sheet>
+
+      <Sheet open={open === 'devices'} onClose={() => setOpen(null)} title={tr('prof.devices')}>
+        <div class="row">
+          <span class="row-text">
+            <span class="row-label">{tr('prof.this_device')}</span>
+            <p class="hint">{typeof navigator === 'undefined' ? '' : navigator.userAgent.match(/Android|iPhone|iPad|Mac|Windows|Linux/)?.[0]}</p>
+          </span>
+          <span class="muted">{tr('prof.connected')}</span>
         </div>
       </Sheet>
 
@@ -92,9 +102,6 @@ export function ProfileScreen() {
           options={[{ value: 'auto', label: tr('prof.conv_auto') }, ...LANGS.map((l) => ({ value: l, label: LANG_NAMES[l] }))]}
           onChange={(v) => void updateProfile({ conv_lang: v === 'auto' ? null : (v as Lang) })}
         />
-      </Sheet>
-
-      <Sheet open={open === 'region'} onClose={() => setOpen(null)} title={tr('prof.region')}>
         <Select<string>
           label={tr('prof.locale')}
           value={profile.locale}
@@ -182,14 +189,29 @@ export function ProfileScreen() {
   );
 }
 
-function Row({ label, value, onClick }: { label: string; value?: string; onClick: () => void }) {
-  return (
-    <button type="button" class="row memory-link" onClick={onClick}>
+function Row({ icon, color, label, value, onClick, href }: { icon: IconName; color: string; label: string; value?: string; onClick?: () => void; href?: string }) {
+  const inner = (
+    <>
+      <span class={`kind-badge square small ${color}`} aria-hidden="true">
+        <Icon name={icon} size={16} />
+      </span>
       <span class="row-text">
         <span class="row-label">{label}</span>
       </span>
       {value && <span class="prof-row-value muted">{value}</span>}
       <Icon name="chevron" size={18} class="chev" />
+    </>
+  );
+  if (href) {
+    return (
+      <a class="row memory-link prof-row" href={href}>
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <button type="button" class="row memory-link prof-row" onClick={onClick}>
+      {inner}
     </button>
   );
 }

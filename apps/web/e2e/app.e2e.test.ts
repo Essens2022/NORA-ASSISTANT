@@ -283,13 +283,18 @@ describe('NORA web – end to end', () => {
     await expect.poll(() => profile.prefs.reminder_lead_min).toBe(60);
     await remindersSheet.getByRole('button', { name: 'Închide' }).click();
 
-    await page.getByRole('button', { name: 'Regiune și oră' }).click();
-    const regionSheet = page.getByRole('dialog');
-    await regionSheet.getByRole('radio', { name: '12 ore' }).click();
+    // hour format now lives in the Lingua sheet, next to locale/region
+    await page.getByRole('button', { name: /^Limbă/ }).click();
+    const langSheet = page.getByRole('dialog');
+    await langSheet.getByRole('radio', { name: '12 ore' }).click();
     await expect.poll(() => profile.prefs.hour12).toBe(true);
-    await regionSheet.getByRole('button', { name: 'Închide' }).click();
+    await langSheet.getByRole('button', { name: 'Închide' }).click();
 
-    await page.getByRole('button', { name: 'Amintirile mele' }).click();
+    // "Amintirile mele" now lives inside the Account sheet, reached by tapping
+    // the NORA identity card at the top of Profile
+    await page.getByRole('button', { name: /^NORA/ }).click();
+    const accountSheet = page.getByRole('dialog');
+    await accountSheet.getByRole('button', { name: 'Amintirile mele' }).click();
     await page.getByRole('heading', { name: 'Amintirile mele' }).waitFor();
     await page.getByText('Preferă remindere cu 30 de minute înainte').waitFor();
     await page.getByRole('button', { name: 'Profil' }).click();
@@ -297,8 +302,7 @@ describe('NORA web – end to end', () => {
 
     // the row's accessible name also includes its current value (e.g. "Limbă Română")
     await page.getByRole('button', { name: /^Limbă/ }).click();
-    const langSheet = page.getByRole('dialog');
-    await langSheet.getByLabel('Limba aplicației').selectOption('it');
+    await page.getByRole('dialog').getByLabel('Limba aplicației').selectOption('it');
     await page.getByRole('heading', { name: 'Profilo' }).waitFor();
     expect(profile.ui_lang).toBe('it');
     await page.reload();
