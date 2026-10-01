@@ -211,7 +211,7 @@ describe('NORA web – end to end', () => {
   }, 30_000);
 
   it('activity shows sections; task persists after reload', async () => {
-    await page.getByRole('button', { name: 'Activitate' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Activitate' }).click();
     await page.getByRole('heading', { name: /Urmează/ }).waitFor();
     await page.getByRole('heading', { name: /Fără dată/ }).waitFor();
     await activeScreen().getByText('Întâlnire').first().waitFor();
@@ -254,7 +254,7 @@ describe('NORA web – end to end', () => {
   }, 20_000);
 
   it('manual task creation', async () => {
-    await page.getByRole('button', { name: 'Calendar' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Calendar' }).click();
     await page.getByRole('button', { name: 'Task nou' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Titlu').fill('Plătește asigurarea');
@@ -289,7 +289,7 @@ describe('NORA web – end to end', () => {
     expect(profile.ui_lang).toBe('it');
     await page.reload();
     await page.getByRole('heading', { name: 'Profilo' }).waitFor();
-    await page.getByRole('button', { name: 'Attività' }).waitFor();
+    await page.getByRole('navigation').getByRole('button', { name: 'Attività' }).waitFor();
     expect(await page.getByRole('switch', { name: /sera prima/ }).getAttribute('aria-checked')).toBe('false');
   }, 40_000);
 
@@ -298,7 +298,7 @@ describe('NORA web – end to end', () => {
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark');
     await page.getByRole('button', { name: 'NORA', exact: true }).click();
     await shot('08-home-dark');
-    await page.getByRole('button', { name: 'Attività' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Attività' }).click();
     await shot('09-activity-dark');
     expect(errors.filter((e) => !e.includes('favicon'))).toEqual([]);
   }, 20_000);

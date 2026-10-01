@@ -103,7 +103,7 @@ it('renders the showcase in light and dark', async () => {
   for (const theme of ['light', 'dark'] as const) {
     const ctx = await open(theme);
     await page.screenshot({ path: join(SHOTS, `showcase-home-${theme}.png`) });
-    await page.getByRole('button', { name: 'Activitate' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Activitate' }).click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, `showcase-activity-${theme}.png`) });
     await page.getByRole('button', { name: /Dentist/ }).click();
