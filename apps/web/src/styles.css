@@ -4953,10 +4953,11 @@ html.kb-open .main {
    gradients, panels, text) with no light counterpart, so picking "Chiaro"
    in Aspetto left every card/row on every screen dark regardless. Per the
    locked spec, light mode keeps the same geometry/hierarchy and only swaps
-   surfaces + contrast - nav bar and the header gear button are left alone
-   on purpose: both sit on their own always-dark background with a fixed
-   white KitGlyph icon (see NoraKitIcon.tsx), not something that follows
-   the app theme.
+   surfaces + contrast - the header gear button is left alone on purpose:
+   it sits on its own always-dark background with a fixed white KitGlyph
+   icon (see NoraKitIcon.tsx), not something that follows the app theme.
+   The nav bar DOES follow the theme now (see the .nav rule below) - its
+   icons already switched to the theme-reactive NoraKitIcon for this.
    ========================================================================== */
 :root[data-theme='light'] {
   --approved-bg: var(--bg);
@@ -4977,6 +4978,16 @@ html.kb-open .main {
     radial-gradient(circle at 18% 0%, rgba(79, 124, 255, .06), transparent 34%),
     radial-gradient(circle at 90% 8%, rgba(123, 92, 255, .05), transparent 30%),
     var(--bg) !important;
+}
+
+:root[data-theme='light'] .nav {
+  background: rgba(255, 255, 255, .92) !important;
+  border-top: 1px solid var(--border) !important;
+  box-shadow: 0 -8px 20px rgba(16, 24, 40, .06) !important;
+}
+
+:root[data-theme='light'] .nav-pill {
+  color: #8a93a6;
 }
 
 :root[data-theme='light'] .approved-quick-grid button,

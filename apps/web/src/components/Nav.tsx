@@ -1,7 +1,7 @@
 import { tr } from '../i18n/index.ts';
 import { setState, useStore, type Tab } from '../state/store.ts';
 import { Icon } from './Icon.tsx';
-import { KitGlyph } from './NoraKitIcon.tsx';
+import { NoraKitIcon } from './NoraKitIcon.tsx';
 
 const TABS: Array<{ id: Tab; icon: string; key: 'nav.ai' | 'nav.activity' | 'nav.calendar' | 'nav.memory' | 'nav.profile' }> = [
   { id: 'ai', icon: 'home', key: 'nav.ai' },
@@ -38,7 +38,7 @@ export function Nav() {
         >
           <span class="nav-pill">
             <span class="nav-icon">
-              <KitGlyph path={`${tab === t.id ? 'icons-active' : 'icons'}/${t.icon}.svg`} size={24} />
+              <NoraKitIcon path={`${tab === t.id ? 'icons-active' : 'icons'}/${t.icon}.svg`} size={24} />
               {t.id === 'activity' && attention > 0 && (
                 <span class="badge" aria-label={`${attention}`}>
                   {attention}
