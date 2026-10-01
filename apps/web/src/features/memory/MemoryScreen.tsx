@@ -55,10 +55,44 @@ export function MemoryScreen() {
 
   return (
     <div class="screen memory-screen">
-      <header class="screen-head">
-        <h1>{tr('mem.title')}</h1>
-        <IconButton icon="plus" label={tr('mem.add')} onClick={() => setAdding(true)} />
-      </header>
+      <div class="screen-sticky-head">
+        <header class="screen-head">
+          <h1>{tr('mem.title')}</h1>
+          <IconButton icon="plus" label={tr('mem.add')} onClick={() => setAdding(true)} />
+        </header>
+
+        {items !== null && items.length > 0 && (
+          <>
+            <div class="mem-search-wrap">
+              <Icon name="search" size={18} class="mem-search-icon" />
+              <label class="sr-only" for="mem-search">
+                {tr('mem.search')}
+              </label>
+              <input
+                id="mem-search"
+                class="input mem-search"
+                value={query}
+                maxLength={80}
+                placeholder={tr('mem.search')}
+                onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
+              />
+            </div>
+
+            {present.size > 1 && (
+              <div class="chips mem-filter" role="group" aria-label={tr('mem.title')}>
+                <button type="button" class={`chip${filter === null ? ' selected' : ''}`} onClick={() => setFilter(null)}>
+                  {tr('mem.all')}
+                </button>
+                {CATEGORIES.filter((c) => present.has(c.kind)).map((c) => (
+                  <button type="button" key={c.kind} class={`chip${filter === c.kind ? ' selected' : ''}`} onClick={() => setFilter(c.kind)}>
+                    {tr(c.label)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {items === null ? (
         <div class="skeleton-list" aria-busy="true" aria-label={tr('common.loading')}>
@@ -73,34 +107,6 @@ export function MemoryScreen() {
         </EmptyState>
       ) : (
         <>
-          <div class="mem-search-wrap">
-            <Icon name="search" size={18} class="mem-search-icon" />
-            <label class="sr-only" for="mem-search">
-              {tr('mem.search')}
-            </label>
-            <input
-              id="mem-search"
-              class="input mem-search"
-              value={query}
-              maxLength={80}
-              placeholder={tr('mem.search')}
-              onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
-            />
-          </div>
-
-          {present.size > 1 && (
-            <div class="chips mem-filter" role="group" aria-label={tr('mem.title')}>
-              <button type="button" class={`chip${filter === null ? ' selected' : ''}`} onClick={() => setFilter(null)}>
-                {tr('mem.all')}
-              </button>
-              {CATEGORIES.filter((c) => present.has(c.kind)).map((c) => (
-                <button type="button" key={c.kind} class={`chip${filter === c.kind ? ' selected' : ''}`} onClick={() => setFilter(c.kind)}>
-                  {tr(c.label)}
-                </button>
-              ))}
-            </div>
-          )}
-
           {CATEGORIES.filter((c) => !filter || filter === c.kind).map((c) => (
             <MemoryGroup key={c.kind} category={c} items={filtered.filter((m) => m.kind === c.kind)} onChanged={load} />
           ))}

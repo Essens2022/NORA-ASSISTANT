@@ -55,16 +55,18 @@ export function ActivityScreen() {
 
   return (
     <div class="screen activity-screen">
-      <header class="screen-head">
-        <h1>{tr('act.title')}</h1>
-      </header>
+      <div class="screen-sticky-head">
+        <header class="screen-head">
+          <h1>{tr('act.title')}</h1>
+        </header>
 
-      <div class="chips act-range" role="group" aria-label={tr('act.title')}>
-        {(['all', 'today', 'completed'] as const).map((f) => (
-          <button type="button" key={f} class={`chip${filter === f ? ' selected' : ''}`} onClick={() => setFilter(f)}>
-            {tr(f === 'all' ? 'act.filter_all' : f === 'today' ? 'act.today' : 'act.completed')}
-          </button>
-        ))}
+        <div class="chips act-range" role="group" aria-label={tr('act.title')}>
+          {(['all', 'today', 'completed'] as const).map((f) => (
+            <button type="button" key={f} class={`chip${filter === f ? ' selected' : ''}`} onClick={() => setFilter(f)}>
+              {tr(f === 'all' ? 'act.filter_all' : f === 'today' ? 'act.today' : 'act.completed')}
+            </button>
+          ))}
+        </div>
       </div>
 
       {!bootstrapped && (

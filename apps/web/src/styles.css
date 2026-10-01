@@ -4404,6 +4404,37 @@ html.kb-open .main {
   align-items: center;
 }
 
+/* The title + filter/mode bar at the top of Calendario, Attività and
+   Ricordi stays pinned while the list underneath scrolls - a normal
+   iOS-style sticky header, not something that should scroll away with
+   the content. Sticks just below the safe area (status bar), not at
+   the very top edge, which is where it naturally rests before any
+   scrolling happens too. A translucent blur (like the nav bar already
+   uses) instead of a flat background color, since the dark body behind
+   it is a radial-gradient glow, not a flat fill - a flat color patch
+   would visibly cut that glow off right where it's strongest (near the
+   top edge). */
+:root {
+  --sticky-head-bg: rgba(247, 249, 252, .82);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --sticky-head-bg: rgba(7, 16, 31, .78);
+  }
+}
+:root[data-theme='dark'] {
+  --sticky-head-bg: rgba(7, 16, 31, .78);
+}
+
+.screen-sticky-head {
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 5;
+  background: var(--sticky-head-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
 .screen-head h1 {
   font-size: 28px;
   line-height: 34px;

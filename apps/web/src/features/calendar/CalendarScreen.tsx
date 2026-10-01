@@ -97,33 +97,35 @@ export function CalendarScreen() {
 
   return (
     <div class="screen calendar-screen">
-      <header class="screen-head">
-        <h1>{tr('cal.title')}</h1>
-      </header>
+      <div class="screen-sticky-head">
+        <header class="screen-head">
+          <h1>{tr('cal.title')}</h1>
+        </header>
 
-      <div class="chips cal-mode" role="group" aria-label={tr('cal.view')}>
-        {(['day', 'week', 'month'] as const).map((m) => (
-          <button type="button" key={m} class={`chip${mode === m ? ' selected' : ''}`} onClick={() => setMode(m)}>
-            {tr(m === 'day' ? 'cal.mode_day' : m === 'week' ? 'cal.mode_week' : 'cal.mode_month')}
-          </button>
-        ))}
-      </div>
-
-      {mode !== 'month' && (
-        <div class="cal-strip" role="group" aria-label={tr('cal.view')}>
-          {stripDays.map((d, i) => (
-            <button
-              type="button"
-              key={d}
-              class={`cal-strip-day${d === selected ? ' selected' : ''}${d === today ? ' today' : ''}${byDate[d]?.length ? ' has-tasks' : ''}`}
-              onClick={() => setSelected(d)}
-            >
-              <span class="cal-strip-label">{stripLabels[i]}</span>
-              <span class="cal-strip-num">{Number(d.slice(8, 10))}</span>
+        <div class="chips cal-mode" role="group" aria-label={tr('cal.view')}>
+          {(['day', 'week', 'month'] as const).map((m) => (
+            <button type="button" key={m} class={`chip${mode === m ? ' selected' : ''}`} onClick={() => setMode(m)}>
+              {tr(m === 'day' ? 'cal.mode_day' : m === 'week' ? 'cal.mode_week' : 'cal.mode_month')}
             </button>
           ))}
         </div>
-      )}
+
+        {mode !== 'month' && (
+          <div class="cal-strip" role="group" aria-label={tr('cal.view')}>
+            {stripDays.map((d, i) => (
+              <button
+                type="button"
+                key={d}
+                class={`cal-strip-day${d === selected ? ' selected' : ''}${d === today ? ' today' : ''}${byDate[d]?.length ? ' has-tasks' : ''}`}
+                onClick={() => setSelected(d)}
+              >
+                <span class="cal-strip-label">{stripLabels[i]}</span>
+                <span class="cal-strip-num">{Number(d.slice(8, 10))}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {mode === 'month' && (
         <div class="cal-card">
