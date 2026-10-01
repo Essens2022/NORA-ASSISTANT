@@ -36,12 +36,11 @@ const DRAFT_KEY = 'nora.draft';
 const MIC_EXPLAINED = 'nora.mic_explained';
 
 export function AIScreen() {
-  const { messages, voice, level, tasks, profile, online, features } = useStore((s) => ({
+  const { messages, voice, level, tasks, online, features } = useStore((s) => ({
     messages: s.messages,
     voice: s.voice,
     level: s.level,
     tasks: s.tasks,
-    profile: s.profile,
     online: s.online,
     features: s.features,
   }));
@@ -127,8 +126,6 @@ export function AIScreen() {
 
       <section class="approved-voice-home" aria-label={tr('nav.ai')}>
         <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
-        <h2>{profile?.ui_lang === 'it' ? 'Ti ascolto' : profile?.ui_lang === 'ro' ? 'Te ascult' : profile?.ui_lang === 'ru' ? 'Я слушаю' : 'I’m listening'}</h2>
-        <p>{profile?.ui_lang === 'it' ? 'Dimmi cosa devo fare…' : profile?.ui_lang === 'ro' ? 'Spune-mi ce trebuie să fac…' : profile?.ui_lang === 'ru' ? 'Скажи, что мне сделать…' : 'Tell me what I should do…'}</p>
       </section>
 
       <div class="approved-quick-grid">

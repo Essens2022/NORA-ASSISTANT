@@ -8,4 +8,4 @@
 <radialGradient id="home"><stop stop-color="#242171"/><stop offset="1" stop-color="#070b13"/></radialGradient>
 <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
 <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="11"/></filter>
-</defs><circle cx="14" cy="14" r="13" fill="none" stroke="#fafaff" stroke-width="1"/><g transform="translate(5 5) scale(1)"><g transform="translate(0 0) scale(0.6428571428571429)"><path d="M9 2H15L16 6 20 5 23 10 20 13 21 17 16 20 13 18 9 20 4 17 5 13 2 10 5 5 9 6ZM12 8A4 4 0 1 0 12 16A4 4 0 1 0 12 8" fill="none" stroke="#fafaff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
+</defs><circle cx="14" cy="14" r="13" fill="none" stroke="#fafaff" stroke-width="1"/><g transform="translate(5.96 6.93) scale(1)"><g transform="translate(0 0) scale(0.6428571428571429)"><path d="M9 2H15L16 6 20 5 23 10 20 13 21 17 16 20 13 18 9 20 4 17 5 13 2 10 5 5 9 6ZM12 8A4 4 0 1 0 12 16A4 4 0 1 0 12 8" fill="none" stroke="#fafaff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
