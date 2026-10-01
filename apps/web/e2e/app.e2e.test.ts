@@ -158,6 +158,7 @@ afterAll(async () => {
 // every tab stays mounted now (just hidden - see App.tsx), so a task title that also
 // appears in the AI conversation history can otherwise match the wrong (hidden) node
 const activeScreen = () => page.locator('.tab-panel:not(.tab-hidden)');
+const nav = () => page.locator('.nav');
 
 const shot = async (name: string) => {
   await page.waitForTimeout(350); // let entry animations finish
@@ -211,7 +212,7 @@ describe('NORA web – end to end', () => {
   }, 30_000);
 
   it('activity shows sections; task persists after reload', async () => {
-    await page.getByRole('button', { name: 'Activitate' }).click();
+    await nav().getByRole('button', { name: 'Activitate', exact: true }).click();
     await page.getByRole('heading', { name: /Urmează/ }).waitFor();
     await page.getByRole('heading', { name: /Fără dată/ }).waitFor();
     await activeScreen().getByText('Întâlnire').first().waitFor();
@@ -222,7 +223,7 @@ describe('NORA web – end to end', () => {
   }, 30_000);
 
   it('task detail: reminders, reschedule, snooze, complete with undo', async () => {
-    await page.getByRole('button', { name: /Întâlnire/ }).click();
+    await activeScreen().getByRole('button', { name: /Întâlnire/ }).last().click();
     const dialog = page.getByRole('dialog');
     await dialog.getByText('Remindere').waitFor();
     await dialog.getByText('Verificare').waitFor(); // follow-up is always planned; prep depends on the time of day
@@ -254,7 +255,7 @@ describe('NORA web – end to end', () => {
   }, 20_000);
 
   it('manual task creation', async () => {
-    await page.getByRole('button', { name: 'Calendar' }).click();
+    await nav().getByRole('button', { name: 'Calendar', exact: true }).click();
     await page.getByRole('button', { name: 'Task nou' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Titlu').fill('Plătește asigurarea');
@@ -267,7 +268,7 @@ describe('NORA web – end to end', () => {
   }, 20_000);
 
   it('profile: every control persists (language, reminder prefs, memory)', async () => {
-    await page.getByRole('button', { name: 'Profil' }).click();
+    await nav().getByRole('button', { name: 'Profil', exact: true }).click();
     await page.getByRole('heading', { name: 'Profil' }).waitFor();
     await shot('07-profile');
 
@@ -278,7 +279,7 @@ describe('NORA web – end to end', () => {
     await page.getByRole('radio', { name: '12 ore' }).click();
     await expect.poll(() => profile.prefs.hour12).toBe(true);
 
-    await page.getByRole('button', { name: 'Amintirile mele' }).click();
+    await activeScreen().getByRole('button', { name: 'Amintirile mele', exact: true }).click();
     await page.getByRole('heading', { name: 'Amintirile mele' }).waitFor();
     await page.getByText('Preferă remindere cu 30 de minute înainte').waitFor();
     await page.getByRole('button', { name: 'Profil' }).click();
@@ -296,9 +297,9 @@ describe('NORA web – end to end', () => {
   it('dark mode renders and no runtime errors happened', async () => {
     await page.getByRole('radio', { name: 'Scuro' }).click();
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark');
-    await page.getByRole('button', { name: 'NORA', exact: true }).click();
+    await nav().getByRole('button', { name: 'NORA', exact: true }).click();
     await shot('08-home-dark');
-    await page.getByRole('button', { name: 'Attività' }).click();
+    await nav().getByRole('button', { name: 'Attività', exact: true }).click();
     await shot('09-activity-dark');
     expect(errors.filter((e) => !e.includes('favicon'))).toEqual([]);
   }, 20_000);
