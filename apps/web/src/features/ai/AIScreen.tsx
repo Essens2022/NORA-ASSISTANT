@@ -52,8 +52,14 @@ export function AIScreen() {
     }
   });
   const [explainMic, setExplainMic] = useState(false);
+  // The approved Home screen shows only the header, orb and quick actions -
+  // the conversation/composer stay off-screen (not duplicated under it) until
+  // the person actually starts using them: a message already exists, or they
+  // tapped a quick action that opens the composer / fills a draft.
+  const [engaged, setEngaged] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const today = todayLocal();
+  const showComposer = engaged || messages.length > 0 || draft.trim().length > 0;
 
   useEffect(() => {
     try {
@@ -125,7 +131,7 @@ export function AIScreen() {
       </section>
 
       <div class="approved-quick-grid">
-        <button type="button" aria-label={tr('home.quick_reminder')} onClick={() => setDraft(examples[0] ?? '')}>
+        <button type="button" aria-label={tr('home.quick_reminder')} onClick={() => { setDraft(examples[0] ?? ''); setEngaged(true); }}>
           <span><Icon name="bell" size={20} /></span><small>{tr('home.quick_reminder')}</small>
         </button>
         <button type="button" aria-label={tr('cal.title')} onClick={() => setState({ tab: 'calendar' })}>
@@ -137,74 +143,85 @@ export function AIScreen() {
         <button type="button" aria-label={tr('home.quick_note')} onClick={() => setState({ tab: 'memory' })}>
           <span><Icon name="file" size={20} /></span><small>{tr('home.quick_note')}</small>
         </button>
-        <button type="button" aria-label={tr('home.quick_message')} onClick={() => document.getElementById('composer-input')?.focus()}>
-          <span><Icon name="send" size={20} /></span><small>{tr('home.quick_message')}</small>
+        <button
+          type="button"
+          aria-label={tr('home.quick_message')}
+          onClick={() => {
+            setEngaged(true);
+            requestAnimationFrame(() => document.getElementById('composer-input')?.focus());
+          }}
+        >
+          <span><Icon name="chat" size={20} /></span><small>{tr('home.quick_message')}</small>
         </button>
         <button type="button" aria-label={tr('home.quick_more')} onClick={() => setState({ tab: 'profile' })}>
           <span><Icon name="user" size={20} /></span><small>{tr('home.quick_more')}</small>
         </button>
       </div>
 
-      <div class={`ai-scroll${messages.length === 0 ? ' ai-scroll-empty' : ''}`} ref={listRef}>
-        <div class="conversation" aria-live="polite" aria-relevant="additions">
-          {messages.length === 0 ? (
-            <div class="ai-empty">
-              <p>{tr('ai.empty')}</p>
-              <ul class="examples">
-                {examples.map((ex) => (
-                  <li key={ex}>
-                    <button type="button" onClick={() => setDraft(ex)}>
-                      “{ex}”
-                    </button>
-                  </li>
-                ))}
-              </ul>
+      {showComposer && (
+        <>
+          <div class={`ai-scroll${messages.length === 0 ? ' ai-scroll-empty' : ''}`} ref={listRef}>
+            <div class="conversation" aria-live="polite" aria-relevant="additions">
+              {messages.length === 0 ? (
+                <div class="ai-empty">
+                  <p>{tr('ai.empty')}</p>
+                  <ul class="examples">
+                    {examples.map((ex) => (
+                      <li key={ex}>
+                        <button type="button" onClick={() => setDraft(ex)}>
+                          “{ex}”
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
+              )}
             </div>
-          ) : (
-            messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
-          )}
-        </div>
-      </div>
+          </div>
 
-      {!online && <p class="offline-note">{tr('ai.offline')}</p>}
+          {!online && <p class="offline-note">{tr('ai.offline')}</p>}
 
-      {/* wrapped so the two stick together at the bottom of the screen while the
-          keyboard is open (see .ai-footer in styles.css) - the conversation above
-          scrolls, this stays put instead of scrolling away with it */}
-      <div class="ai-footer">
-        <form class="composer" onSubmit={submit}>
-          <label class="sr-only" for="composer-input">
-            {tr('ai.input_placeholder')}
-          </label>
-          <textarea
-            id="composer-input"
-            class="composer-input"
-            rows={1}
-            value={draft}
-            maxLength={2000}
-            autocomplete="off"
-            placeholder={tr('ai.input_placeholder')}
-            onInput={(e) => {
-              const el = e.target as HTMLTextAreaElement;
-              setDraft(el.value);
-              // grow with the text, like WhatsApp, instead of scrolling sideways in one line
-              el.style.height = 'auto';
-              el.style.height = `${el.scrollHeight}px`;
-            }}
-            onKeyDown={(e) => {
-              // Enter sends (matches the old <input> behaviour); Shift+Enter makes a new line
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                (e.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
-              }
-            }}
-            enterkeyhint="send"
-          />
-          <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
-            <Icon name="send" size={18} />
-          </button>
-        </form>
-      </div>
+          {/* wrapped so the two stick together at the bottom of the screen while the
+              keyboard is open (see .ai-footer in styles.css) - the conversation above
+              scrolls, this stays put instead of scrolling away with it */}
+          <div class="ai-footer">
+            <form class="composer" onSubmit={submit}>
+              <label class="sr-only" for="composer-input">
+                {tr('ai.input_placeholder')}
+              </label>
+              <textarea
+                id="composer-input"
+                class="composer-input"
+                rows={1}
+                value={draft}
+                maxLength={2000}
+                autocomplete="off"
+                placeholder={tr('ai.input_placeholder')}
+                onInput={(e) => {
+                  const el = e.target as HTMLTextAreaElement;
+                  setDraft(el.value);
+                  // grow with the text, like WhatsApp, instead of scrolling sideways in one line
+                  el.style.height = 'auto';
+                  el.style.height = `${el.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  // Enter sends (matches the old <input> behaviour); Shift+Enter makes a new line
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
+                  }
+                }}
+                enterkeyhint="send"
+              />
+              <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
+                <Icon name="send" size={18} />
+              </button>
+            </form>
+          </div>
+        </>
+      )}
 
       <Sheet open={explainMic} onClose={() => setExplainMic(false)} title={tr('onb.mic_title')}>
         <p class="muted">{tr('onb.mic_body')}</p>

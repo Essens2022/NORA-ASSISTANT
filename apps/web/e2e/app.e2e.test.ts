@@ -182,6 +182,9 @@ describe('NORA web – end to end', () => {
   }, 30_000);
 
   it('spec test A in the UI: "Mâine am o întâlnire." → "La ce oră?" → "9"', async () => {
+    // the composer only appears once the person actually opens it - the approved
+    // Home screen shows just the orb + quick actions until then
+    await page.getByRole('button', { name: 'Mesaj' }).click();
     const input = page.getByLabel('Scrie-i Norei…');
     await input.fill('Mâine am o întâlnire.');
     await input.press('Enter');
