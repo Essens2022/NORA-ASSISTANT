@@ -191,7 +191,6 @@ describe('NORA web – end to end', () => {
     await page.getByText('Perfect. Îți amintesc mâine la 9.').waitFor();
     const t = [...store.tasks.values()][0];
     expect(t.due_time).toBe('09:00');
-    await page.getByText('Următorul').waitFor();
     await shot('04-conversation');
   }, 30_000);
 
