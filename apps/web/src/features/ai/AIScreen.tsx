@@ -150,7 +150,7 @@ export function AIScreen() {
         </div>
       </section>
 
-      <Briefing tasks={tasks} today={today} />
+      <Briefing tasks={tasks} today={today} compact />
 
       <div class="ai-scroll" ref={listRef}>
         <div class="conversation" aria-live="polite" aria-relevant="additions">
