@@ -163,6 +163,13 @@ const cleanNotificationTitle = (s: string) =>
     .replace(/\s+[—–-]\s*nora\s*$/i, '')
     .trim();
 
+const formatMainNotificationTitle = (s: string) => {
+  const clean = cleanNotificationTitle(s);
+  const coffee = /\b(cafea|cafeaua|caff[eè]|coffee|кофе)\b/i.test(clean);
+  const emoji = coffee && !/[☕️☕]/u.test(clean) ? ' ☕️' : '';
+  return `${clean.toLocaleUpperCase()}${emoji}`;
+};
+
 function cleanPushTitle(title: string): string {
   return title
     .replace(/\s+(?:from|by)\s+NORA\s*$/i, '')
