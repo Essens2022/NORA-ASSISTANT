@@ -3437,3 +3437,212 @@ html.kb-open .main {
     padding: 12px 14px;
   }
 }
+
+
+/* ==========================================================================
+   NORA Home layout v3 — compact, balanced, no overlap on iPhone
+   ========================================================================== */
+.ai-screen {
+  gap: 6px;
+  height: calc(100dvh - 78px - env(safe-area-inset-bottom));
+  padding-top: calc(10px + env(safe-area-inset-top));
+  padding-bottom: 8px;
+}
+
+.ai-head {
+  margin: 0;
+  min-height: 40px;
+}
+
+.ai-head .logo-lockup {
+  gap: 8px;
+}
+
+.ai-head .logo-word {
+  font-size: 14px;
+  letter-spacing: .18em;
+}
+
+.ai-head .ai-avatar-thumb {
+  width: 34px;
+  height: 34px;
+}
+
+.ai-hero {
+  padding: 0;
+  gap: 0;
+}
+
+.ai-hero-greet {
+  margin: 2px 0 0;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.ai-hero-sub {
+  margin: 0 0 2px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ai-hero .voice {
+  margin: 0;
+}
+
+.ai-hero .voice-stage {
+  width: 118px;
+  height: 118px;
+}
+
+.ai-hero .voice-btn {
+  width: 86px;
+  height: 86px;
+}
+
+.ai-hero .voice-state {
+  margin-top: 0;
+  font-size: 12px;
+  min-height: 16px;
+}
+
+.ai-quick-actions {
+  gap: 4px;
+  margin: 2px 0 0;
+}
+
+.ai-quick-actions button {
+  padding: 2px 1px;
+  gap: 3px;
+  font-size: 9px;
+  line-height: 11px;
+}
+
+.ai-quick-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.ai-screen .briefing {
+  padding: 11px 12px;
+  border-radius: 16px;
+}
+
+.ai-screen .brief-label {
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.ai-screen .brief-summary {
+  margin-top: 1px;
+  font-size: 17px;
+  line-height: 22px;
+}
+
+.ai-screen .brief-next {
+  margin-top: 7px;
+  padding: 9px 10px;
+  grid-template-columns: 34px 1fr;
+  column-gap: 9px;
+}
+
+.ai-screen .countdown {
+  width: 34px;
+  height: 34px;
+}
+
+.ai-screen .brief-next-label {
+  font-size: 10px;
+}
+
+.ai-screen .brief-next-title {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.ai-screen .brief-next-when {
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.ai-screen .timeline {
+  display: none;
+}
+
+.ai-screen .brief-attention {
+  margin-top: 8px;
+}
+
+.ai-screen .ai-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 2px 0 4px;
+}
+
+.ai-screen .conversation {
+  padding-bottom: 2px;
+}
+
+.ai-screen .ai-empty {
+  display: none;
+}
+
+.ai-screen .ai-footer {
+  position: relative;
+  bottom: auto;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 4px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+}
+
+.ai-screen .composer {
+  min-height: 48px;
+  border-radius: 18px;
+  box-shadow: 0 8px 26px rgba(0,0,0,.12);
+}
+
+.ai-screen .composer-input {
+  min-height: 42px;
+  padding: 11px 0;
+}
+
+.nav {
+  bottom: max(4px, env(safe-area-inset-bottom));
+}
+
+@media (max-height: 760px) {
+  .ai-hero-greet {
+    font-size: 20px;
+    line-height: 25px;
+  }
+
+  .ai-hero .voice-stage {
+    width: 100px;
+    height: 100px;
+  }
+
+  .ai-hero .voice-btn {
+    width: 74px;
+    height: 74px;
+  }
+
+  .ai-quick-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .ai-screen .briefing {
+    padding: 9px 10px;
+  }
+
+  .ai-screen .brief-summary {
+    font-size: 15px;
+    line-height: 19px;
+  }
+}
