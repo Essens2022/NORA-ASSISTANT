@@ -2593,3 +2593,351 @@ html.kb-open .main {
     text-decoration: underline;
   }
 }
+
+
+/* ==========================================================================
+   NORA Premium Home v1
+   Visual-only polish layered on top of the existing design system.
+   Keeps all current voice, keyboard, task and navigation behaviour intact.
+   ========================================================================== */
+
+.ai-screen {
+  position: relative;
+  isolation: isolate;
+}
+
+.ai-screen::before,
+.ai-screen::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(54px);
+  opacity: 0.5;
+}
+
+.ai-screen::before {
+  width: 220px;
+  height: 220px;
+  top: 5%;
+  left: -90px;
+  background: rgba(79, 124, 255, 0.2);
+}
+
+.ai-screen::after {
+  width: 240px;
+  height: 240px;
+  right: -110px;
+  bottom: 20%;
+  background: rgba(139, 92, 246, 0.16);
+}
+
+.ai-head {
+  align-items: center;
+  margin: 2px 0 14px;
+  padding: 2px 2px 0;
+}
+
+.ai-head .brand {
+  display: flex;
+  align-items: center;
+}
+
+.ai-head .logo-mark {
+  box-shadow:
+    0 0 0 1px rgba(124, 156, 255, 0.14),
+    0 8px 24px rgba(79, 124, 255, 0.24);
+}
+
+.ai-head .logo-word {
+  letter-spacing: 0.16em;
+  font-weight: 760;
+}
+
+.ai-head .greet {
+  padding: 4px 8px 4px 4px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.ai-avatar-thumb {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--blue) 22%, transparent),
+    0 4px 14px rgba(16, 24, 40, 0.18);
+}
+
+.briefing {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--border) 75%, transparent);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--surface) 96%, var(--blue) 4%), color-mix(in srgb, var(--surface) 97%, var(--purple) 3%));
+  box-shadow:
+    0 18px 44px rgba(16, 24, 40, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.briefing::after {
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  right: -48px;
+  top: -58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(70, 215, 255, 0.18), transparent 66%);
+  pointer-events: none;
+}
+
+.brief-next {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(135deg, #3768ff 0%, #4f7cff 42%, #7a5cff 72%, #d65cff 100%);
+  box-shadow:
+    0 12px 30px rgba(79, 124, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.ai-scroll {
+  scrollbar-width: none;
+}
+
+.ai-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.ai-empty {
+  min-height: 100%;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+
+.ai-empty > p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.01em;
+}
+
+.examples {
+  width: 100%;
+  gap: 8px;
+}
+
+.examples li {
+  width: 100%;
+}
+
+.examples button {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 13px;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  color: var(--secondary-text);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    transform 140ms var(--ease),
+    border-color 140ms var(--ease),
+    background 140ms var(--ease);
+}
+
+.examples button:active {
+  transform: scale(0.985);
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--border));
+  background: var(--selected);
+}
+
+.ai-footer {
+  border-radius: 26px 26px 18px 18px;
+  padding: 10px 10px 8px;
+  margin: 0 -4px -4px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  box-shadow:
+    0 -12px 34px rgba(16, 24, 40, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.voice {
+  margin: 2px 0 8px;
+}
+
+.voice-stage {
+  width: 144px;
+  height: 144px;
+}
+
+.voice-stage::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 210deg,
+      rgba(70, 215, 255, 0.12),
+      rgba(79, 124, 255, 0.34),
+      rgba(139, 92, 246, 0.3),
+      rgba(236, 72, 153, 0.24),
+      rgba(70, 215, 255, 0.12));
+  filter: blur(8px);
+  opacity: 0.9;
+}
+
+.voice-btn {
+  width: 108px;
+  height: 108px;
+  background:
+    radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.34), transparent 18%),
+    linear-gradient(145deg, #46d7ff 0%, #3674ff 38%, #7c5cff 70%, #ec48a7 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 0 34px rgba(79, 124, 255, 0.34),
+    0 14px 36px rgba(49, 93, 235, 0.3);
+}
+
+.voice-ring {
+  inset: 10px;
+  border-color: rgba(124, 156, 255, 0.34);
+}
+
+.voice-state {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.composer {
+  border-radius: 18px;
+  border-color: color-mix(in srgb, var(--control-border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 24px rgba(16, 24, 40, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.composer-send {
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  box-shadow: 0 4px 12px rgba(79, 124, 255, 0.24);
+}
+
+.bubble {
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+}
+
+.bubble.user {
+  background: linear-gradient(135deg, #3567f6, #6658ed);
+}
+
+.bubble.assistant {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.nav {
+  left: 8px;
+  right: 8px;
+  bottom: max(6px, env(safe-area-inset-bottom));
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 22px;
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--nav-bg) 84%, transparent);
+  box-shadow: 0 12px 34px rgba(16, 24, 40, 0.14);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.nav-item {
+  height: 58px;
+}
+
+.nav-pill {
+  min-width: 52px;
+  padding: 5px 8px;
+  border-radius: 14px;
+}
+
+.nav-item.active .nav-pill {
+  background: color-mix(in srgb, var(--selected) 90%, transparent);
+  color: var(--blue);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--blue) 18%, transparent),
+    0 6px 16px rgba(79, 124, 255, 0.14);
+}
+
+:root[data-theme='dark'] .ai-screen::before {
+  background: rgba(41, 115, 255, 0.28);
+}
+
+:root[data-theme='dark'] .ai-screen::after {
+  background: rgba(226, 72, 255, 0.17);
+}
+
+:root[data-theme='dark'] .briefing {
+  background:
+    linear-gradient(145deg, rgba(20, 31, 53, 0.92), rgba(24, 27, 51, 0.88));
+  border-color: rgba(124, 156, 255, 0.14);
+  box-shadow:
+    0 20px 52px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme='dark'] .ai-footer {
+  background: rgba(10, 18, 34, 0.78);
+  border-color: rgba(124, 156, 255, 0.13);
+  box-shadow:
+    0 -14px 42px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme='dark'] .composer,
+:root[data-theme='dark'] .examples button,
+:root[data-theme='dark'] .bubble.assistant {
+  background: rgba(21, 29, 43, 0.84);
+  border-color: rgba(124, 156, 255, 0.12);
+}
+
+:root[data-theme='dark'] .nav {
+  background: rgba(10, 17, 31, 0.84);
+  border-color: rgba(124, 156, 255, 0.13);
+}
+
+:root[data-theme='dark'] .nav-item.active .nav-pill {
+  background: linear-gradient(135deg, rgba(79, 124, 255, 0.18), rgba(139, 92, 246, 0.18));
+  color: #c7d2fe;
+}
+
+@media (max-height: 700px) {
+  .voice-stage {
+    width: 118px;
+    height: 118px;
+  }
+
+  .voice-btn {
+    width: 88px;
+    height: 88px;
+  }
+
+  .voice {
+    margin: 0 0 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-stage::before {
+    filter: none;
+  }
+}
