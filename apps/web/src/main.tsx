@@ -139,59 +139,29 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 // make the fit change - a tab switch, data loading in, the keyboard opening/
 // closing, rotating the device - via a ResizeObserver on <body> rather than
 // hooking every one of those individually.
-// iOS shrinks/grows window.innerHeight on its own as the address bar
-// collapses and reappears *during* a scroll gesture - turning overflow off
-// right then (mid-scroll, scrollY > 0) would yank the content back to 0 out
-// from under the person's finger (seen on device as a jump/micro-stutter).
-// But leaving it scrollable and just waiting for scrollY to settle at 0 on
-// its own (an earlier version of this) turned out worse: switching from a
-// taller tab to Profilo can momentarily still report the old, taller
-// scrollHeight (the ResizeObserver callback racing the tab-panel's own
-// display toggle), so Profilo briefly looked scrollable - and a flick
-// during that exact window left it scrolled with nothing to ever bring it
-// back (seen on a real recording: the title scrolled off and stayed gone).
-// Snapping to the top before dropping scrollability guarantees it always
-// actually lands there instead of just hoping it already has - but never
-// while a finger is actively down, which would be the exact "yanked out
-// from under the finger" jank this is meant to avoid. touchend re-checks,
-// so a page that settles non-scrollable after all still gets corrected
-// the moment the finger lifts, not left stuck.
-let touching = false;
+// This ONLY ever toggles the class - it must never itself call scrollTo (an
+// earlier version did, "to guarantee landing at the top"): calling it from
+// a ResizeObserver callback risks a feedback loop (the call's own knock-on
+// layout effects re-trigger the observer), which is exactly what a real
+// recording caught - the page snapping up and down repeatedly on its own,
+// not from any touch at all. The actual touch-lock is the touchmove guard
+// below; this class is just what it reads to decide whether to engage.
 const updatePageScrollable = () => {
   const scrollable = document.documentElement.scrollHeight > window.innerHeight + 1;
-  if (scrollable) {
-    document.documentElement.classList.add('page-scrollable');
-    return;
-  }
-  if (touching) return;
-  if (window.scrollY !== 0) window.scrollTo(0, 0);
-  document.documentElement.classList.remove('page-scrollable');
+  document.documentElement.classList.toggle('page-scrollable', scrollable);
 };
-window.addEventListener('touchstart', () => (touching = true), { passive: true });
-for (const type of ['touchend', 'touchcancel'] as const)
-  window.addEventListener(
-    type,
-    () => {
-      touching = false;
-      updatePageScrollable();
-    },
-    { passive: true },
-  );
 new ResizeObserver(updatePageScrollable).observe(document.body);
 window.addEventListener('resize', updatePageScrollable);
 updatePageScrollable();
 
-// Belt and braces for the above: .page-scrollable only stops the page from
-// being scrolled *after the fact* (it changes overflow, which blocks the
-// browser's own scroll mechanism but not a direct touch-drag the same way
-// .nav - which is position:fixed and was simply never a scroll target to
-// begin with - is immovable). Cancel a drag outright whenever it would move
-// the page and the page isn't marked scrollable, so a non-scrollable screen
-// is exactly that from the very first pixel of the gesture, not just once
-// some CSS/JS state has caught up. Lets a drag through untouched when it's
-// actually inside its own scrollable element (the chat on Home, a sheet's
-// body, a horizontally-scrollable chip row) - those still work normally
-// even while the outer page itself is locked.
+// .nav never moves because it's position:fixed - never a scroll target to
+// begin with. Cancel a drag outright the instant it starts whenever the
+// page isn't marked .page-scrollable, the same guarantee for everything
+// else: a non-scrollable screen is exactly that from the very first pixel
+// of the gesture. Lets a drag through untouched when it's actually inside
+// its own scrollable element (the chat on Home, a sheet's body, a
+// horizontally-scrollable chip row) - those still work normally even while
+// the outer page itself is locked.
 const hasOwnScroll = (el: Element) => {
   const cs = getComputedStyle(el);
   return (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight) || (/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth);
