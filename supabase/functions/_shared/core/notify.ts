@@ -157,6 +157,11 @@ const STR: Record<Lang, S> = {
 
 const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const cleanNotificationTitle = (s: string) =>
+  s
+    .replace(/\s+(?:from|de la|da|от)\s+nora\s*$/i, '')
+    .replace(/\s+[—–-]\s*nora\s*$/i, '')
+    .trim();
 
 function cleanPushTitle(title: string): string {
   return title
