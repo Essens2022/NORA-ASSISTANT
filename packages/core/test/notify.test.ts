@@ -15,7 +15,7 @@ const at = new Date('2026-09-24T07:00:00Z'); // 09:00 Rome
 describe('notifications call the person', () => {
   it('at the time: concise title + time, done/snooze', () => {
     const n = buildNotification(rem('main'), task(), 'ro', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at });
-    expect(n.title).toBe('Sună contabilul');
+    expect(n.title).toBe('SUNĂ CONTABILUL');
     expect(n.body).toBe('09:00');
     expect(n.actions.map((a) => a.action)).toEqual(['done', 'snooze']);
   });
@@ -42,10 +42,16 @@ describe('notifications call the person', () => {
     expect(f.chat).toBe('Ai rezolvat: Sună contabilul?');
     expect(f.actions.map((a) => a.action)).toEqual(['done', 'notyet']);
   });
+  it('coffee reminder gets a concise visual cue', () => {
+    const n = buildNotification(rem('main'), task({ title: 'Bea cafeaua', due_time: '15:42' }), 'ro', DEFAULT_PREFERENCES, '2026-09-24', { now: at });
+    expect(n.title).toBe('BEA CAFEAUA ☕️');
+    expect(n.body).toBe('15:42');
+  });
+
   it('keeps the main reminder concise in every language', () => {
-    expect(buildNotification(rem('main'), task(), 'en', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at }).title).toBe('Sună contabilul');
+    expect(buildNotification(rem('main'), task(), 'en', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at }).title).toBe('SUNĂ CONTABILUL');
     expect(buildNotification(rem('main'), task(), 'it', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).body).toBe('09:00');
-    expect(buildNotification(rem('main'), task(), 'ru', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).title).toBe('Sună contabilul');
+    expect(buildNotification(rem('main'), task(), 'ru', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).title).toBe('SUNĂ CONTABILUL');
   });
 });
 
