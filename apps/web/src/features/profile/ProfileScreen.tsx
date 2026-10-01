@@ -2,7 +2,8 @@ import { LANGS, type Lang, type Preferences, type SoundLevel } from '@nora/core'
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { brand } from '../../config/brand.ts';
 import { Icon } from '../../components/Icon.tsx';
-import { Button, Confirm, Input, Section, Segmented, Select, Toggle } from '../../components/ui.tsx';
+import { Logo } from '../../components/Logo.tsx';
+import { Button, Confirm, Input, Sheet, Segmented, Select, Toggle } from '../../components/ui.tsx';
 import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr, trIn } from '../../i18n/index.ts';
 import { api, deviceTimezone, isManualTimezone, setManualTimezone } from '../../services/api.ts';
 import { signOut } from '../../services/auth.ts';
@@ -15,12 +16,18 @@ import { playChime } from '../../utils/chime.ts';
 
 const LOCALES = ['en-US', 'en-GB', 'ro-RO', 'it-IT', 'ru-RU', 'de-DE', 'fr-FR', 'es-ES', 'pt-PT', 'pl-PL', 'uk-UA'];
 
+const THEME_LABEL: Record<Theme, 'prof.theme_system' | 'prof.theme_light' | 'prof.theme_dark'> = {
+  system: 'prof.theme_system',
+  light: 'prof.theme_light',
+  dark: 'prof.theme_dark',
+};
+
 export function ProfileScreen() {
-  const { profile, email, taskCount } = useStore((s) => ({ profile: s.profile, email: s.email, taskCount: Object.keys(s.tasks).length }));
+  const { profile, email } = useStore((s) => ({ profile: s.profile, email: s.email }));
+  const [open, setOpen] = useState<string | null>(null);
   if (!profile) return <div class="screen" />;
   const p = profile.prefs;
   const setPref = <K extends keyof Preferences>(k: K, v: Preferences[K]) => updateProfile({ prefs: { [k]: v } as Partial<Preferences> });
-  const initials = (profile.display_name ?? email ?? '?').trim().slice(0, 1).toUpperCase();
 
   return (
     <div class="screen profile-screen">
@@ -30,15 +37,35 @@ export function ProfileScreen() {
 
       <div class="prof-card">
         <div class="prof-avatar" aria-hidden="true">
-          {initials}
+          <Logo size={28} />
         </div>
         <div class="prof-card-text">
-          <p class="prof-name">{profile.display_name || email}</p>
-          <p class="prof-stat">{tp('prof.active_tasks', taskCount)}</p>
+          <p class="prof-name">{brand.appName}</p>
+          <p class="prof-stat">{tr('prof.identity_sub')}</p>
         </div>
       </div>
 
-      <Section title={tr('prof.account')} id="account">
+      <div class="section-body prof-rows">
+        <Row label={tr('prof.account')} value={profile.display_name || email || ''} onClick={() => setOpen('account')} />
+        <Row label={tr('prof.language')} value={LANG_NAMES[profile.ui_lang]} onClick={() => setOpen('language')} />
+        <Row label={tr('prof.voice')} value={p.voice_replies ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('voice')} />
+        <Row label={tr('prof.notifications')} value={p.notifications ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('notifications')} />
+        <Row label={tr('prof.reminders')} onClick={() => setOpen('reminders')} />
+        <Row label={tr('mem.title')} onClick={() => setState({ tab: 'memory' })} />
+        <Row label={tr('prof.region')} value={profile.timezone} onClick={() => setOpen('region')} />
+        <Row label={tr('prof.appearance')} value={tr(THEME_LABEL[currentTheme()])} onClick={() => setOpen('appearance')} />
+        <Row label={tr('prof.privacy')} onClick={() => setOpen('privacy')} />
+        <a class="row memory-link" href={`mailto:${brand.supportEmail}`}>
+          <span class="row-text">
+            <span class="row-label">{tr('prof.help')}</span>
+          </span>
+          <Icon name="chevron" size={18} class="chev" />
+        </a>
+      </div>
+
+      <p class="version muted">{tr('prof.version', { v: __APP_VERSION__ })}</p>
+
+      <Sheet open={open === 'account'} onClose={() => setOpen(null)} title={tr('prof.account')}>
         <div class="prof-account-list">
           <NameField value={profile.display_name ?? ''} />
           <div class="prof-account-row">
@@ -50,9 +77,9 @@ export function ProfileScreen() {
             <span>{tr('prof.logout')}</span>
           </button>
         </div>
-      </Section>
+      </Sheet>
 
-      <Section title={tr('prof.language')} id="language">
+      <Sheet open={open === 'language'} onClose={() => setOpen(null)} title={tr('prof.language')}>
         <Select<Lang>
           label={tr('prof.ui_lang')}
           value={profile.ui_lang}
@@ -65,9 +92,9 @@ export function ProfileScreen() {
           options={[{ value: 'auto', label: tr('prof.conv_auto') }, ...LANGS.map((l) => ({ value: l, label: LANG_NAMES[l] }))]}
           onChange={(v) => void updateProfile({ conv_lang: v === 'auto' ? null : (v as Lang) })}
         />
-      </Section>
+      </Sheet>
 
-      <Section title={tr('prof.region')} id="region">
+      <Sheet open={open === 'region'} onClose={() => setOpen(null)} title={tr('prof.region')}>
         <Select<string>
           label={tr('prof.locale')}
           value={profile.locale}
@@ -88,14 +115,14 @@ export function ProfileScreen() {
           {formatDate('2026-09-23')} · {formatTime('14:30')}
         </p>
         <TimezoneField current={profile.timezone} />
-      </Section>
+      </Sheet>
 
-      <Section title={tr('prof.voice')} id="voice">
+      <Sheet open={open === 'voice'} onClose={() => setOpen(null)} title={tr('prof.voice')}>
         <Toggle label={tr('prof.voice_replies')} checked={p.voice_replies} onChange={(v) => void setPref('voice_replies', v)} />
         {p.voice_replies && <VoicePicker lang={profile.conv_lang ?? profile.ui_lang} />}
-      </Section>
+      </Sheet>
 
-      <Section title={tr('prof.notifications')} id="notifications">
+      <Sheet open={open === 'notifications'} onClose={() => setOpen(null)} title={tr('prof.notifications')}>
         <PushControl />
         <Toggle label={tr('prof.notif_all')} checked={p.notifications} onChange={(v) => void setPref('notifications', v)} />
         <Segmented<SoundLevel>
@@ -114,9 +141,9 @@ export function ProfileScreen() {
         <Button small icon="speaker" onClick={() => playChime(p.sound === 'important' ? 'important' : 'normal')} disabled={p.sound === 'silent'}>
           {tr('prof.sound_preview')}
         </Button>
-      </Section>
+      </Sheet>
 
-      <Section title={tr('prof.reminders')} id="reminders">
+      <Sheet open={open === 'reminders'} onClose={() => setOpen(null)} title={tr('prof.reminders')}>
         <Select<string>
           label={tr('prof.lead')}
           value={String(p.reminder_lead_min)}
@@ -141,29 +168,29 @@ export function ProfileScreen() {
             onChange={(v) => void setPref('max_followups', Number(v))}
           />
         )}
-      </Section>
+        <Toggle label={tr('prof.personalization')} checked={p.personalization} onChange={(v) => void setPref('personalization', v)} hint={tr('prof.memory_hint')} />
+      </Sheet>
 
-      <Section title={tr('prof.memory')} id="memory">
-        <p class="hint">{tr('prof.memory_hint')}</p>
-        <Toggle label={tr('prof.personalization')} checked={p.personalization} onChange={(v) => void setPref('personalization', v)} />
-        <button type="button" class="row memory-link" onClick={() => setState({ tab: 'memory' })}>
-          <span class="row-text">
-            <span class="row-label">{tr('mem.title')}</span>
-          </span>
-          <Icon name="chevron" size={18} class="chev" />
-        </button>
-      </Section>
-
-      <Section title={tr('prof.appearance')} id="appearance">
+      <Sheet open={open === 'appearance'} onClose={() => setOpen(null)} title={tr('prof.appearance')}>
         <ThemePicker />
-      </Section>
+      </Sheet>
 
-      <Section title={tr('prof.privacy')} id="privacy">
+      <Sheet open={open === 'privacy'} onClose={() => setOpen(null)} title={tr('prof.privacy')}>
         <PrivacyControls />
-      </Section>
-
-      <p class="version muted">{tr('prof.version', { v: __APP_VERSION__ })}</p>
+      </Sheet>
     </div>
+  );
+}
+
+function Row({ label, value, onClick }: { label: string; value?: string; onClick: () => void }) {
+  return (
+    <button type="button" class="row memory-link" onClick={onClick}>
+      <span class="row-text">
+        <span class="row-label">{label}</span>
+      </span>
+      {value && <span class="prof-row-value muted">{value}</span>}
+      <Icon name="chevron" size={18} class="chev" />
+    </button>
   );
 }
 

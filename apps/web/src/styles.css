@@ -464,6 +464,15 @@ textarea.input {
   justify-content: space-between;
   gap: 16px;
   min-height: 52px;
+  /* a <button>/<a> using this class otherwise inherits the browser's default
+     centered button text alignment, which only shows up once the row is wide
+     enough for it to matter - the label ends up floating mid-row instead of
+     flush left against its icon/chevron neighbours. */
+  text-align: left;
+  /* an <a href> row (privacy policy, terms, help) shouldn't look different
+     from a <button> row (settings groups) just because of its tag. */
+  color: inherit;
+  text-decoration: none;
 }
 .row-text {
   flex: 1;
@@ -935,7 +944,10 @@ html.kb-open .main {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* above the bottom nav (z-index: 60 in the approved theme) - otherwise the
+     nav bar's own subtree sits on top of a sheet tall enough to reach the
+     bottom of the screen and silently eats clicks meant for the sheet. */
+  z-index: 70;
   background: var(--overlay);
   display: flex;
   align-items: flex-end;
@@ -4767,10 +4779,17 @@ html.kb-open .main {
   min-height: 74px;
   padding: 12px;
   margin-bottom: 16px;
-  border: 1px solid var(--approved-line);
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
   border-radius: 18px;
   background: linear-gradient(145deg, rgba(17,26,42,.96), rgba(13,22,38,.96));
   box-shadow: 0 12px 28px rgba(0,0,0,.16);
+  color: #d8e0ee;
+}
+.profile-screen .prof-name {
+  color: #f2f5fb;
+}
+.profile-screen .prof-stat {
+  color: var(--approved-muted, #8e9ab0);
 }
 
 .profile-screen .prof-avatar {

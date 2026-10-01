@@ -255,6 +255,7 @@ export const ru: Record<MessageKey, string> = {
   'evt.occurrence_completed': 'Сделано в этот раз',
 
   'prof.title': 'Профиль',
+  'prof.identity_sub': 'Твой личный помощник',
   'prof.account': 'Аккаунт',
   'prof.name': 'Имя',
   'prof.name_placeholder': 'Как NORA к тебе обращаться?',
@@ -319,6 +320,7 @@ export const ru: Record<MessageKey, string> = {
   'prof.memory_delete_all_confirm': 'Удалить всё, что NORA помнит о твоих предпочтениях?',
   'prof.personalization': 'Запоминать мои предпочтения',
   'prof.privacy': 'Конфиденциальность и данные',
+  'prof.help': 'Помощь и поддержка',
   'prof.privacy_policy': 'Политика конфиденциальности',
   'prof.terms': 'Условия использования',
   'prof.export': 'Скачать мои данные',

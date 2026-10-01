@@ -255,6 +255,7 @@ export const ro: Record<MessageKey, string> = {
   'evt.occurrence_completed': 'Făcut de data asta',
 
   'prof.title': 'Profil',
+  'prof.identity_sub': 'Asistentul tău personal',
   'prof.account': 'Cont',
   'prof.name': 'Nume',
   'prof.name_placeholder': 'Cum să-ți spună NORA?',
@@ -319,6 +320,7 @@ export const ro: Record<MessageKey, string> = {
   'prof.memory_delete_all_confirm': 'Ștergi tot ce ține minte NORA despre preferințele tale?',
   'prof.personalization': 'Învață preferințele mele',
   'prof.privacy': 'Confidențialitate și date',
+  'prof.help': 'Ajutor și suport',
   'prof.privacy_policy': 'Politica de confidențialitate',
   'prof.terms': 'Termeni și condiții',
   'prof.export': 'Descarcă datele mele',
