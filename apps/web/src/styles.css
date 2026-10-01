@@ -3648,3 +3648,189 @@ html.kb-open .main {
   .ai-screen .briefing { padding: 9px 10px; }
   .ai-screen .brief-summary { font-size: 16px; line-height: 20px; }
 }
+
+
+/* ==========================================================================
+   Profile + navigation corrective pass
+   ========================================================================== */
+
+/* Bottom navigation must be attached to the viewport edge, never floating above content. */
+.nav {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  border-radius: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  padding: 2px 6px env(safe-area-inset-bottom) !important;
+  background: var(--nav-bg) !important;
+  box-shadow: 0 -8px 24px rgba(0,0,0,.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.main {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px);
+}
+
+.profile-screen {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 28px);
+}
+
+.profile-screen .screen-head {
+  margin: 2px 0 14px;
+}
+
+.profile-screen .screen-head h1 {
+  font-size: 28px;
+  line-height: 34px;
+}
+
+.profile-screen .prof-card {
+  padding: 14px;
+  margin-bottom: 20px;
+  border-radius: 18px;
+  min-height: 82px;
+}
+
+.profile-screen .prof-avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
+}
+
+.profile-screen .prof-name {
+  font-size: 17px;
+  line-height: 22px;
+}
+
+.profile-screen .prof-stat {
+  font-size: 12px;
+}
+
+.profile-screen .section {
+  margin-bottom: 22px;
+}
+
+.profile-screen .section-title {
+  margin: 0 2px 7px;
+  font-size: 13px;
+  line-height: 18px;
+  text-transform: none;
+}
+
+.profile-screen .section-body {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.prof-account-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.prof-account-name,
+.prof-account-row,
+.prof-account-action {
+  min-height: 58px;
+  padding: 0 14px;
+  display: grid;
+  grid-template-columns: minmax(96px, .42fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+}
+
+.prof-account-action {
+  grid-template-columns: 22px 1fr;
+  color: var(--blue);
+  font-weight: 600;
+  border-bottom: 0;
+}
+
+.prof-account-label {
+  font-size: 14px;
+  color: var(--secondary-text);
+  font-weight: 600;
+}
+
+.prof-account-value {
+  min-width: 0;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.prof-account-inline-input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  text-align: right;
+  font-size: 14px;
+  padding: 0;
+}
+
+.prof-account-inline-input:focus {
+  box-shadow: none;
+}
+
+.profile-screen .field,
+.profile-screen .toggle-row,
+.profile-screen .push-control > .row,
+.profile-screen .memory-link {
+  padding: 13px 14px;
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-screen .field:last-child,
+.profile-screen .toggle-row:last-child,
+.profile-screen .push-control > .row:last-child {
+  border-bottom: 0;
+}
+
+.profile-screen .field {
+  gap: 6px;
+}
+
+.profile-screen .input,
+.profile-screen select {
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.profile-screen .segmented {
+  min-height: 42px;
+}
+
+.profile-screen .section-body > .btn {
+  margin: 12px 14px;
+}
+
+.profile-screen .voice-picker,
+.profile-screen .push-control {
+  gap: 0;
+  width: 100%;
+}
+
+:root[data-theme='dark'] .nav {
+  background: #0f1724 !important;
+  border-top-color: #293345 !important;
+}
+
+@media (max-width: 390px) {
+  .prof-account-name,
+  .prof-account-row {
+    grid-template-columns: 90px minmax(0,1fr);
+  }
+}
