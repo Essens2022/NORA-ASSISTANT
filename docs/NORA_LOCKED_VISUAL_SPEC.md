@@ -18,9 +18,7 @@ This document locks the exact production direction approved by the founder. Futu
 
 ## 1. Home
 - Header: NORA wordmark left, compact settings/profile action right.
-- Large central blue/violet microphone orb is the hero.
-- Listening copy directly below orb: “Ti ascolto” / localized equivalent.
-- Supporting copy below, short and low-contrast.
+- Greeting + short supporting copy near the top.
 - Six compact quick actions in a 3 × 2 grid:
   - Reminder
   - Calendar
@@ -29,6 +27,11 @@ This document locks the exact production direction approved by the founder. Futu
   - Message
   - More
 - No oversized briefing card dominating the page.
+- Large central blue/violet microphone orb sits at the bottom, directly
+  above the composer (founder override, 2026-10-01 - not at the top near
+  the greeting).
+- Listening copy directly below the orb: "Ti ascolto" / localized
+  equivalent.
 - Bottom nav: Home, Calendar, Activity, Memory, Profile.
 - Home selected with blue highlight.
 

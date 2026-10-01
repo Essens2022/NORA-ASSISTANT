@@ -2759,38 +2759,6 @@ html.kb-open .main {
   color: var(--text-2);
 }
 
-.ai-hero .voice {
-  margin: 1px 0 0;
-}
-
-.ai-hero .voice-stage {
-  width: 118px;
-  height: 118px;
-}
-
-.ai-hero .voice-btn {
-  width: 84px;
-  height: 84px;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255,255,255,.30), transparent 20%),
-    linear-gradient(145deg, #37cfff 0%, #397dff 38%, #775cff 70%, #d84fc9 100%);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.12),
-    0 0 26px rgba(79,124,255,.26),
-    0 12px 28px rgba(49,93,235,.24);
-}
-
-.ai-hero .voice-ring {
-  inset: 9px;
-}
-
-.ai-hero .voice-state {
-  margin-top: 2px;
-  font-size: 13px;
-  line-height: 17px;
-  font-weight: 650;
-}
-
 .ai-quick-actions {
   width: 100%;
   display: grid;
@@ -2930,6 +2898,32 @@ html.kb-open .main {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+/* The mic orb lives right above the composer, not up by the greeting -
+   compact here (it's no longer the one hero element on the page), same
+   premium gradient as everywhere else it appears. */
+.ai-footer .voice {
+  margin: 0 0 4px;
+}
+.ai-footer .voice-stage {
+  width: 92px;
+  height: 92px;
+}
+.ai-footer .voice-btn {
+  width: 66px;
+  height: 66px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.3), transparent 20%),
+    linear-gradient(145deg, #37cfff 0%, #397dff 38%, #775cff 70%, #d84fc9 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 20px rgba(79, 124, 255, 0.24), 0 10px 22px rgba(49, 93, 235, 0.22);
+}
+.ai-footer .voice-ring {
+  inset: 7px;
+}
+.ai-footer .voice-state {
+  margin-top: 2px;
+  font-size: 12px;
 }
 
 .ai-screen .composer {

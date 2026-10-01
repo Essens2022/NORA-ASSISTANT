@@ -128,7 +128,6 @@ export function AIScreen() {
           {profile?.display_name ? `, ${profile.display_name}` : ''}
         </p>
         <p class="ai-hero-sub">{tr('brand.tagline')}</p>
-        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
 
         <div class="ai-quick-actions ai-quick-actions-6">
           <button type="button" aria-label={tr('home.quick_reminder')} onClick={() => setDraft(examples[0] ?? '')}>
@@ -187,6 +186,8 @@ export function AIScreen() {
           keyboard is open (see .ai-footer in styles.css) - the conversation above
           scrolls, this stays put instead of scrolling away with it */}
       <div class="ai-footer">
+        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+
         <form class="composer" onSubmit={submit}>
           <label class="sr-only" for="composer-input">
             {tr('ai.input_placeholder')}
