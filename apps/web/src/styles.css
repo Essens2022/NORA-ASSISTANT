@@ -160,6 +160,17 @@ html {
   /* no rubber-band / pull-to-refresh: the app stays put like a native one */
   overscroll-behavior: none;
   background: var(--bg);
+  /* A page whose content fits the viewport shouldn't be scrollable at all -
+     iOS's elastic bounce on drag can still trigger even with the page
+     genuinely non-overflowing (overscroll-behavior above only stops the
+     bounce from chaining into a pull-to-refresh/reveal, not the bounce
+     itself), so there's nothing to grab onto unless main.tsx's
+     ResizeObserver (updatePageScrollable) finds the content actually taller
+     than the viewport and adds .page-scrollable. */
+  overflow-y: hidden;
+}
+html.page-scrollable {
+  overflow-y: auto;
 }
 body {
   margin: 0;

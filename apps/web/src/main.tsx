@@ -133,6 +133,20 @@ const holdScrollAtTop = () => {
 };
 window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 
+// A page whose content fits the viewport shouldn't be scrollable at all (see
+// the .page-scrollable comment in styles.css for why overscroll-behavior
+// alone doesn't cover this). Re-checked on every layout change that could
+// make the fit change - a tab switch, data loading in, the keyboard opening/
+// closing, rotating the device - via a ResizeObserver on <body> rather than
+// hooking every one of those individually.
+const updatePageScrollable = () => {
+  const scrollable = document.documentElement.scrollHeight > window.innerHeight + 1;
+  document.documentElement.classList.toggle('page-scrollable', scrollable);
+};
+new ResizeObserver(updatePageScrollable).observe(document.body);
+window.addEventListener('resize', updatePageScrollable);
+updatePageScrollable();
+
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 // Tapping anywhere outside the field you're typing in dismisses the keyboard - the
 // standard chat behaviour; otherwise the only way out is the keyboard's own "done"
