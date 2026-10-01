@@ -9,11 +9,13 @@ import { Onboarding } from './features/onboarding/Onboarding.tsx';
 import { ProfileScreen } from './features/profile/ProfileScreen.tsx';
 import { TaskDetailHost } from './features/task/TaskDetail.tsx';
 import { ReminderAlert } from './features/alert/ReminderAlert.tsx';
+import { DesignLab } from './features/design/DesignLab.tsx';
 import { bootstrap } from './state/actions.ts';
 import { tr } from './i18n/index.ts';
 import { useStore } from './state/store.ts';
 
 export function App() {
+  if (new URLSearchParams(location.search).get('design') === '1') return <DesignLab />;
   const { authReady, userId, bootstrapped, onboardedAt, profile, tab, online, handoff } = useStore((s) => ({
     authReady: s.authReady,
     userId: s.userId,
