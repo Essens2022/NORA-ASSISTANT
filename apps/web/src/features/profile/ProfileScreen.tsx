@@ -39,14 +39,17 @@ export function ProfileScreen() {
       </div>
 
       <Section title={tr('prof.account')} id="account">
-        <NameField value={profile.display_name ?? ''} />
-        <div class="row">
-          <span class="row-label">{tr('prof.email')}</span>
-          <span class="muted">{email}</span>
+        <div class="prof-account-list">
+          <NameField value={profile.display_name ?? ''} />
+          <div class="prof-account-row">
+            <span class="prof-account-label">{tr('prof.email')}</span>
+            <span class="prof-account-value muted">{email}</span>
+          </div>
+          <button type="button" class="prof-account-action" onClick={() => void signOut()}>
+            <Icon name="back" size={18} />
+            <span>{tr('prof.logout')}</span>
+          </button>
         </div>
-        <Button icon="back" onClick={() => void signOut()}>
-          {tr('prof.logout')}
-        </Button>
       </Section>
 
       <Section title={tr('prof.language')} id="language">
@@ -172,13 +175,24 @@ function NameField({ value }: { value: string }) {
   };
   return (
     <form
+      class="prof-account-name"
       onSubmit={(e) => {
         e.preventDefault();
         save();
         (document.activeElement as HTMLElement)?.blur();
       }}
     >
-      <Input label={tr('prof.name')} value={v} onValue={setV} placeholder={tr('prof.name_placeholder')} maxLength={60} onBlur={save} autocomplete="given-name" />
+      <label class="prof-account-label" for="profile-name-inline">{tr('prof.name')}</label>
+      <input
+        id="profile-name-inline"
+        class="prof-account-inline-input"
+        value={v}
+        placeholder={tr('prof.name_placeholder')}
+        maxLength={60}
+        autocomplete="given-name"
+        onInput={(e) => setV((e.target as HTMLInputElement).value)}
+        onBlur={save}
+      />
     </form>
   );
 }
