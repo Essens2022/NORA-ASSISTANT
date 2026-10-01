@@ -22,7 +22,7 @@ export const ro: Record<MessageKey, string> = {
   'common.on': 'Pornit',
   'common.off': 'Oprit',
 
-  'nav.ai': 'NORA',
+  'nav.ai': 'Acasă',
   'nav.activity': 'Activitate',
   'nav.calendar': 'Calendar',
   'nav.memory': 'Amintiri',
@@ -207,6 +207,9 @@ export const ro: Record<MessageKey, string> = {
   'home.quick_note': 'Notă',
   'home.quick_message': 'Mesaj',
   'home.quick_more': 'Altele',
+  'home.hero_title': 'Te ascult',
+  'home.hero_sub': 'Spune-mi ce trebuie să fac…',
+  'home.settings': 'Setări',
   'task.add_cta': 'Adaugă task',
   'task.window.morning': 'Dimineața',
   'task.window.afternoon': 'După-amiaza',

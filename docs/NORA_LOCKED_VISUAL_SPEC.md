@@ -17,11 +17,15 @@ This document locks the exact production direction approved by the founder. Futu
 - Every screen must feel like the same product.
 
 ## 1. Home
-- Header: NORA wordmark left, compact settings/profile action right.
-- Large central blue/violet microphone orb is the hero.
-- Listening copy directly below orb: “Ti ascolto” / localized equivalent.
+- Header: NORA wordmark left, compact settings gear action right (opens
+  Profile - there is no separate settings screen).
+- Large central blue/violet microphone orb is the hero, directly under the
+  header.
+- Listening copy directly below orb: “Ti ascolto” / localized equivalent -
+  static invite copy, not a time-of-day greeting.
 - Supporting copy below, short and low-contrast.
-- Six compact quick actions in a 3 × 2 grid:
+- Six compact quick actions in a 3 × 2 grid, dark rounded-square cards
+  (icon badge + label stacked inside each card):
   - Reminder
   - Calendar
   - Activity

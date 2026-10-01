@@ -10,7 +10,7 @@ import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/ac
 import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
 import { primeSpeech, tts } from '../../services/voice/tts.ts';
-import { nowLocal, todayLocal } from '../../utils/time.ts';
+import { todayLocal } from '../../utils/time.ts';
 
 // iOS only lets audio start (speech synthesis, an <audio> element) inside a real
 // user gesture - and, on this screen, doing that claims the device's audio session
@@ -36,12 +36,11 @@ const DRAFT_KEY = 'nora.draft';
 const MIC_EXPLAINED = 'nora.mic_explained';
 
 export function AIScreen() {
-  const { messages, voice, level, tasks, profile, online, features } = useStore((s) => ({
+  const { messages, voice, level, tasks, online, features } = useStore((s) => ({
     messages: s.messages,
     voice: s.voice,
     level: s.level,
     tasks: s.tasks,
-    profile: s.profile,
     online: s.online,
     features: s.features,
   }));
@@ -106,12 +105,7 @@ export function AIScreen() {
     if (!ok) setDraft((d) => d || text); // never lose typed input
   };
 
-  const hour = nowLocal().hour;
-  // Midnight–4am is still "evening" as far as a greeting goes – the night hasn't
-  // turned into morning just because the clock rolled over to a new date.
-  const greet = hour < 4 ? tr('ai.greet_evening') : hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
   const examples = tr('ai.examples').split('|');
-  const avatarFile = voice === 'listening' ? 'avatar-listening' : voice === 'processing' ? 'avatar-thinking' : voice === 'speaking' ? 'avatar-speaking' : 'avatar-idle';
 
   return (
     <div class="screen ai-screen">
@@ -119,16 +113,15 @@ export function AIScreen() {
         <h1 class="brand">
           <Logo size={32} withWordmark />
         </h1>
-        <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />
+        <button type="button" class="ai-settings-btn" aria-label={tr('home.settings')} onClick={() => setState({ tab: 'profile' })}>
+          <Icon name="gear" size={18} />
+        </button>
       </header>
 
       <section class="ai-hero" aria-label={tr('nav.ai')}>
-        <p class="ai-hero-greet">
-          {greet}
-          {profile?.display_name ? `, ${profile.display_name}` : ''}
-        </p>
-        <p class="ai-hero-sub">{tr('brand.tagline')}</p>
         <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+        <p class="ai-hero-greet">{tr('home.hero_title')}</p>
+        <p class="ai-hero-sub">{tr('home.hero_sub')}</p>
 
         <div class="ai-quick-actions ai-quick-actions-6">
           <button type="button" aria-label={tr('home.quick_reminder')} onClick={() => setDraft(examples[0] ?? '')}>
@@ -148,7 +141,7 @@ export function AIScreen() {
             <span>{tr('home.quick_note')}</span>
           </button>
           <button type="button" aria-label={tr('home.quick_message')} onClick={() => document.getElementById('composer-input')?.focus()}>
-            <span class="ai-quick-icon"><Icon name="send" size={20} /></span>
+            <span class="ai-quick-icon"><Icon name="chat" size={18} /></span>
             <span>{tr('home.quick_message')}</span>
           </button>
           <button type="button" aria-label={tr('home.quick_more')} onClick={() => setState({ tab: 'profile' })}>

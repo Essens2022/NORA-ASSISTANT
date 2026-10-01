@@ -22,7 +22,7 @@ export const ru: Record<MessageKey, string> = {
   'common.on': 'Вкл.',
   'common.off': 'Выкл.',
 
-  'nav.ai': 'NORA',
+  'nav.ai': 'Главная',
   'nav.activity': 'Дела',
   'nav.calendar': 'Календарь',
   'nav.memory': 'Память',
@@ -207,6 +207,9 @@ export const ru: Record<MessageKey, string> = {
   'home.quick_note': 'Заметка',
   'home.quick_message': 'Сообщение',
   'home.quick_more': 'Ещё',
+  'home.hero_title': 'Слушаю',
+  'home.hero_sub': 'Скажи, что нужно сделать…',
+  'home.settings': 'Настройки',
   'task.add_cta': 'Добавить дело',
   'task.window.morning': 'Утром',
   'task.window.afternoon': 'Днём',

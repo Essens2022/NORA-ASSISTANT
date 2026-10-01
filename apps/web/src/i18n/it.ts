@@ -22,7 +22,7 @@ export const it: Record<MessageKey, string> = {
   'common.on': 'Attivo',
   'common.off': 'Disattivo',
 
-  'nav.ai': 'NORA',
+  'nav.ai': 'Home',
   'nav.activity': 'Attività',
   'nav.calendar': 'Calendario',
   'nav.memory': 'Ricordi',
@@ -207,6 +207,9 @@ export const it: Record<MessageKey, string> = {
   'home.quick_note': 'Nota',
   'home.quick_message': 'Messaggio',
   'home.quick_more': 'Altro',
+  'home.hero_title': 'Ti ascolto',
+  'home.hero_sub': 'Dimmi cosa devo fare…',
+  'home.settings': 'Impostazioni',
   'task.add_cta': 'Aggiungi attività',
   'task.window.morning': 'Mattina',
   'task.window.afternoon': 'Pomeriggio',

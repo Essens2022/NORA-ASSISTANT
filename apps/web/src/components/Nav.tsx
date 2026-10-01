@@ -3,7 +3,7 @@ import { setState, useStore, type Tab } from '../state/store.ts';
 import { Icon, type IconName } from './Icon.tsx';
 
 const TABS: Array<{ id: Tab; icon: IconName; key: 'nav.ai' | 'nav.activity' | 'nav.calendar' | 'nav.memory' | 'nav.profile' }> = [
-  { id: 'ai', icon: 'spark', key: 'nav.ai' },
+  { id: 'ai', icon: 'home', key: 'nav.ai' },
   { id: 'calendar', icon: 'calendar', key: 'nav.calendar' },
   { id: 'activity', icon: 'list', key: 'nav.activity' },
   { id: 'memory', icon: 'bookmark', key: 'nav.memory' },

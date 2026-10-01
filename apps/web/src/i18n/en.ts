@@ -20,7 +20,7 @@ export const en = {
   'common.on': 'On',
   'common.off': 'Off',
 
-  'nav.ai': 'NORA',
+  'nav.ai': 'Home',
   'nav.activity': 'Activity',
   'nav.calendar': 'Calendar',
   'nav.memory': 'Memory',
@@ -205,6 +205,9 @@ export const en = {
   'home.quick_note': 'Note',
   'home.quick_message': 'Message',
   'home.quick_more': 'More',
+  'home.hero_title': 'Listening',
+  'home.hero_sub': 'Tell me what to do…',
+  'home.settings': 'Settings',
   'task.add_cta': 'Add task',
   'task.window.morning': 'Morning',
   'task.window.afternoon': 'Afternoon',

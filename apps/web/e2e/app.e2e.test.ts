@@ -296,7 +296,7 @@ describe('NORA web – end to end', () => {
   it('dark mode renders and no runtime errors happened', async () => {
     await page.getByRole('radio', { name: 'Scuro' }).click();
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark');
-    await page.getByRole('button', { name: 'NORA', exact: true }).click();
+    await page.getByRole('button', { name: 'Home', exact: true }).click();
     await shot('08-home-dark');
     await page.getByRole('navigation').getByRole('button', { name: 'Attività' }).click();
     await shot('09-activity-dark');
