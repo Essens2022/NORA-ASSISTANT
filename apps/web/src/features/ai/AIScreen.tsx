@@ -4,13 +4,12 @@ import { Icon } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
 import { Button, Sheet } from '../../components/ui.tsx';
 import { VoiceButton } from '../../components/VoiceButton.tsx';
-import { Briefing } from './Briefing.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
 import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
 import { primeSpeech, tts } from '../../services/voice/tts.ts';
-import { nowLocal, todayLocal } from '../../utils/time.ts';
+import { todayLocal } from '../../utils/time.ts';
 
 // iOS only lets audio start (speech synthesis, an <audio> element) inside a real
 // user gesture - and, on this screen, doing that claims the device's audio session
@@ -107,11 +106,6 @@ export function AIScreen() {
     if (!ok) setDraft((d) => d || text); // never lose typed input
   };
 
-  const hour = nowLocal().hour;
-  // Midnight–4am is still "evening" as far as a greeting goes – the night hasn't
-  // turned into morning just because the clock rolled over to a new date.
-  const greet = hour < 4 ? tr('ai.greet_evening') : hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
-  const examples = tr('ai.examples').split('|');
   const quickCopy = {
     ro: { reminder: 'Promemoria', note: 'Notă', message: 'Mesaj', more: 'Mai mult' },
     it: { reminder: 'Promemoria', note: 'Nota', message: 'Messaggio', more: 'Altro' },
