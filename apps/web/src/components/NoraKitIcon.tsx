@@ -17,12 +17,16 @@ function urlFor(path: string): string | undefined {
   return kitFiles[`../assets/nora-kit/${path}`];
 }
 
-/** A single fixed-theme glyph from the kit (always the white-on-dark stroke),
- * for spots that already paint their own colour background (e.g. a coloured
- * badge circle) and need the icon itself to stay light regardless of the
- * app's own theme, the same way Icon.tsx's SVGs did via currentColor. */
-export function KitGlyph({ name, size = 16, class: cls = '' }: { name: string; size?: number; class?: string }) {
-  const src = urlFor(`dark/icons/${name}.svg`);
+/** A single fixed-theme glyph from the kit (always the white-on-dark stroke
+ * variant), for spots that already paint their own dark background (a
+ * coloured badge circle, the always-dark bottom nav, the always-dark header
+ * settings button) and need the icon itself to stay light regardless of the
+ * app's own theme - the dark/light split in the kit is for which SCREEN
+ * background the icon sits on, not which app theme is active, and these
+ * spots don't follow the app theme at all. path is relative to dark/,
+ * e.g. "icons/calendar.svg" or "buttons/header-gear.svg". */
+export function KitGlyph({ path, size = 16, class: cls = '' }: { path: string; size?: number; class?: string }) {
+  const src = urlFor(`dark/${path}`);
   if (!src) return null;
   return <img src={src} width={size} height={size} class={cls} alt="" />;
 }

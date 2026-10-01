@@ -194,7 +194,7 @@ function Row({ icon, color, label, value, onClick, href }: { icon: string; color
   const inner = (
     <>
       <span class={`kind-badge square small ${color}`} aria-hidden="true">
-        <KitGlyph name={icon} size={16} />
+        <KitGlyph path={`icons/${icon}.svg`} size={16} />
       </span>
       <span class="row-text">
         <span class="row-label">{label}</span>
