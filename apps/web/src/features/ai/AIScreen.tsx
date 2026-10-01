@@ -152,7 +152,7 @@ export function AIScreen() {
 
       <Briefing tasks={tasks} today={today} compact />
 
-      <div class="ai-scroll" ref={listRef}>
+      <div class={`ai-scroll${messages.length === 0 ? ' ai-scroll-empty' : ''}`} ref={listRef}>
         <div class="conversation" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 ? (
             <div class="ai-empty">

@@ -65,6 +65,26 @@
 
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter Variable', Inter, 'Segoe UI', Roboto, Arial, sans-serif;
   color-scheme: light;
+
+  /* Living Design System aliases - the premium Home/Calendar/etc. mockup
+     (.demo-* classes, design/DesignLab.tsx) was styled against its own
+     --dl-* tokens, scoped only inside .design-lab. Pointing those same
+     names at this file's real, already-theme-switching tokens (no new
+     palette needed - the values were already near-identical) lets any
+     .demo-* class be reused directly in production screens and stay
+     correctly light/dark themed automatically, with zero risk to any
+     existing rule here (purely additive). */
+  --dl-bg: var(--bg);
+  --dl-panel: var(--surface);
+  --dl-panel-2: var(--elevated);
+  --dl-border: var(--border);
+  --dl-text: var(--text);
+  --dl-muted: var(--muted);
+  --dl-blue: var(--blue);
+  --dl-cyan: var(--cyan);
+  --dl-violet: var(--purple);
+  --dl-pink: var(--pink);
+  --dl-green: var(--success);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -2871,7 +2891,18 @@ html.kb-open .main {
 
 .ai-screen .ai-empty {
   min-height: 0;
-  padding: 4px 0;
+  margin: 0;
+  padding: 24px 0 4px;
+}
+
+/* No messages yet: the scroll area no longer needs to flex-grow and drag the
+   footer down to the true bottom of the screen (that's only needed so a real,
+   long conversation can scroll with the composer still pinned in view) - left
+   as flex:1 here too, the empty-state line ends up floating with a large dead
+   gap below it before the composer, instead of settling right under the
+   briefing card the way the premium reference layout does. */
+.ai-screen .ai-scroll.ai-scroll-empty {
+  flex: 0 1 auto;
 }
 
 .ai-screen .examples {
