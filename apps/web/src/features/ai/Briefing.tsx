@@ -8,7 +8,7 @@ import { nowLocal } from '../../utils/time.ts';
 const DAY_START = 6 * 60;
 const DAY_END = 24 * 60;
 
-export function Briefing({ tasks, today }: { tasks: Record<string, Task>; today: string }) {
+export function Briefing({ tasks, today, compact = false }: { tasks: Record<string, Task>; today: string; compact?: boolean }) {
   const all = Object.values(tasks);
   const todays = all.filter((t) => activityBucket(t, today) === 'today').sort((a, b) => (a.due_time ?? '99').localeCompare(b.due_time ?? '99'));
   const nowIso = new Date().toISOString();
