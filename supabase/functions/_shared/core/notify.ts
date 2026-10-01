@@ -30,10 +30,10 @@ export interface NotificationPayload {
 type S = Record<string, string>;
 const STR: Record<Lang, S> = {
   ro: {
-    call_now: '{name}e momentul: {title}',
-    call_now_anon: 'E momentul: {title}',
-    main_body: 'Acum, {at}. Atinge pentru opțiuni.',
-    main_body_date: '{when}. Atinge pentru opțiuni.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}în {min} min: {title}',
     soon_title_anon: 'În {min} min: {title}',
     soon_body: '{at}{where}. Te anunț la timp.',
@@ -61,10 +61,10 @@ const STR: Record<Lang, S> = {
     at_nearby: ' · {loc}',
   },
   en: {
-    call_now: "{name}it's time: {title}",
-    call_now_anon: "It's time: {title}",
-    main_body: 'Now, {at}. Tap for options.',
-    main_body_date: '{when}. Tap for options.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}in {min} min: {title}',
     soon_title_anon: 'In {min} min: {title}',
     soon_body: '{at}{where}. I’ll keep you on time.',
@@ -92,10 +92,10 @@ const STR: Record<Lang, S> = {
     at_nearby: ' · {loc}',
   },
   it: {
-    call_now: '{name}è il momento: {title}',
-    call_now_anon: 'È il momento: {title}',
-    main_body: 'Adesso, {at}. Tocca per le opzioni.',
-    main_body_date: '{when}. Tocca per le opzioni.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}tra {min} min: {title}',
     soon_title_anon: 'Tra {min} min: {title}',
     soon_body: '{at}{where}. Ti avviso in tempo.',
@@ -123,10 +123,10 @@ const STR: Record<Lang, S> = {
     at_nearby: ' · {loc}',
   },
   ru: {
-    call_now: '{name}пора: {title}',
-    call_now_anon: 'Пора: {title}',
-    main_body: 'Сейчас, {at}. Нажми, чтобы увидеть варианты.',
-    main_body_date: '{when}. Нажми, чтобы увидеть варианты.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}через {min} мин: {title}',
     soon_title_anon: 'Через {min} мин: {title}',
     soon_body: '{at}{where}. Предупрежу вовремя.',
@@ -211,8 +211,8 @@ export function buildNotification(
       return {
         ...base,
         sticky: important,
-        title: called(s, 'call_now', name, v),
-        body: task.notes ? `${body} · ${task.notes}`.slice(0, 180) : body,
+        title: cap(task.title),
+        body,
         actions: [{ action: 'done', title: s.a_done }, { action: 'snooze', title: s.a_snooze }],
       };
     }
