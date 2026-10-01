@@ -7,6 +7,7 @@ import type { MemoryItem, MemoryKind } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Button, Confirm, EmptyState, IconButton, Input, Sheet } from '../../components/ui.tsx';
+import { useStickyHeadHeight } from '../../hooks.ts';
 import { relativeFromNow, tr, type MessageKey } from '../../i18n/index.ts';
 import { api } from '../../services/api.ts';
 import { toast, toastError } from '../../state/store.ts';
@@ -52,10 +53,11 @@ export function MemoryScreen() {
 
   const filtered = (items ?? []).filter((m) => m.value.toLowerCase().includes(query.trim().toLowerCase()) && (!filter || m.kind === filter));
   const present = useMemo(() => new Set((items ?? []).map((m) => m.kind)), [items]);
+  const [headRef, headH] = useStickyHeadHeight();
 
   return (
     <div class="screen memory-screen">
-      <div class="screen-sticky-head">
+      <div class="screen-sticky-head" ref={headRef}>
         <header class="screen-head">
           <h1>{tr('mem.title')}</h1>
           <IconButton icon="plus" label={tr('mem.add')} onClick={() => setAdding(true)} />
@@ -94,6 +96,7 @@ export function MemoryScreen() {
         )}
       </div>
 
+      <div style={{ paddingTop: headH }}>
       {items === null ? (
         <div class="skeleton-list" aria-busy="true" aria-label={tr('common.loading')}>
           <div class="skeleton skeleton-row" />
@@ -116,6 +119,7 @@ export function MemoryScreen() {
           <DeleteAll disabled={items.length === 0} onDone={load} />
         </>
       )}
+      </div>
 
       <AddMemorySheet open={adding} onClose={() => setAdding(false)} onAdded={load} />
     </div>

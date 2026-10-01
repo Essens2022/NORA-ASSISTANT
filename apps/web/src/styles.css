@@ -4416,15 +4416,16 @@ html.kb-open .main {
 }
 
 /* The title + filter/mode bar at the top of Calendario, Attività and
-   Ricordi stays pinned while the list underneath scrolls - a normal
-   iOS-style sticky header, not something that should scroll away with
-   the content. Sticks just below the safe area (status bar), not at
-   the very top edge, which is where it naturally rests before any
-   scrolling happens too. A translucent blur (like the nav bar already
-   uses) instead of a flat background color, since the dark body behind
-   it is a radial-gradient glow, not a flat fill - a flat color patch
-   would visibly cut that glow off right where it's strongest (near the
-   top edge). */
+   Ricordi stays pinned while the list underneath scrolls - truly fixed,
+   the same way .nav at the bottom is: position:fixed, never part of the
+   scrolling flow at all, rather than position:sticky (which still moves
+   with the page until it reaches its resting point, and on a real device
+   that "until" was visibly not instant - flagged directly: "nu are partea
+   de sus blocata total fixa"). A translucent blur (like the nav bar
+   already uses) instead of a flat background color, since the dark body
+   behind it is a radial-gradient glow, not a flat fill - a flat color
+   patch would visibly cut that glow off right where it's strongest (near
+   the top edge). */
 :root {
   --sticky-head-bg: rgba(247, 249, 252, .82);
 }
@@ -4438,20 +4439,34 @@ html.kb-open .main {
 }
 
 .screen-sticky-head {
-  position: sticky;
-  top: env(safe-area-inset-top);
-  z-index: 5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 10px;
   background: var(--sticky-head-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  /* iOS WebKit recalculates a blurred backdrop every scroll frame, and a
-     sticky element re-measuring its own stuck/unstuck position on top of
-     that is a known source of visible micro-jitter while scrolling past
-     it (flagged from a real device). Promoting it to its own compositing
-     layer keeps that work off the main thread instead of fighting the
-     scroll for every frame. */
-  transform: translateZ(0);
-  will-change: transform;
+}
+
+.screen-sticky-head .screen-head {
+  margin-bottom: 14px;
+}
+
+/* .calendar-screen/.activity-screen/.memory-screen no longer reserve top
+   space via padding - .screen-sticky-head is fixed, out of flow entirely,
+   so it can't push anything down the way an in-flow element would. Each of
+   those screens instead pads its own post-header content by the header's
+   actual measured height (useStickyHeadHeight, hooks.ts) - a CSS constant
+   here would either clip under a taller header (e.g. Calendario's day
+   strip) or leave a gap under a shorter one. */
+.calendar-screen,
+.activity-screen,
+.memory-screen {
+  padding-top: 0 !important;
 }
 
 .screen-head h1 {

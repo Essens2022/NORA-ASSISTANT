@@ -2,6 +2,7 @@ import { activityBucket, type Task } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { TaskCard } from '../../components/TaskCard.tsx';
 import { Button, EmptyState } from '../../components/ui.tsx';
+import { useStickyHeadHeight } from '../../hooks.ts';
 import { tr, type MessageKey } from '../../i18n/index.ts';
 import { loadCompleted } from '../../state/actions.ts';
 import { setState, useStore, toastError } from '../../state/store.ts';
@@ -16,6 +17,7 @@ export function ActivityScreen() {
   const [loadingDone, setLoadingDone] = useState(false);
   const [creating, setCreating] = useState(false);
   const today = todayLocal();
+  const [headRef, headH] = useStickyHeadHeight();
 
   const groups = useMemo(() => {
     const g: Record<'today' | 'upcoming' | 'attention' | 'inbox' | 'completed', Task[]> = { today: [], upcoming: [], attention: [], inbox: [], completed: [] };
@@ -55,7 +57,7 @@ export function ActivityScreen() {
 
   return (
     <div class="screen activity-screen">
-      <div class="screen-sticky-head">
+      <div class="screen-sticky-head" ref={headRef}>
         <header class="screen-head">
           <h1>{tr('act.title')}</h1>
         </header>
@@ -69,6 +71,7 @@ export function ActivityScreen() {
         </div>
       </div>
 
+      <div style={{ paddingTop: headH }}>
       {!bootstrapped && (
         <div class="skeleton-list" aria-busy="true" aria-label={tr('common.loading')}>
           <div class="skeleton skeleton-row" />
@@ -124,6 +127,7 @@ export function ActivityScreen() {
         <Button variant="primary" icon="plus" full onClick={() => setCreating(true)}>
           {tr('task.add_cta')}
         </Button>
+      </div>
       </div>
 
       <NewTaskSheet open={creating} onClose={() => setCreating(false)} />

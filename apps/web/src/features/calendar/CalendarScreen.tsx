@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { TaskCard } from '../../components/TaskCard.tsx';
 import { EmptyState } from '../../components/ui.tsx';
+import { useStickyHeadHeight } from '../../hooks.ts';
 import { getLocale, tr } from '../../i18n/index.ts';
 import { setState, useStore } from '../../state/store.ts';
 import { todayLocal } from '../../utils/time.ts';
@@ -94,10 +95,11 @@ export function CalendarScreen() {
   const stripDays = Array.from({ length: 7 }, (_, i) => addDays(stripStart, i));
   const stripLabels = weekdayLabels(locale);
   const weekTasks = useMemo(() => stripDays.map((d) => ({ date: d, tasks: (byDate[d] ?? []).slice().sort(order) })), [byDate, stripStart]);
+  const [headRef, headH] = useStickyHeadHeight();
 
   return (
     <div class="screen calendar-screen">
-      <div class="screen-sticky-head">
+      <div class="screen-sticky-head" ref={headRef}>
         <header class="screen-head">
           <h1>{tr('cal.title')}</h1>
         </header>
@@ -126,6 +128,8 @@ export function CalendarScreen() {
           </div>
         )}
       </div>
+
+      <div style={{ paddingTop: headH }}>
 
       {mode === 'month' && (
         <div class="cal-card">
@@ -242,6 +246,7 @@ export function CalendarScreen() {
       <button type="button" class="cal-fab" aria-label={tr('cal.add')} onClick={() => setCreating(true)}>
         <Icon name="plus" size={22} />
       </button>
+      </div>
 
       <NewTaskSheet open={creating} onClose={() => setCreating(false)} />
     </div>
