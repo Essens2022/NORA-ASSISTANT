@@ -131,19 +131,19 @@ export function AIScreen() {
         <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
 
         <div class="ai-quick-actions">
-          <button type="button" onClick={() => setState({ tab: 'calendar' })}>
+          <button type="button" aria-label={`Deschide ${tr('cal.title')}`} onClick={() => setState({ tab: 'calendar' })}>
             <span class="ai-quick-icon"><Icon name="calendar" size={20} /></span>
             <span>{tr('cal.title')}</span>
           </button>
-          <button type="button" onClick={() => setState({ tab: 'activity' })}>
+          <button type="button" aria-label={`Deschide ${tr('act.title')}`} onClick={() => setState({ tab: 'activity' })}>
             <span class="ai-quick-icon"><Icon name="list" size={20} /></span>
             <span>{tr('act.title')}</span>
           </button>
-          <button type="button" onClick={() => setState({ tab: 'memory' })}>
+          <button type="button" aria-label={`Deschide ${tr('mem.title')}`} onClick={() => setState({ tab: 'memory' })}>
             <span class="ai-quick-icon"><Icon name="bookmark" size={20} /></span>
             <span>{tr('mem.title')}</span>
           </button>
-          <button type="button" onClick={() => setDraft(examples[0] ?? '')}>
+          <button type="button" aria-label={tr('task.new')} onClick={() => setDraft(examples[0] ?? '')}>
             <span class="ai-quick-icon"><Icon name="plus" size={20} /></span>
             <span>{tr('task.new')}</span>
           </button>

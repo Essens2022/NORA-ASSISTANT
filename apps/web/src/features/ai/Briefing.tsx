@@ -36,7 +36,7 @@ export function Briefing({ tasks, today, compact = false }: { tasks: Record<stri
       </div>
 
       {next ? (
-        <button type="button" class="brief-next brief-next-compact" onClick={() => setState({ openTaskId: next.id })}>
+        <button type="button" class="brief-next brief-next-compact" aria-label={tr('ai.next_up')} onClick={() => setState({ openTaskId: next.id })}>
           <Countdown iso={next.start_at!} />
           <span class="brief-next-label">{tr('ai.next_up')}</span>
           <span class="brief-next-title">{next.title}</span>
