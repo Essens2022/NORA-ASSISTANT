@@ -99,6 +99,10 @@ export const ro: Record<MessageKey, string> = {
   'cal.view': 'Vizualizare',
   'cal.view_list': 'Listă',
   'cal.view_timeline': 'Orar',
+  'cal.mode_day': 'Azi',
+  'cal.mode_week': 'Săptămâna',
+  'cal.mode_month': 'Luna',
+  'cal.add': 'Adaugă eveniment',
 
   'mem.title': 'Amintirile mele',
   'mem.hint': 'Ce a reținut NORA despre tine.',

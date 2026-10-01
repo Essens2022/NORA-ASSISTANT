@@ -99,6 +99,10 @@ export const it: Record<MessageKey, string> = {
   'cal.view': 'Visualizzazione',
   'cal.view_list': 'Elenco',
   'cal.view_timeline': 'Orario',
+  'cal.mode_day': 'Oggi',
+  'cal.mode_week': 'Settimana',
+  'cal.mode_month': 'Mese',
+  'cal.add': 'Aggiungi evento',
 
   'mem.title': 'I miei ricordi',
   'mem.hint': 'Cosa NORA ha imparato e ricordato su di te.',

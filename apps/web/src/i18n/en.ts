@@ -97,6 +97,10 @@ export const en = {
   'cal.view': 'View',
   'cal.view_list': 'List',
   'cal.view_timeline': 'Timeline',
+  'cal.mode_day': 'Today',
+  'cal.mode_week': 'Week',
+  'cal.mode_month': 'Month',
+  'cal.add': 'Add event',
 
   'mem.title': 'My memory',
   'mem.hint': "What NORA has learned and remembered about you.",

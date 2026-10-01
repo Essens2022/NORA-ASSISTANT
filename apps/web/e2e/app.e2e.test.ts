@@ -257,7 +257,7 @@ describe('NORA web – end to end', () => {
 
   it('manual task creation', async () => {
     await page.getByRole('navigation').getByRole('button', { name: 'Calendar' }).click();
-    await page.getByRole('button', { name: 'Task nou' }).click();
+    await page.getByRole('button', { name: 'Adaugă eveniment' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Titlu').fill('Plătește asigurarea');
     await dialog.getByLabel('Data').fill(toZoned(new Date(Date.now() + 3 * 86400000), 'Europe/Rome').date);

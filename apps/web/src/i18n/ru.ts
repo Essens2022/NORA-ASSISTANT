@@ -99,6 +99,10 @@ export const ru: Record<MessageKey, string> = {
   'cal.view': 'Вид',
   'cal.view_list': 'Список',
   'cal.view_timeline': 'По часам',
+  'cal.mode_day': 'Сегодня',
+  'cal.mode_week': 'Неделя',
+  'cal.mode_month': 'Месяц',
+  'cal.add': 'Добавить событие',
 
   'mem.title': 'Моя память',
   'mem.hint': 'Что NORA узнала и запомнила о тебе.',
