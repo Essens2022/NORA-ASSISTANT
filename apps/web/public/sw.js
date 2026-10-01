@@ -1,5 +1,5 @@
 /* NORA service worker: app-shell caching + push notifications with actions. */
-const VERSION = 'nora-v6';
+const VERSION = 'nora-v7';
 const params = new URL(self.location.href).searchParams;
 const API = params.get('api') || '';
 const ANON = params.get('key') || '';
@@ -58,6 +58,16 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
+function displayTitle(raw) {
+  const clean = String(raw || 'NORA')
+    .replace(/\s+(?:from|de la|da|от)\s+nora\s*$/i, '')
+    .replace(/\s+[—–-]\s*nora\s*$/i, '')
+    .trim();
+  const coffee = /\b(cafea|cafeaua|caff[eè]|coffee|кофе)\b/i.test(clean);
+  const emoji = coffee && !/[☕️☕]/u.test(clean) ? ' ☕️' : '';
+  return `${clean.toLocaleUpperCase()}${emoji}`;
+}
+
 self.addEventListener('push', (event) => {
   let data = {};
   try {
@@ -80,7 +90,7 @@ self.addEventListener('push', (event) => {
       /* Badging API not available here */
     }
     const silent = data.sound === 'silent';
-    await self.registration.showNotification(data.title || 'NORA', {
+    await self.registration.showNotification(displayTitle(data.title), {
       body: data.body || '',
       tag: data.tag || undefined,
       renotify: true,
