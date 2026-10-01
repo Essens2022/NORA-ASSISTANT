@@ -2798,6 +2798,12 @@ html.kb-open .main {
   gap: 6px;
   margin-top: 2px;
 }
+/* Locked spec: Home's six quick actions (Reminder/Calendar/Activity/Note/
+   Message/More) in a 3x2 grid, not 4 in a single row. */
+.ai-quick-actions-6 {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  row-gap: 12px;
+}
 
 .ai-quick-actions button {
   min-width: 0;
@@ -2833,6 +2839,12 @@ html.kb-open .main {
 }
 .ai-quick-actions button:nth-child(4) .ai-quick-icon {
   background: linear-gradient(145deg, #4f7cff, #ec4899);
+}
+.ai-quick-actions button:nth-child(5) .ai-quick-icon {
+  background: linear-gradient(145deg, #34d399, #3592ff);
+}
+.ai-quick-actions button:nth-child(6) .ai-quick-icon {
+  background: linear-gradient(145deg, #f59e0b, #ec4899);
 }
 
 .ai-screen .briefing {

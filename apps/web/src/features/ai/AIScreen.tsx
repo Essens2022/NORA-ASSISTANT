@@ -130,7 +130,11 @@ export function AIScreen() {
         <p class="ai-hero-sub">{tr('brand.tagline')}</p>
         <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
 
-        <div class="ai-quick-actions">
+        <div class="ai-quick-actions ai-quick-actions-6">
+          <button type="button" aria-label={tr('home.quick_reminder')} onClick={() => setDraft(examples[0] ?? '')}>
+            <span class="ai-quick-icon"><Icon name="bell" size={20} /></span>
+            <span>{tr('home.quick_reminder')}</span>
+          </button>
           <button type="button" aria-label={`Deschide ${tr('cal.title')}`} onClick={() => setState({ tab: 'calendar' })}>
             <span class="ai-quick-icon"><Icon name="calendar" size={20} /></span>
             <span>{tr('cal.title')}</span>
@@ -139,13 +143,17 @@ export function AIScreen() {
             <span class="ai-quick-icon"><Icon name="list" size={20} /></span>
             <span>{tr('act.title')}</span>
           </button>
-          <button type="button" aria-label={`Deschide ${tr('mem.title')}`} onClick={() => setState({ tab: 'memory' })}>
-            <span class="ai-quick-icon"><Icon name="bookmark" size={20} /></span>
-            <span>{tr('mem.title')}</span>
+          <button type="button" aria-label={tr('home.quick_note')} onClick={() => setState({ tab: 'memory' })}>
+            <span class="ai-quick-icon"><Icon name="file" size={20} /></span>
+            <span>{tr('home.quick_note')}</span>
           </button>
-          <button type="button" aria-label={tr('task.new')} onClick={() => setDraft(examples[0] ?? '')}>
-            <span class="ai-quick-icon"><Icon name="plus" size={20} /></span>
-            <span>{tr('task.new')}</span>
+          <button type="button" aria-label={tr('home.quick_message')} onClick={() => document.getElementById('composer-input')?.focus()}>
+            <span class="ai-quick-icon"><Icon name="send" size={20} /></span>
+            <span>{tr('home.quick_message')}</span>
+          </button>
+          <button type="button" aria-label={tr('home.quick_more')} onClick={() => setState({ tab: 'profile' })}>
+            <span class="ai-quick-icon"><Icon name="user" size={20} /></span>
+            <span>{tr('home.quick_more')}</span>
           </button>
         </div>
       </section>
