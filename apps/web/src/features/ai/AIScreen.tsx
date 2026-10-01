@@ -4,13 +4,12 @@ import { Icon } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
 import { Button, Sheet } from '../../components/ui.tsx';
 import { VoiceButton } from '../../components/VoiceButton.tsx';
-import { Briefing } from './Briefing.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
 import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
 import { primeSpeech, tts } from '../../services/voice/tts.ts';
-import { nowLocal, todayLocal } from '../../utils/time.ts';
+import { todayLocal } from '../../utils/time.ts';
 
 // iOS only lets audio start (speech synthesis, an <audio> element) inside a real
 // user gesture - and, on this screen, doing that claims the device's audio session
@@ -53,6 +52,7 @@ export function AIScreen() {
     }
   });
   const [explainMic, setExplainMic] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const today = todayLocal();
 
@@ -106,120 +106,91 @@ export function AIScreen() {
     if (!ok) setDraft((d) => d || text); // never lose typed input
   };
 
-  const hour = nowLocal().hour;
-  // Midnight–4am is still "evening" as far as a greeting goes – the night hasn't
-  // turned into morning just because the clock rolled over to a new date.
-  const greet = hour < 4 ? tr('ai.greet_evening') : hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
-  const examples = tr('ai.examples').split('|');
-  const avatarFile = voice === 'listening' ? 'avatar-listening' : voice === 'processing' ? 'avatar-thinking' : voice === 'speaking' ? 'avatar-speaking' : 'avatar-idle';
+  const quickCopy = {
+    ro: { reminder: 'Promemoria', note: 'Notă', message: 'Mesaj', more: 'Mai mult' },
+    it: { reminder: 'Promemoria', note: 'Nota', message: 'Messaggio', more: 'Altro' },
+    en: { reminder: 'Reminder', note: 'Note', message: 'Message', more: 'More' },
+    ru: { reminder: 'Напоминание', note: 'Заметка', message: 'Сообщение', more: 'Ещё' },
+  }[(profile?.ui_lang ?? 'en') as 'ro' | 'it' | 'en' | 'ru'];
 
   return (
     <div class="screen ai-screen">
-      <header class="ai-head">
+      <header class="ai-head approved-home-head">
         <h1 class="brand">
-          <Logo size={32} withWordmark />
+          <Logo size={30} withWordmark />
         </h1>
-        <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />
+        <button type="button" class="approved-settings-btn" aria-label={tr('nav.profile')} onClick={() => setState({ tab: 'profile' })}>
+          <Icon name="settings" size={19} />
+        </button>
       </header>
 
-      <section class="ai-hero" aria-label={tr('nav.ai')}>
-        <p class="ai-hero-greet">
-          {greet}
-          {profile?.display_name ? `, ${profile.display_name}` : ''}
-        </p>
-        <p class="ai-hero-sub">{tr('brand.tagline')}</p>
-
-        <div class="ai-quick-actions ai-quick-actions-6">
-          <button type="button" aria-label={tr('home.quick_reminder')} onClick={() => setDraft(examples[0] ?? '')}>
-            <span class="ai-quick-icon"><Icon name="bell" size={20} /></span>
-            <span>{tr('home.quick_reminder')}</span>
-          </button>
-          <button type="button" aria-label={`Deschide ${tr('cal.title')}`} onClick={() => setState({ tab: 'calendar' })}>
-            <span class="ai-quick-icon"><Icon name="calendar" size={20} /></span>
-            <span>{tr('cal.title')}</span>
-          </button>
-          <button type="button" aria-label={`Deschide ${tr('act.title')}`} onClick={() => setState({ tab: 'activity' })}>
-            <span class="ai-quick-icon"><Icon name="list" size={20} /></span>
-            <span>{tr('act.title')}</span>
-          </button>
-          <button type="button" aria-label={tr('home.quick_note')} onClick={() => setState({ tab: 'memory' })}>
-            <span class="ai-quick-icon"><Icon name="file" size={20} /></span>
-            <span>{tr('home.quick_note')}</span>
-          </button>
-          <button type="button" aria-label={tr('home.quick_message')} onClick={() => document.getElementById('composer-input')?.focus()}>
-            <span class="ai-quick-icon"><Icon name="send" size={20} /></span>
-            <span>{tr('home.quick_message')}</span>
-          </button>
-          <button type="button" aria-label={tr('home.quick_more')} onClick={() => setState({ tab: 'profile' })}>
-            <span class="ai-quick-icon"><Icon name="user" size={20} /></span>
-            <span>{tr('home.quick_more')}</span>
-          </button>
-        </div>
+      <section class="approved-voice-home" aria-label={tr('nav.ai')}>
+        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+        <h2>{voice === 'listening' ? (profile?.ui_lang === 'it' ? 'Ti ascolto' : profile?.ui_lang === 'ro' ? 'Te ascult' : profile?.ui_lang === 'ru' ? 'Я слушаю' : 'I’m listening') : (profile?.ui_lang === 'it' ? 'Ti ascolto' : profile?.ui_lang === 'ro' ? 'Te ascult' : profile?.ui_lang === 'ru' ? 'Я слушаю' : 'I’m listening')}</h2>
+        <p>{profile?.ui_lang === 'it' ? 'Dimmi cosa devo fare…' : profile?.ui_lang === 'ro' ? 'Spune-mi ce trebuie să fac…' : profile?.ui_lang === 'ru' ? 'Скажи, что мне сделать…' : 'Tell me what I should do…'}</p>
       </section>
 
-      <Briefing tasks={tasks} today={today} compact />
-
-      <div class={`ai-scroll${messages.length === 0 ? ' ai-scroll-empty' : ''}`} ref={listRef}>
-        <div class="conversation" aria-live="polite" aria-relevant="additions">
-          {messages.length === 0 ? (
-            <div class="ai-empty">
-              <p>{tr('ai.empty')}</p>
-              <ul class="examples">
-                {examples.map((ex) => (
-                  <li key={ex}>
-                    <button type="button" onClick={() => setDraft(ex)}>
-                      “{ex}”
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
-          )}
-        </div>
+      <div class="approved-quick-grid">
+        <button type="button" onClick={() => { setDraft(profile?.ui_lang === 'it' ? 'Ricordami ' : profile?.ui_lang === 'ro' ? 'Amintește-mi ' : 'Remind me '); setComposerOpen(true); }}>
+          <span><Icon name="bell" size={20} /></span><small>{quickCopy.reminder}</small>
+        </button>
+        <button type="button" onClick={() => setState({ tab: 'calendar' })}>
+          <span><Icon name="calendar" size={20} /></span><small>{tr('cal.title')}</small>
+        </button>
+        <button type="button" onClick={() => setState({ tab: 'activity' })}>
+          <span><Icon name="list" size={20} /></span><small>{tr('act.title')}</small>
+        </button>
+        <button type="button" onClick={() => { setDraft(profile?.ui_lang === 'it' ? 'Ricorda questa nota: ' : profile?.ui_lang === 'ro' ? 'Ține minte această notă: ' : 'Remember this note: '); setComposerOpen(true); }}>
+          <span><Icon name="edit" size={20} /></span><small>{quickCopy.note}</small>
+        </button>
+        <button type="button" onClick={() => setComposerOpen(true)}>
+          <span><Icon name="message" size={20} /></span><small>{quickCopy.message}</small>
+        </button>
+        <button type="button" onClick={() => setState({ tab: 'profile' })}>
+          <span><Icon name="more" size={20} /></span><small>{quickCopy.more}</small>
+        </button>
       </div>
 
-      {!online && <p class="offline-note">{tr('ai.offline')}</p>}
+      <div class={`approved-chat-layer${composerOpen || messages.length ? ' open' : ''}`}>
+        <div class="ai-scroll" ref={listRef}>
+          <div class="conversation" aria-live="polite" aria-relevant="additions">
+            {messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)}
+          </div>
+        </div>
 
-      {/* wrapped so the two stick together at the bottom of the screen while the
-          keyboard is open (see .ai-footer in styles.css) - the conversation above
-          scrolls, this stays put instead of scrolling away with it */}
-      <div class="ai-footer">
-        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+        {!online && <p class="offline-note">{tr('ai.offline')}</p>}
 
-        <form class="composer" onSubmit={submit}>
-          <label class="sr-only" for="composer-input">
-            {tr('ai.input_placeholder')}
-          </label>
-          <textarea
-            id="composer-input"
-            class="composer-input"
-            rows={1}
-            value={draft}
-            maxLength={2000}
-            autocomplete="off"
-            placeholder={tr('ai.input_placeholder')}
-            onInput={(e) => {
-              const el = e.target as HTMLTextAreaElement;
-              setDraft(el.value);
-              // grow with the text, like WhatsApp, instead of scrolling sideways in one line
-              el.style.height = 'auto';
-              el.style.height = `${el.scrollHeight}px`;
-            }}
-            onKeyDown={(e) => {
-              // Enter sends (matches the old <input> behaviour); Shift+Enter makes a new line
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                (e.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
-              }
-            }}
-            enterkeyhint="send"
-          />
-          <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
-            <Icon name="send" size={18} />
-          </button>
-        </form>
+        <div class="ai-footer">
+          <form class="composer" onSubmit={submit}>
+            <label class="sr-only" for="composer-input">{tr('ai.input_placeholder')}</label>
+            <textarea
+              id="composer-input"
+              class="composer-input"
+              rows={1}
+              value={draft}
+              maxLength={2000}
+              autocomplete="off"
+              placeholder={tr('ai.input_placeholder')}
+              onInput={(e) => {
+                const el = e.target as HTMLTextAreaElement;
+                setDraft(el.value);
+                el.style.height = 'auto';
+                el.style.height = `${el.scrollHeight}px`;
+              }}
+              onFocus={() => setComposerOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
+                }
+              }}
+              enterkeyhint="send"
+            />
+            <button type="submit" class="composer-send" aria-label={tr('ai.send')} disabled={!draft.trim()}>
+              <Icon name="send" size={18} />
+            </button>
+          </form>
+        </div>
       </div>
 
       <Sheet open={explainMic} onClose={() => setExplainMic(false)} title={tr('onb.mic_title')}>
