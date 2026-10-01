@@ -8,7 +8,7 @@ import { nowLocal } from '../../utils/time.ts';
 const DAY_START = 6 * 60;
 const DAY_END = 24 * 60;
 
-export function Briefing({ tasks, today }: { tasks: Record<string, Task>; today: string }) {
+export function Briefing({ tasks, today, compact = false }: { tasks: Record<string, Task>; today: string; compact?: boolean }) {
   const all = Object.values(tasks);
   const todays = all.filter((t) => activityBucket(t, today) === 'today').sort((a, b) => (a.due_time ?? '99').localeCompare(b.due_time ?? '99'));
   const nowIso = new Date().toISOString();
@@ -22,59 +22,31 @@ export function Briefing({ tasks, today }: { tasks: Record<string, Task>; today:
   const timed = todays.filter((t) => t.due_time);
 
   return (
-    <section class="briefing" aria-label={tr('ai.briefing')}>
-      <p class="brief-label">
-        <Icon name="spark" size={14} /> {tr('ai.briefing')}
-      </p>
-      <p class="brief-summary">{todays.length ? tp('ai.brief', todays.length) : tr('ai.brief_free')}</p>
+    <section class="briefing briefing-compact" aria-label={tr('ai.briefing')}>
+      <div class="brief-compact-head">
+        <p class="brief-label">
+          <Icon name="spark" size={14} /> {tr('ai.briefing')}
+        </p>
+        {attention.length > 0 && (
+          <button type="button" class="brief-attention-count" onClick={() => setState({ tab: 'activity' })}>
+            <Icon name="alert" size={13} />
+            <span>{attention.length}</span>
+          </button>
+        )}
+      </div>
 
-      {next && (
-        <button type="button" class="brief-next" onClick={() => setState({ openTaskId: next.id })}>
+      {next ? (
+        <button type="button" class="brief-next brief-next-compact" onClick={() => setState({ openTaskId: next.id })}>
           <Countdown iso={next.start_at!} />
           <span class="brief-next-label">{tr('ai.next_up')}</span>
           <span class="brief-next-title">{next.title}</span>
           <span class="brief-next-when">
             {next.due_date !== today && next.due_date ? `${relativeDay(next.due_date, today)} · ` : ''}
             {next.due_time ? formatTime(next.due_time) : ''}
-            {next.start_at && next.due_date === today ? <em> · {relativeFromNow(next.start_at)}</em> : null}
           </span>
         </button>
-      )}
-
-      {timed.length > 0 && (
-        <div class="timeline" role="img" aria-label={timed.map((t) => `${formatTime(t.due_time!)} ${t.title}`).join(', ')}>
-          <span class="tl-track" />
-          <span class="tl-past" style={{ width: pos(nowMin) }} />
-          {timed.map((t) => {
-            const [h, m] = t.due_time!.split(':').map(Number);
-            const past = h * 60 + m < nowMin;
-            return <span key={t.id} class={`tl-dot${past ? ' past' : ''}${t.id === next?.id ? ' next' : ''}`} style={{ left: pos(h * 60 + m) }} title={`${formatTime(t.due_time!)} ${t.title}`} />;
-          })}
-          <span class="tl-now" style={{ left: pos(nowMin) }} />
-          <span class="tl-hours" aria-hidden="true">
-            <span>6</span>
-            <span>12</span>
-            <span>18</span>
-            <span>24</span>
-          </span>
-        </div>
-      )}
-
-      {attention.length > 0 && (
-        <div class="brief-attention">
-          <p class="brief-att-label">{tr('ai.needs_you')}</p>
-          <ul>
-            {attention.map((t) => (
-              <li key={t.id}>
-                <button type="button" onClick={() => setState({ openTaskId: t.id })}>
-                  <Icon name="alert" size={14} />
-                  <span>{t.title}</span>
-                  <em>{t.missing_fields.includes('time') ? tr('act.missing_time') : !t.due_date ? tr('act.missing_date') : tr('act.missed')}</em>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      ) : (
+        <p class="brief-compact-free">{todays.length ? tp('ai.brief', todays.length) : tr('ai.brief_free')}</p>
       )}
     </section>
   );
