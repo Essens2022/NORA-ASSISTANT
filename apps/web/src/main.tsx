@@ -181,6 +181,33 @@ new ResizeObserver(updatePageScrollable).observe(document.body);
 window.addEventListener('resize', updatePageScrollable);
 updatePageScrollable();
 
+// Belt and braces for the above: .page-scrollable only stops the page from
+// being scrolled *after the fact* (it changes overflow, which blocks the
+// browser's own scroll mechanism but not a direct touch-drag the same way
+// .nav - which is position:fixed and was simply never a scroll target to
+// begin with - is immovable). Cancel a drag outright whenever it would move
+// the page and the page isn't marked scrollable, so a non-scrollable screen
+// is exactly that from the very first pixel of the gesture, not just once
+// some CSS/JS state has caught up. Lets a drag through untouched when it's
+// actually inside its own scrollable element (the chat on Home, a sheet's
+// body, a horizontally-scrollable chip row) - those still work normally
+// even while the outer page itself is locked.
+const hasOwnScroll = (el: Element) => {
+  const cs = getComputedStyle(el);
+  return (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight) || (/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth);
+};
+document.addEventListener(
+  'touchmove',
+  (e) => {
+    if (document.documentElement.classList.contains('page-scrollable')) return;
+    for (let el = e.target as Element | null; el && el !== document.body; el = el.parentElement) {
+      if (hasOwnScroll(el)) return;
+    }
+    e.preventDefault();
+  },
+  { passive: false },
+);
+
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 // Tapping anywhere outside the field you're typing in dismisses the keyboard - the
 // standard chat behaviour; otherwise the only way out is the keyboard's own "done"
