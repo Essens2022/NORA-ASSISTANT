@@ -3437,3 +3437,179 @@ html.kb-open .main {
     padding: 12px 14px;
   }
 }
+
+
+/* ==========================================================================
+   NORA Home layout correction v3
+   Compact, balanced, no oversized dashboard card or content overlap.
+   ========================================================================== */
+.ai-screen {
+  gap: 6px;
+}
+
+.ai-head {
+  margin: 0 0 2px;
+}
+
+.ai-hero {
+  padding: 0 0 4px;
+}
+
+.ai-hero-greet {
+  font-size: clamp(21px, 6.3vw, 27px);
+  line-height: 1.15;
+  margin-top: 0;
+}
+
+.ai-hero-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+
+.ai-hero .voice-stage {
+  width: 132px;
+  height: 132px;
+}
+
+.ai-hero .voice-btn {
+  width: 96px;
+  height: 96px;
+}
+
+.ai-hero .voice {
+  margin: 2px 0 2px;
+}
+
+.ai-hero .voice-state {
+  margin-top: 2px;
+}
+
+.ai-quick-actions {
+  gap: 4px;
+  margin-top: 0;
+}
+
+.ai-quick-actions button {
+  padding: 3px 1px;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.ai-quick-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.briefing-compact {
+  padding: 12px 13px !important;
+  border-radius: 17px !important;
+  flex-shrink: 0;
+}
+
+.brief-compact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brief-attention-count {
+  border: 0;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--warning-soft);
+  color: var(--warning-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.brief-next-compact {
+  margin-top: 8px !important;
+  min-height: 62px;
+  padding: 9px 12px !important;
+  grid-template-columns: 34px 1fr !important;
+  column-gap: 10px !important;
+  border-radius: 15px !important;
+}
+
+.brief-next-compact .countdown {
+  width: 34px;
+  height: 34px;
+}
+
+.brief-next-compact .brief-next-label {
+  font-size: 10px;
+  line-height: 12px;
+}
+
+.brief-next-compact .brief-next-title {
+  font-size: 15px;
+  line-height: 19px;
+}
+
+.brief-next-compact .brief-next-when {
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.brief-compact-free {
+  margin: 7px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ai-scroll {
+  min-height: 54px !important;
+  padding-bottom: 6px !important;
+}
+
+.ai-footer {
+  z-index: 8;
+  padding: 6px 8px 7px !important;
+  margin: 0 !important;
+  border-radius: 18px !important;
+  background: var(--bg) !important;
+  box-shadow: 0 -8px 22px rgba(16,24,40,.06) !important;
+}
+
+:root[data-theme='dark'] .ai-footer {
+  background: #0b1220 !important;
+}
+
+.ai-screen .composer {
+  min-height: 50px;
+}
+
+@media (max-height: 760px) {
+  .ai-hero-greet {
+    font-size: 20px;
+  }
+  .ai-hero-sub {
+    display: none;
+  }
+  .ai-hero .voice-stage {
+    width: 108px;
+    height: 108px;
+  }
+  .ai-hero .voice-btn {
+    width: 80px;
+    height: 80px;
+  }
+  .ai-quick-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .briefing-compact {
+    padding: 9px 11px !important;
+  }
+  .brief-next-compact {
+    min-height: 54px;
+    margin-top: 5px !important;
+  }
+}
