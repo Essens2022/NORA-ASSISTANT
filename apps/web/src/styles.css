@@ -4444,6 +4444,14 @@ html.kb-open .main {
   background: var(--sticky-head-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  /* iOS WebKit recalculates a blurred backdrop every scroll frame, and a
+     sticky element re-measuring its own stuck/unstuck position on top of
+     that is a known source of visible micro-jitter while scrolling past
+     it (flagged from a real device). Promoting it to its own compositing
+     layer keeps that work off the main thread instead of fighting the
+     scroll for every frame. */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .screen-head h1 {

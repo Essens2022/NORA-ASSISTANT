@@ -139,9 +139,16 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 // make the fit change - a tab switch, data loading in, the keyboard opening/
 // closing, rotating the device - via a ResizeObserver on <body> rather than
 // hooking every one of those individually.
+// iOS shrinks/grows window.innerHeight on its own as the address bar
+// collapses and reappears *during* a scroll gesture - turning overflow off
+// right then (mid-scroll, scrollY > 0) would yank the content back to 0 out
+// from under the person's finger (seen on device as a jump/micro-stutter).
+// Only ever turning it off while already at rest at the top avoids that;
+// turning it ON (there's new overflow, e.g. more tasks loaded in) is always
+// safe immediately, nothing to lose there.
 const updatePageScrollable = () => {
   const scrollable = document.documentElement.scrollHeight > window.innerHeight + 1;
-  document.documentElement.classList.toggle('page-scrollable', scrollable);
+  if (scrollable || window.scrollY === 0) document.documentElement.classList.toggle('page-scrollable', scrollable);
 };
 new ResizeObserver(updatePageScrollable).observe(document.body);
 window.addEventListener('resize', updatePageScrollable);
