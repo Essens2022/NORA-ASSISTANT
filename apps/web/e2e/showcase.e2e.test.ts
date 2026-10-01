@@ -103,14 +103,14 @@ it('renders the showcase in light and dark', async () => {
   for (const theme of ['light', 'dark'] as const) {
     const ctx = await open(theme);
     await page.screenshot({ path: join(SHOTS, `showcase-home-${theme}.png`) });
-    await page.getByRole('button', { name: 'Activitate' }).click();
+    await page.locator('.nav').getByRole('button', { name: 'Activitate', exact: true }).click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, `showcase-activity-${theme}.png`) });
-    await page.getByRole('button', { name: /Dentist/ }).click();
+    await page.locator('.tab-panel:not(.tab-hidden)').getByRole('button', { name: /Dentist/ }).last().click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, `showcase-detail-${theme}.png`) });
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Profil' }).click();
+    await page.locator('.nav').getByRole('button', { name: 'Profil', exact: true }).click();
     await page.getByRole('heading', { name: 'Profil' }).waitFor();
     await page.waitForTimeout(400);
     await page.screenshot({ path: join(SHOTS, `showcase-profile-${theme}.png`) });
