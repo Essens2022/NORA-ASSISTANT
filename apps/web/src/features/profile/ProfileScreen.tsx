@@ -1,8 +1,9 @@
 import { LANGS, type Lang, type Preferences, type SoundLevel } from '@nora/core';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { brand } from '../../config/brand.ts';
-import { Icon, type IconName } from '../../components/Icon.tsx';
+import { Icon } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
+import { KitGlyph } from '../../components/NoraKitIcon.tsx';
 import { Button, Confirm, Input, Sheet, Segmented, Select, Toggle } from '../../components/ui.tsx';
 import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr, trIn } from '../../i18n/index.ts';
 import { api, deviceTimezone, isManualTimezone, setManualTimezone } from '../../services/api.ts';
@@ -46,14 +47,14 @@ export function ProfileScreen() {
       </button>
 
       <div class="section-body prof-rows">
-        <Row icon="globe" color="kind-success" label={tr('prof.language')} value={LANG_NAMES[profile.ui_lang]} onClick={() => setOpen('language')} />
-        <Row icon="speaker" color="kind-blue" label={tr('prof.voice')} value={p.voice_replies ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('voice')} />
+        <Row icon="language" color="kind-success" label={tr('prof.language')} value={LANG_NAMES[profile.ui_lang]} onClick={() => setOpen('language')} />
+        <Row icon="mic" color="kind-blue" label={tr('prof.voice')} value={p.voice_replies ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('voice')} />
         <Row icon="bell" color="kind-red" label={tr('prof.notifications')} value={p.notifications ? tr('prof.notif_enabled') : tr('common.off')} onClick={() => setOpen('notifications')} />
-        <Row icon="clock" color="kind-red" label={tr('prof.reminders')} onClick={() => setOpen('reminders')} />
+        <Row icon="clipboard" color="kind-red" label={tr('prof.reminders')} onClick={() => setOpen('reminders')} />
         <Row icon="calendar" color="kind-success" label={tr('cal.title')} value={tr('prof.connected')} onClick={() => setState({ tab: 'calendar' })} />
-        <Row icon="phone" color="kind-blue" label={tr('prof.devices')} value={tr('prof.one_device')} onClick={() => setOpen('devices')} />
-        <Row icon="spark" color="kind-warning" label={tr('prof.appearance')} value={tr(THEME_LABEL[currentTheme()])} onClick={() => setOpen('appearance')} />
-        <Row icon="shield" color="kind-purple" label={tr('prof.privacy')} onClick={() => setOpen('privacy')} />
+        <Row icon="device" color="kind-blue" label={tr('prof.devices')} value={tr('prof.one_device')} onClick={() => setOpen('devices')} />
+        <Row icon="appearance" color="kind-warning" label={tr('prof.appearance')} value={tr(THEME_LABEL[currentTheme()])} onClick={() => setOpen('appearance')} />
+        <Row icon="lock" color="kind-purple" label={tr('prof.privacy')} onClick={() => setOpen('privacy')} />
         <Row icon="help" color="kind-pink" label={tr('prof.help')} href={`mailto:${brand.supportEmail}`} />
       </div>
 
@@ -189,11 +190,11 @@ export function ProfileScreen() {
   );
 }
 
-function Row({ icon, color, label, value, onClick, href }: { icon: IconName; color: string; label: string; value?: string; onClick?: () => void; href?: string }) {
+function Row({ icon, color, label, value, onClick, href }: { icon: string; color: string; label: string; value?: string; onClick?: () => void; href?: string }) {
   const inner = (
     <>
       <span class={`kind-badge square small ${color}`} aria-hidden="true">
-        <Icon name={icon} size={16} />
+        <KitGlyph name={icon} size={16} />
       </span>
       <span class="row-text">
         <span class="row-label">{label}</span>

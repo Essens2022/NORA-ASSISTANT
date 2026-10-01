@@ -1089,6 +1089,7 @@ html.kb-open .main {
   flex: none;
   display: block;
   border-radius: 22%;
+  overflow: hidden;
   filter: drop-shadow(0 3px 8px rgba(79, 124, 255, 0.35));
 }
 .logo-word {
@@ -1098,6 +1099,36 @@ html.kb-open .main {
 }
 .brand .logo-word {
   font-size: 16px;
+}
+
+/* NoraKitIcon: both theme variants render, CSS shows only the one matching
+   the active theme - the same light/dark/system cascade every other themed
+   rule in this file already uses (see the --approved-* tokens above). */
+.nora-kit-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.nora-kit-icon img {
+  display: block;
+  grid-area: 1 / 1;
+}
+.nora-kit-icon .nki-dark {
+  display: none;
+}
+:root[data-theme='dark'] .nora-kit-icon .nki-light {
+  display: none;
+}
+:root[data-theme='dark'] .nora-kit-icon .nki-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .nora-kit-icon .nki-light {
+    display: none;
+  }
+  :root:not([data-theme='light']) .nora-kit-icon .nki-dark {
+    display: block;
+  }
 }
 .brand.big .logo-word {
   font-size: 28px;

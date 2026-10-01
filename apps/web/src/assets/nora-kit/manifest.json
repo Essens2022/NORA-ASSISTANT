@@ -1,0 +1,2162 @@
+[
+  {
+    "file": "dark/icons/home.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/home.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/calendar.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/calendar.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/activity.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/activity.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/memory.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/memory.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/profile.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/profile.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/bell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/bell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/mic.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/mic.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/note.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/note.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/message.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/message.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/more.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/more.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/check.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/check.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/plus.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/plus.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/chevron.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/chevron.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/search.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/search.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/clipboard.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/clipboard.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/gear.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/gear.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/coffee.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/coffee.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/phone.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/phone.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/document.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/document.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/dumbbell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/dumbbell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/cart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/cart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/box.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/box.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/meal.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/meal.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/heart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/heart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/bulb.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/bulb.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/truck.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/truck.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/family.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/family.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/language.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/language.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/device.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/device.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/appearance.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/appearance.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/lock.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/lock.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/help.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/help.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/tag.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/tag.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/pill.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/pill.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/dinner.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/dinner.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons/logout.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/icons-active/logout.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/branding/nora-logo.svg",
+    "width": 60,
+    "height": 60,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/branding/nora-logo-white.svg",
+    "width": 60,
+    "height": 60,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/branding/nora-wordmark.svg",
+    "width": 100,
+    "height": 32,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/voice/microphone-orb.svg",
+    "width": 210,
+    "height": 210,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/voice/listening-widget.svg",
+    "width": 220,
+    "height": 250,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/voice/microphone-white.svg",
+    "width": 32,
+    "height": 48,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/add.svg",
+    "width": 188,
+    "height": 42,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/cancel.svg",
+    "width": 137,
+    "height": 42,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/add-activity.svg",
+    "width": 228,
+    "height": 42,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/floating-add.svg",
+    "width": 46,
+    "height": 46,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/toggle-on.svg",
+    "width": 52,
+    "height": 31,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/toggle-off.svg",
+    "width": 52,
+    "height": 31,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/checkbox-empty.svg",
+    "width": 24,
+    "height": 24,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/checkbox-checked.svg",
+    "width": 24,
+    "height": 24,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/toolbar-bell.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/toolbar-calendar.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/toolbar-tag.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/toolbar-more.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-tutti.svg",
+    "width": 54,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-tutti-selected.svg",
+    "width": 54,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-note.svg",
+    "width": 49,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-note-selected.svg",
+    "width": 49,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-conversioni.svg",
+    "width": 86,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-conversioni-selected.svg",
+    "width": 86,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-foto.svg",
+    "width": 47,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/filter-foto-selected.svg",
+    "width": 47,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/header-gear.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/buttons/header-clipboard.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/badge-coffee.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/badge-calendar.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/badge-meal.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/badge-box.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/badge-dumbbell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/badge-dinner.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/home-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/home-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/calendar-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/calendar-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/activity-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/activity-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/memory-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/memory-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/profile-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/profile-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/text-input.svg",
+    "width": 336,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/search.svg",
+    "width": 260,
+    "height": 35,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/memory-filters.svg",
+    "width": 260,
+    "height": 33,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/calendar-segments.svg",
+    "width": 250,
+    "height": 34,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/controls/activity-segments.svg",
+    "width": 250,
+    "height": 34,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/bottom-home.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/bottom-calendar.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/bottom-activity.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/bottom-memory.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/navigation/bottom-profile.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/home/bell-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/home/calendar-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/home/activity-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/home/note-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/home/message-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/home/more-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/activity/coffee-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/activity/pill-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/activity/phone-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/activity/document-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/activity/dumbbell-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/activity/cart-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/coffee-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/calendar-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/meal-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/box-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/dumbbell-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/dinner-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/day-lun.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/day-mar.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/day-mer.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/day-gio.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/calendar/day-ven.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/memory/document-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/memory/bulb-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/memory/heart-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/memory/family-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/memory/truck-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/profile-card.svg",
+    "width": 260,
+    "height": 83,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/language-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/mic-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/bell-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/clipboard-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/calendar-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/device-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/appearance-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/lock-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/profile/help-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/notifications/coffee-ro.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/notifications/medicine-ro.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/notifications/coffee-it.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/notifications/medicine-it.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/screens/home.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/screens/calendar.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/screens/activity.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/screens/memory.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/screens/profile.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/screens/listening.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/surfaces/screen-background.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/surfaces/home-background.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/surfaces/card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/system/status-bar.svg",
+    "width": 280,
+    "height": 28,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/system/home-indicator.svg",
+    "width": 100,
+    "height": 4,
+    "theme": "dark"
+  },
+  {
+    "file": "dark/system/device-frame.svg",
+    "width": 302,
+    "height": 657,
+    "theme": "dark"
+  },
+  {
+    "file": "light/icons/home.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/home.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/calendar.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/calendar.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/activity.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/activity.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/memory.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/memory.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/profile.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/profile.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/bell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/bell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/mic.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/mic.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/note.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/note.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/message.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/message.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/more.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/more.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/check.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/check.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/plus.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/plus.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/chevron.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/chevron.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/search.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/search.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/clipboard.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/clipboard.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/gear.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/gear.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/coffee.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/coffee.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/phone.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/phone.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/document.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/document.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/dumbbell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/dumbbell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/cart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/cart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/box.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/box.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/meal.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/meal.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/heart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/heart.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/bulb.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/bulb.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/truck.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/truck.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/family.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/family.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/language.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/language.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/device.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/device.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/appearance.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/appearance.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/lock.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/lock.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/help.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/help.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/tag.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/tag.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/pill.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/pill.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/dinner.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/dinner.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons/logout.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/icons-active/logout.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/branding/nora-logo.svg",
+    "width": 60,
+    "height": 60,
+    "theme": "light"
+  },
+  {
+    "file": "light/branding/nora-logo-white.svg",
+    "width": 60,
+    "height": 60,
+    "theme": "light"
+  },
+  {
+    "file": "light/branding/nora-wordmark.svg",
+    "width": 100,
+    "height": 32,
+    "theme": "light"
+  },
+  {
+    "file": "light/voice/microphone-orb.svg",
+    "width": 210,
+    "height": 210,
+    "theme": "light"
+  },
+  {
+    "file": "light/voice/listening-widget.svg",
+    "width": 220,
+    "height": 250,
+    "theme": "light"
+  },
+  {
+    "file": "light/voice/microphone-white.svg",
+    "width": 32,
+    "height": 48,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/add.svg",
+    "width": 188,
+    "height": 42,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/cancel.svg",
+    "width": 137,
+    "height": 42,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/add-activity.svg",
+    "width": 228,
+    "height": 42,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/floating-add.svg",
+    "width": 46,
+    "height": 46,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/toggle-on.svg",
+    "width": 52,
+    "height": 31,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/toggle-off.svg",
+    "width": 52,
+    "height": 31,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/checkbox-empty.svg",
+    "width": 24,
+    "height": 24,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/checkbox-checked.svg",
+    "width": 24,
+    "height": 24,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/toolbar-bell.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/toolbar-calendar.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/toolbar-tag.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/toolbar-more.svg",
+    "width": 44,
+    "height": 44,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-tutti.svg",
+    "width": 54,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-tutti-selected.svg",
+    "width": 54,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-note.svg",
+    "width": 49,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-note-selected.svg",
+    "width": 49,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-conversioni.svg",
+    "width": 86,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-conversioni-selected.svg",
+    "width": 86,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-foto.svg",
+    "width": 47,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/filter-foto-selected.svg",
+    "width": 47,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/header-gear.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/buttons/header-clipboard.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/badge-coffee.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/badge-calendar.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/badge-meal.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/badge-box.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/badge-dumbbell.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/badge-dinner.svg",
+    "width": 28,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/home-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/home-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/calendar-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/calendar-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/activity-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/activity-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/memory-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/memory-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/profile-item.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/profile-selected.svg",
+    "width": 52,
+    "height": 52,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/text-input.svg",
+    "width": 336,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/search.svg",
+    "width": 260,
+    "height": 35,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/memory-filters.svg",
+    "width": 260,
+    "height": 33,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/calendar-segments.svg",
+    "width": 250,
+    "height": 34,
+    "theme": "light"
+  },
+  {
+    "file": "light/controls/activity-segments.svg",
+    "width": 250,
+    "height": 34,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/bottom-home.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/bottom-calendar.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/bottom-activity.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/bottom-memory.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "light"
+  },
+  {
+    "file": "light/navigation/bottom-profile.svg",
+    "width": 270,
+    "height": 62,
+    "theme": "light"
+  },
+  {
+    "file": "light/home/bell-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "light"
+  },
+  {
+    "file": "light/home/calendar-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "light"
+  },
+  {
+    "file": "light/home/activity-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "light"
+  },
+  {
+    "file": "light/home/note-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "light"
+  },
+  {
+    "file": "light/home/message-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "light"
+  },
+  {
+    "file": "light/home/more-tile.svg",
+    "width": 78,
+    "height": 70,
+    "theme": "light"
+  },
+  {
+    "file": "light/activity/coffee-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "light"
+  },
+  {
+    "file": "light/activity/pill-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "light"
+  },
+  {
+    "file": "light/activity/phone-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "light"
+  },
+  {
+    "file": "light/activity/document-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "light"
+  },
+  {
+    "file": "light/activity/dumbbell-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "light"
+  },
+  {
+    "file": "light/activity/cart-row.svg",
+    "width": 260,
+    "height": 56,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/coffee-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/calendar-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/meal-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/box-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/dumbbell-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/dinner-event.svg",
+    "width": 206,
+    "height": 50,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/day-lun.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/day-mar.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/day-mer.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/day-gio.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "light"
+  },
+  {
+    "file": "light/calendar/day-ven.svg",
+    "width": 46,
+    "height": 49,
+    "theme": "light"
+  },
+  {
+    "file": "light/memory/document-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "light"
+  },
+  {
+    "file": "light/memory/bulb-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "light"
+  },
+  {
+    "file": "light/memory/heart-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "light"
+  },
+  {
+    "file": "light/memory/family-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "light"
+  },
+  {
+    "file": "light/memory/truck-card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/profile-card.svg",
+    "width": 260,
+    "height": 83,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/language-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/mic-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/bell-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/clipboard-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/calendar-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/device-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/appearance-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/lock-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/profile/help-row.svg",
+    "width": 260,
+    "height": 41,
+    "theme": "light"
+  },
+  {
+    "file": "light/notifications/coffee-ro.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "light"
+  },
+  {
+    "file": "light/notifications/medicine-ro.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "light"
+  },
+  {
+    "file": "light/notifications/coffee-it.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "light"
+  },
+  {
+    "file": "light/notifications/medicine-it.svg",
+    "width": 410,
+    "height": 87,
+    "theme": "light"
+  },
+  {
+    "file": "light/screens/home.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/screens/calendar.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/screens/activity.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/screens/memory.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/screens/profile.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/screens/listening.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/surfaces/screen-background.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/surfaces/home-background.svg",
+    "width": 280,
+    "height": 630,
+    "theme": "light"
+  },
+  {
+    "file": "light/surfaces/card.svg",
+    "width": 260,
+    "height": 72,
+    "theme": "light"
+  },
+  {
+    "file": "light/system/status-bar.svg",
+    "width": 280,
+    "height": 28,
+    "theme": "light"
+  },
+  {
+    "file": "light/system/home-indicator.svg",
+    "width": 100,
+    "height": 4,
+    "theme": "light"
+  },
+  {
+    "file": "light/system/device-frame.svg",
+    "width": 302,
+    "height": 657,
+    "theme": "light"
+  }
+]

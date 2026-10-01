@@ -2,6 +2,7 @@ import type { Task } from '@nora/core';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
+import { NoraKitIcon } from '../../components/NoraKitIcon.tsx';
 import { Button, Sheet } from '../../components/ui.tsx';
 import { VoiceButton } from '../../components/VoiceButton.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
@@ -120,7 +121,7 @@ export function AIScreen() {
           <Logo size={30} withWordmark />
         </h1>
         <button type="button" class="approved-settings-btn" aria-label={tr('nav.profile')} onClick={() => setState({ tab: 'profile' })}>
-          <Icon name="settings" size={19} />
+          <NoraKitIcon path="buttons/header-gear.svg" size={28} alt="" />
         </button>
       </header>
 
