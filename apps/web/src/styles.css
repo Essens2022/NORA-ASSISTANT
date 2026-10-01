@@ -1810,6 +1810,9 @@ html.kb-open .main {
   justify-content: center;
   margin: 8px 0 16px;
 }
+.act-add {
+  margin: 20px 0 8px;
+}
 
 /* ---------- task detail ---------- */
 .status-pill {
@@ -4013,6 +4016,21 @@ html.kb-open .main {
    NORA APPROVED REFERENCE — production v2
    Built on latest main to avoid merge drift.
    ========================================================================== */
+/* same system-vs-explicit-dark gap as the --approved-* block further down -
+   these only existed under the explicit attribute, never under the OS/browser
+   dark preference alone. Mirrored the same way. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --nora-approved-bg:#07101f;
+    --nora-approved-panel:#111a2a;
+    --nora-approved-panel2:#0d1626;
+    --nora-approved-line:rgba(141,162,199,.12);
+    --nora-approved-muted:#8e9ab0;
+    --nora-approved-blue:#4d7cff;
+    --nora-approved-violet:#7a5cff;
+    --nora-approved-cyan:#43ccff;
+  }
+}
 :root[data-theme='dark'] {
   --nora-approved-bg:#07101f;
   --nora-approved-panel:#111a2a;
@@ -4024,6 +4042,15 @@ html.kb-open .main {
   --nora-approved-cyan:#43ccff;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body,
+  :root:not([data-theme='light']) .app {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(35,74,160,.18), transparent 34%),
+      radial-gradient(circle at 90% 8%, rgba(89,48,154,.12), transparent 30%),
+      var(--nora-approved-bg);
+  }
+}
 :root[data-theme='dark'] body,
 :root[data-theme='dark'] .app {
   background:
@@ -4169,7 +4196,7 @@ html.kb-open .main {
 }
 .ai-screen .composer-send{
   border-radius:12px;
-  background:linear-gradient(135deg,var(--nora-approved-blue),var(--nora-approved-violet))
+  background:linear-gradient(135deg,var(--nora-approved-blue, #4d7cff),var(--nora-approved-violet, #7a5cff))
 }
 
 /* Shared reference surfaces */
@@ -4192,7 +4219,7 @@ html.kb-open .main {
 .activity-screen .chip.selected,
 .memory-screen .chip.selected{
   color:#fff;
-  background:linear-gradient(145deg,var(--nora-approved-blue),var(--nora-approved-violet));
+  background:linear-gradient(145deg,var(--nora-approved-blue, #4d7cff),var(--nora-approved-violet, #7a5cff));
   border-color:transparent
 }
 .activity-screen .day-card,
@@ -4259,6 +4286,26 @@ html.kb-open .main {
    Matches the founder-approved dark cinematic composite.
    ========================================================================== */
 
+/* These tokens were previously only defined under :root[data-theme='dark'],
+   i.e. only once the person had explicitly picked Dark in Aspetto - the
+   far more common case, system colour scheme (no explicit choice, the
+   default), never got them, so every rule built on --approved-* (buttons,
+   card borders, etc.) silently fell through to an unstyled/invalid value
+   whenever the OS/browser was simply in dark mode. Mirrored here the same
+   way the base theme tokens above already are. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --approved-bg: #07101f;
+    --approved-panel: #111a2a;
+    --approved-panel-2: #0d1626;
+    --approved-line: rgba(141, 162, 199, .12);
+    --approved-muted: #8e9ab0;
+    --approved-blue: #4d7cff;
+    --approved-violet: #7a5cff;
+    --approved-cyan: #43ccff;
+    --approved-pink: #d852d0;
+  }
+}
 :root[data-theme='dark'] {
   --approved-bg: #07101f;
   --approved-panel: #111a2a;
@@ -4271,6 +4318,15 @@ html.kb-open .main {
   --approved-pink: #d852d0;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body,
+  :root:not([data-theme='light']) .app {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(35, 74, 160, .18), transparent 34%),
+      radial-gradient(circle at 90% 8%, rgba(89, 48, 154, .12), transparent 30%),
+      #07101f;
+  }
+}
 :root[data-theme='dark'] body,
 :root[data-theme='dark'] .app {
   background:
@@ -4496,7 +4552,7 @@ html.kb-open .main {
 
 .approved-chat-layer .composer-send {
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--approved-blue), var(--approved-violet));
+  background: linear-gradient(135deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
 }
 
 /* CALENDAR */
@@ -4508,7 +4564,7 @@ html.kb-open .main {
   font-size: 0;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, var(--approved-blue), var(--approved-violet));
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
 }
 
 .calendar-screen .cal-card {
@@ -4539,7 +4595,7 @@ html.kb-open .main {
 
 .calendar-screen .cal-day.selected {
   color: #fff;
-  background: linear-gradient(145deg, var(--approved-blue), var(--approved-violet));
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
   box-shadow: 0 7px 18px rgba(79,124,255,.24);
 }
 
@@ -4568,7 +4624,7 @@ html.kb-open .main {
 .activity-screen .act-range {
   padding: 4px;
   margin-bottom: 12px;
-  border: 1px solid var(--approved-line);
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
   border-radius: 14px;
   background: rgba(13,22,38,.94);
 }
@@ -4576,11 +4632,14 @@ html.kb-open .main {
 .activity-screen .chip {
   border: 0;
   background: transparent;
+  /* this pill stays dark cinematic in both themes - see the task-card
+     comment above, same reasoning, same fix. */
+  color: #9aa6bd;
 }
 
 .activity-screen .chip.selected {
   color: #fff;
-  background: linear-gradient(145deg, var(--approved-blue), var(--approved-violet));
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
   box-shadow: none;
 }
 
@@ -4637,7 +4696,7 @@ html.kb-open .main {
 .memory-screen .chip.selected {
   color: #fff;
   border-color: transparent;
-  background: linear-gradient(145deg, var(--approved-blue), var(--approved-violet));
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
 }
 
 .memory-screen .group {
@@ -4690,7 +4749,7 @@ html.kb-open .main {
 .profile-screen .prof-avatar {
   width: 50px;
   height: 50px;
-  background: linear-gradient(145deg, var(--approved-cyan), var(--approved-blue) 45%, var(--approved-violet) 78%, var(--approved-pink));
+  background: linear-gradient(145deg, var(--approved-cyan, #43ccff), var(--approved-blue, #4d7cff) 45%, var(--approved-violet, #7a5cff) 78%, var(--approved-pink, #d852d0));
 }
 
 .profile-screen .section {
@@ -4755,10 +4814,12 @@ html.kb-open .main {
   background: rgba(9,17,30,.80);
 }
 
-/* shared compact premium surfaces */
+/* shared compact premium surfaces - fallback values so this still resolves
+   when --approved-blue/-violet aren't defined (light theme), instead of the
+   whole background going invalid/transparent on a primary action button. */
 .btn-primary,
 .composer-send {
-  background: linear-gradient(135deg, var(--approved-blue), var(--approved-violet));
+  background: linear-gradient(135deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
 }
 
 .sheet,

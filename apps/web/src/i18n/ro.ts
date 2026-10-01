@@ -131,6 +131,7 @@ export const ro: Record<MessageKey, string> = {
   'ai.needs_you': 'Așteaptă răspunsul tău',
 
   'act.title': 'Activitate',
+  'act.filter_all': 'Toate',
   'act.day_progress': 'Progresul zilei',
   'act.day_progress_hint': '{done} din {total} taskuri de azi finalizate',
   'act.week_progress': 'Progresul săptămânii',

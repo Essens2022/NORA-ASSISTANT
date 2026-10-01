@@ -131,6 +131,7 @@ export const ru: Record<MessageKey, string> = {
   'ai.needs_you': 'Ждёт твоего ответа',
 
   'act.title': 'Дела',
+  'act.filter_all': 'Все',
   'act.day_progress': 'Прогресс дня',
   'act.day_progress_hint': '{done} из {total} задач на сегодня выполнено',
   'act.week_progress': 'Прогресс недели',

@@ -250,8 +250,8 @@ describe('NORA web – end to end', () => {
 
   it('checkbox completes a task; completed section loads', async () => {
     await page.getByRole('checkbox', { name: 'Marchează „Cumpără lapte” ca făcut' }).click();
-    await page.getByRole('button', { name: 'Arată finalizatele' }).click();
-    await page.getByRole('heading', { name: 'Finalizate' }).waitFor();
+    await page.getByRole('button', { name: 'Finalizate', exact: true }).click();
+    await activeScreen().getByText('Cumpără lapte').waitFor();
     await expect.poll(() => [...store.tasks.values()].find((x) => x.title === 'Cumpără lapte')!.status).toBe('completed');
   }, 20_000);
 

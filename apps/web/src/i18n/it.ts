@@ -131,6 +131,7 @@ export const it: Record<MessageKey, string> = {
   'ai.needs_you': 'Aspetta una tua risposta',
 
   'act.title': 'Attività',
+  'act.filter_all': 'Tutte',
   'act.day_progress': 'Progresso di oggi',
   'act.day_progress_hint': '{done} di {total} attività di oggi completate',
   'act.week_progress': 'Progresso della settimana',

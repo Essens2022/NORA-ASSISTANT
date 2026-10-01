@@ -129,6 +129,7 @@ export const en = {
   'ai.needs_you': 'Waiting for you',
 
   'act.title': 'Activity',
+  'act.filter_all': 'All',
   'act.day_progress': "Today's progress",
   'act.day_progress_hint': '{done} of {total} tasks done today',
   'act.week_progress': "This week's progress",
