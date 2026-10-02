@@ -166,11 +166,35 @@ html {
      bounce from chaining into a pull-to-refresh/reveal, not the bounce
      itself), so there's nothing to grab onto unless main.tsx's
      ResizeObserver (updatePageScrollable) finds the content actually taller
-     than the viewport and adds .page-scrollable. */
+     than the viewport and adds .page-scrollable. overflow-y:hidden alone
+     turned out not to be enough on a real iPhone in Safari (not installed/
+     standalone): real Safari ties a drag anywhere on the page to its own
+     address-bar collapse animation at the native gesture-recognizer level,
+     underneath the DOM entirely - overflow and even this file's own
+     touchmove preventDefault (main.tsx) only ever stop the *page's own*
+     scroll, not that. touch-action:none stops the gesture from being
+     recognized as a pan at all, which does reach that layer. */
   overflow-y: hidden;
+  touch-action: none;
 }
 html.page-scrollable {
   overflow-y: auto;
+  touch-action: pan-y;
+}
+/* html/body's touch-action:none (above) would otherwise reach these too -
+   each of the app's actually-scrollable regions needs its own explicit
+   touch-action to keep panning inside itself regardless of the outer page's
+   lock state (confirmed: without this, dragging the Home chat did nothing
+   at all - .ai-scroll's scrollTop never moved). */
+.sheet,
+.ai-scroll,
+.cal-timeline,
+.alert-screen,
+.composer-input {
+  touch-action: pan-y;
+}
+.mem-filter {
+  touch-action: pan-x;
 }
 body {
   margin: 0;
@@ -180,8 +204,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
-  touch-action: manipulation; /* no double-tap zoom */
+  touch-action: none; /* see html's touch-action comment above */
   -webkit-tap-highlight-color: transparent;
+}
+html.page-scrollable body {
+  touch-action: pan-y;
 }
 /* the ambient wash used to be a `background-attachment: fixed` on body, but that's
    positioned relative to the whole scrollable page on many mobile browsers, not the
