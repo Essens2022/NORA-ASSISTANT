@@ -391,9 +391,10 @@ async function devicesRoute(ctx: Ctx) {
 async function pushTest(ctx: Ctx) {
   const vapid = await getVapid(admin);
   const lang = ctx.profile.ui_lang;
-  const title = { ro: 'NORA funcționează', en: 'NORA is working', it: 'NORA funziona', ru: 'NORA работает' }[lang];
-  const body = { ro: 'Așa vei primi reminderele.', en: "This is how your reminders will look.", it: 'Così riceverai i promemoria.', ru: 'Так будут выглядеть напоминания.' }[lang];
-  const res = await pushToUser(admin, ctx.userId, { title, body, tag: 'nora-test', kind: 'test', sound: ctx.profile.prefs.sound, actions: [], lang }, vapid);
+  const sampleTitle = { ro: 'BEA CAFEAUA ☕️', en: 'DRINK YOUR COFFEE ☕️', it: 'BEVI IL CAFFÈ ☕️', ru: 'ВЫПЕЙ КОФЕ ☕️' }[lang];
+  const now = toZoned(new Date(), ctx.profile.timezone);
+  const sampleTime = now.time.slice(0, 5);
+  const res = await pushToUser(admin, ctx.userId, { title: sampleTitle, body: sampleTime, tag: 'nora-test', kind: 'test', sound: ctx.profile.prefs.sound, actions: [], lang }, vapid);
   return res;
 }
 

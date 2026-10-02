@@ -2,15 +2,15 @@ import type { Task } from '@nora/core';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { Icon } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
+import { NoraKitIcon } from '../../components/NoraKitIcon.tsx';
 import { Button, Sheet } from '../../components/ui.tsx';
 import { VoiceButton } from '../../components/VoiceButton.tsx';
-import { Briefing } from './Briefing.tsx';
 import { formatTime, relativeDay, tr } from '../../i18n/index.ts';
 import { cancelVoice, retryMessage, sendText, toggleVoice } from '../../state/actions.ts';
 import { setState, toast, useStore, type ChatItem, toastError, toastInfo } from '../../state/store.ts';
 import { micPermission } from '../../services/voice/recorder.ts';
 import { primeSpeech, tts } from '../../services/voice/tts.ts';
-import { nowLocal, todayLocal } from '../../utils/time.ts';
+import { todayLocal } from '../../utils/time.ts';
 
 // iOS only lets audio start (speech synthesis, an <audio> element) inside a real
 // user gesture - and, on this screen, doing that claims the device's audio session
@@ -36,12 +36,11 @@ const DRAFT_KEY = 'nora.draft';
 const MIC_EXPLAINED = 'nora.mic_explained';
 
 export function AIScreen() {
-  const { messages, voice, level, tasks, profile, online, features } = useStore((s) => ({
+  const { messages, voice, level, tasks, online, features } = useStore((s) => ({
     messages: s.messages,
     voice: s.voice,
     level: s.level,
     tasks: s.tasks,
-    profile: s.profile,
     online: s.online,
     features: s.features,
   }));
@@ -53,8 +52,12 @@ export function AIScreen() {
     }
   });
   const [explainMic, setExplainMic] = useState(false);
+  // The conversation stays off-screen until there's something to show: a
+  // message already exists, or the person has started typing a draft. The
+  // composer itself (the text input) is always there, below this.
   const listRef = useRef<HTMLDivElement>(null);
   const today = todayLocal();
+  const showComposer = messages.length > 0 || draft.trim().length > 0;
 
   useEffect(() => {
     try {
@@ -106,61 +109,55 @@ export function AIScreen() {
     if (!ok) setDraft((d) => d || text); // never lose typed input
   };
 
-  const hour = nowLocal().hour;
-  // Midnight–4am is still "evening" as far as a greeting goes – the night hasn't
-  // turned into morning just because the clock rolled over to a new date.
-  const greet = hour < 4 ? tr('ai.greet_evening') : hour < 12 ? tr('ai.greet_morning') : hour < 18 ? tr('ai.greet_afternoon') : tr('ai.greet_evening');
   const examples = tr('ai.examples').split('|');
-  const avatarFile = voice === 'listening' ? 'avatar-listening' : voice === 'processing' ? 'avatar-thinking' : voice === 'speaking' ? 'avatar-speaking' : 'avatar-idle';
 
   return (
     <div class="screen ai-screen">
-      <header class="ai-head">
+      <header class="ai-head approved-home-head">
         <h1 class="brand">
-          <Logo size={34} withWordmark />
+          <Logo size={30} withWordmark />
         </h1>
-        <p class="greet">
-          <img src={`${import.meta.env.BASE_URL}${avatarFile}.webp`} alt="" class="ai-avatar-thumb" />
-          <span>
-            {greet}
-            {profile?.display_name ? `, ${profile.display_name}` : ''}
-          </span>
-        </p>
+        <button type="button" class="approved-settings-btn" aria-label={tr('nav.profile')} onClick={() => setState({ tab: 'profile' })}>
+          <NoraKitIcon path="buttons/header-gear.svg" size={28} />
+        </button>
       </header>
 
-      {/* the briefing stays put, like the voice button and composer below it – only
-          the conversation scrolls, never pushed off or hidden on a short phone */}
-      <Briefing tasks={tasks} today={today} />
+      <section class="approved-voice-home" aria-label={tr('nav.ai')}>
+        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
+      </section>
 
-      <div class="ai-scroll" ref={listRef}>
-        <div class="conversation" aria-live="polite" aria-relevant="additions">
-          {messages.length === 0 ? (
-            <div class="ai-empty">
-              <p>{tr('ai.empty')}</p>
-              <ul class="examples">
-                {examples.map((ex) => (
-                  <li key={ex}>
-                    <button type="button" onClick={() => setDraft(ex)}>
-                      “{ex}”
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
-          )}
+      {showComposer && (
+        <div class={`ai-scroll${messages.length === 0 ? ' ai-scroll-empty' : ''}`} ref={listRef}>
+          <div class="conversation" aria-live="polite" aria-relevant="additions">
+            {messages.length === 0 ? (
+              <div class="ai-empty">
+                <p>{tr('ai.empty')}</p>
+                <ul class="examples">
+                  {examples.map((ex) => (
+                    <li key={ex}>
+                      <button type="button" onClick={() => setDraft(ex)}>
+                        “{ex}”
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              messages.slice(-30).map((m) => <Bubble key={m.id} m={m} today={today} tasks={tasks} />)
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {!online && <p class="offline-note">{tr('ai.offline')}</p>}
 
-      {/* wrapped so the two stick together at the bottom of the screen while the
-          keyboard is open (see .ai-footer in styles.css) - the conversation above
-          scrolls, this stays put instead of scrolling away with it */}
+      {/* Always available, not just once "engaged" - removing the quick-action grid
+          (it only duplicated the bottom nav) took the one other way to reach the
+          text composer besides voice, so this is now that way in. The conversation
+          above it still only appears once there's something to show (see
+          .ai-footer in styles.css for why this sticks to the bottom while the
+          keyboard is open). */}
       <div class="ai-footer">
-        <VoiceButton state={voice} level={level} onPress={() => void startVoice()} disabled={!features.stt && voice === 'idle'} />
-
         <form class="composer" onSubmit={submit}>
           <label class="sr-only" for="composer-input">
             {tr('ai.input_placeholder')}

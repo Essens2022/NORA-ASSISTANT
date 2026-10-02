@@ -65,6 +65,26 @@
 
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter Variable', Inter, 'Segoe UI', Roboto, Arial, sans-serif;
   color-scheme: light;
+
+  /* Living Design System aliases - the premium Home/Calendar/etc. mockup
+     (.demo-* classes, design/DesignLab.tsx) was styled against its own
+     --dl-* tokens, scoped only inside .design-lab. Pointing those same
+     names at this file's real, already-theme-switching tokens (no new
+     palette needed - the values were already near-identical) lets any
+     .demo-* class be reused directly in production screens and stay
+     correctly light/dark themed automatically, with zero risk to any
+     existing rule here (purely additive). */
+  --dl-bg: var(--bg);
+  --dl-panel: var(--surface);
+  --dl-panel-2: var(--elevated);
+  --dl-border: var(--border);
+  --dl-text: var(--text);
+  --dl-muted: var(--muted);
+  --dl-blue: var(--blue);
+  --dl-cyan: var(--cyan);
+  --dl-violet: var(--purple);
+  --dl-pink: var(--pink);
+  --dl-green: var(--success);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -140,6 +160,41 @@ html {
   /* no rubber-band / pull-to-refresh: the app stays put like a native one */
   overscroll-behavior: none;
   background: var(--bg);
+  /* A page whose content fits the viewport shouldn't be scrollable at all -
+     iOS's elastic bounce on drag can still trigger even with the page
+     genuinely non-overflowing (overscroll-behavior above only stops the
+     bounce from chaining into a pull-to-refresh/reveal, not the bounce
+     itself), so there's nothing to grab onto unless main.tsx's
+     ResizeObserver (updatePageScrollable) finds the content actually taller
+     than the viewport and adds .page-scrollable. overflow-y:hidden alone
+     turned out not to be enough on a real iPhone in Safari (not installed/
+     standalone): real Safari ties a drag anywhere on the page to its own
+     address-bar collapse animation at the native gesture-recognizer level,
+     underneath the DOM entirely - overflow and even this file's own
+     touchmove preventDefault (main.tsx) only ever stop the *page's own*
+     scroll, not that. touch-action:none stops the gesture from being
+     recognized as a pan at all, which does reach that layer. */
+  overflow-y: hidden;
+  touch-action: none;
+}
+html.page-scrollable {
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+/* html/body's touch-action:none (above) would otherwise reach these too -
+   each of the app's actually-scrollable regions needs its own explicit
+   touch-action to keep panning inside itself regardless of the outer page's
+   lock state (confirmed: without this, dragging the Home chat did nothing
+   at all - .ai-scroll's scrollTop never moved). */
+.sheet,
+.ai-scroll,
+.cal-timeline,
+.alert-screen,
+.composer-input {
+  touch-action: pan-y;
+}
+.mem-filter {
+  touch-action: pan-x;
 }
 body {
   margin: 0;
@@ -149,8 +204,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
-  touch-action: manipulation; /* no double-tap zoom */
+  touch-action: none; /* see html's touch-action comment above */
   -webkit-tap-highlight-color: transparent;
+}
+html.page-scrollable body {
+  touch-action: pan-y;
+}
+/* The most reliable way to stop a real iPhone's Safari (not installed/
+   standalone) from moving a page at all - overflow:hidden and touch-action:
+   none (above) stop the page's own scroll and its gesture recognition, but
+   real Safari's top-level "page" scroll position is partly owned by its own
+   chrome (the address-bar collapse animation rides on it) in a way neither
+   of those fully reaches on every iOS version. A position:fixed body has no
+   scroll position for anything to grab onto in the first place - nothing
+   for Safari's own gesture handling to move, not just nothing left for ours
+   to prevent. */
+html:not(.page-scrollable) body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
 }
 /* the ambient wash used to be a `background-attachment: fixed` on body, but that's
    positioned relative to the whole scrollable page on many mobile browsers, not the
@@ -235,7 +307,6 @@ h3 {
 }
 .main {
   flex: 1;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .tab-hidden {
   display: none;
@@ -444,6 +515,15 @@ textarea.input {
   justify-content: space-between;
   gap: 16px;
   min-height: 52px;
+  /* a <button>/<a> using this class otherwise inherits the browser's default
+     centered button text alignment, which only shows up once the row is wide
+     enough for it to matter - the label ends up floating mid-row instead of
+     flush left against its icon/chevron neighbours. */
+  text-align: left;
+  /* an <a href> row (privacy policy, terms, help) shouldn't look different
+     from a <button> row (settings groups) just because of its tag. */
+  color: inherit;
+  text-decoration: none;
 }
 .row-text {
   flex: 1;
@@ -642,6 +722,10 @@ textarea.input {
   background: linear-gradient(135deg, var(--purple), #6d28d9);
   color: #fff;
 }
+.kind-badge.kind-red {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+}
 .kind-badge.kind-neutral {
   background: linear-gradient(135deg, var(--muted), var(--text-2));
   color: #fff;
@@ -649,6 +733,9 @@ textarea.input {
 .kind-badge.small {
   width: 28px;
   height: 28px;
+}
+.kind-badge.square {
+  border-radius: 12px;
 }
 .kind-chip {
   display: inline-flex;
@@ -912,7 +999,10 @@ html.kb-open .main {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* above the bottom nav (z-index: 60 in the approved theme) - otherwise the
+     nav bar's own subtree sits on top of a sheet tall enough to reach the
+     bottom of the screen and silently eats clicks meant for the sheet. */
+  z-index: 70;
   background: var(--overlay);
   display: flex;
   align-items: flex-end;
@@ -1050,6 +1140,7 @@ html.kb-open .main {
   flex: none;
   display: block;
   border-radius: 22%;
+  overflow: hidden;
   filter: drop-shadow(0 3px 8px rgba(79, 124, 255, 0.35));
 }
 .logo-word {
@@ -1059,6 +1150,36 @@ html.kb-open .main {
 }
 .brand .logo-word {
   font-size: 16px;
+}
+
+/* NoraKitIcon: both theme variants render, CSS shows only the one matching
+   the active theme - the same light/dark/system cascade every other themed
+   rule in this file already uses (see the --approved-* tokens above). */
+.nora-kit-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.nora-kit-icon img {
+  display: block;
+  grid-area: 1 / 1;
+}
+.nora-kit-icon .nki-dark {
+  display: none;
+}
+:root[data-theme='dark'] .nora-kit-icon .nki-light {
+  display: none;
+}
+:root[data-theme='dark'] .nora-kit-icon .nki-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .nora-kit-icon .nki-light {
+    display: none;
+  }
+  :root:not([data-theme='light']) .nora-kit-icon .nki-dark {
+    display: block;
+  }
 }
 .brand.big .logo-word {
   font-size: 28px;
@@ -1790,6 +1911,24 @@ html.kb-open .main {
   justify-content: center;
   margin: 8px 0 16px;
 }
+/* Fixed above the nav bar (like .cal-fab), out of the scrolling flow, so
+   only the task list scrolls underneath it - matching Calendario's
+   always-reachable add button instead of one that scrolls away with the
+   list. ActivityScreen reserves space for it below the list via its own
+   measured height (useMeasuredHeight, hooks.ts). */
+.act-add {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  z-index: 40;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--sticky-head-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
 
 /* ---------- task detail ---------- */
 .status-pill {
@@ -1962,6 +2101,79 @@ html.kb-open .main {
 }
 
 /* ---------- calendar ---------- */
+.cal-mode {
+  margin-bottom: 12px;
+}
+.cal-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.cal-strip-day {
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.cal-strip-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.cal-strip-num {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cal-strip-day.today .cal-strip-num {
+  color: var(--blue);
+}
+.cal-strip-day.has-tasks::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.cal-strip-day.selected {
+  background: var(--blue);
+}
+.cal-strip-day.selected .cal-strip-label,
+.cal-strip-day.selected .cal-strip-num {
+  color: #fff;
+}
+.cal-strip-day.selected.has-tasks::after {
+  background: #fff;
+}
+.cal-week-agenda .group-title {
+  margin-top: 16px;
+}
+.cal-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
+  z-index: 40;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, var(--blue), var(--purple));
+  box-shadow: 0 10px 24px rgba(79, 124, 255, 0.34);
+}
 .cal-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2082,6 +2294,8 @@ html.kb-open .main {
 }
 .cal-timeline-hour {
   display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
   gap: 12px;
   padding: 8px 4px;
   border-bottom: 1px solid var(--border);
@@ -2125,6 +2339,20 @@ html.kb-open .main {
 .mem-search {
   margin-bottom: 12px;
 }
+.mem-search-wrap {
+  position: relative;
+}
+.mem-search-wrap .mem-search {
+  padding-left: 40px;
+}
+.mem-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
 .mem-filter {
   margin-bottom: 20px;
 }
@@ -2143,6 +2371,13 @@ html.kb-open .main {
   box-shadow: var(--card-shadow);
   padding: 16px;
   margin-bottom: 20px;
+  /* it's a <button> now (taps through to Account) - reset button defaults */
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.prof-row {
+  gap: 12px;
 }
 .prof-avatar {
   flex: 0 0 auto;
@@ -2592,4 +2827,2341 @@ html.kb-open .main {
   .auth-alt:hover {
     text-decoration: underline;
   }
+}
+
+/* ==========================================================================
+   NORA premium UI — clean rebuild
+   One coherent layer replacing the previous experimental overrides.
+   ========================================================================== */
+
+:root {
+  --nora-panel: color-mix(in srgb, var(--surface) 94%, transparent);
+  --nora-panel-2: color-mix(in srgb, var(--surface) 88%, transparent);
+  --nora-line: color-mix(in srgb, var(--border) 78%, transparent);
+  --nora-shadow: 0 14px 36px rgba(16, 24, 40, .08);
+}
+
+:root[data-theme='dark'] {
+  --nora-panel: rgba(17, 25, 40, .94);
+  --nora-panel-2: rgba(20, 29, 45, .90);
+  --nora-line: rgba(124, 156, 255, .12);
+  --nora-shadow: 0 16px 40px rgba(0, 0, 0, .26);
+}
+
+.app {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 12% -6%, rgba(79,124,255,.10), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(139,92,246,.08), transparent 30%),
+    var(--bg);
+}
+
+/* No padding-bottom here - every .screen already reserves its own bottom
+   clearance for the fixed nav bar (nav-h + safe-area + 18px breathing room),
+   and .ai-screen sizes its own height around the nav directly. A second,
+   redundant reservation here used to stack on top of that, inflating the
+   page by ~64px beyond the viewport - invisible on a tall, already-
+   scrollable list, but on a short screen (e.g. Profilo, whose content
+   nearly exactly fills one viewport) it pushed scrollHeight just past
+   innerHeight, letting the "page shouldn't scroll at all" page-scrollable
+   check (main.tsx) wrongly conclude it should. */
+.main {
+  min-height: 100dvh;
+}
+
+.screen {
+  width: 100%;
+  max-width: 560px;
+  padding: calc(env(safe-area-inset-top) + 12px) 16px 28px;
+}
+
+.screen-head {
+  margin: 0 0 18px;
+}
+
+.screen-head h1 {
+  font-size: 27px;
+  line-height: 34px;
+  font-weight: 760;
+  letter-spacing: -.03em;
+}
+
+/* ----- navigation: fixed, opaque, flush with viewport ----- */
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  min-height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding: 4px 8px env(safe-area-inset-bottom);
+  border: 0;
+  border-top: 1px solid var(--nora-line);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--nav-bg) 98%, transparent);
+  box-shadow: 0 -10px 26px rgba(0,0,0,.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nav-item {
+  height: var(--nav-h);
+}
+
+.nav-pill {
+  min-width: 56px;
+  padding: 6px 9px;
+  border-radius: 15px;
+}
+
+.nav-item.active .nav-pill {
+  background: linear-gradient(145deg, rgba(79,124,255,.18), rgba(139,92,246,.14));
+  color: var(--blue);
+  box-shadow: inset 0 0 0 1px rgba(79,124,255,.16);
+}
+
+:root[data-theme='dark'] .nav {
+  background: rgba(10, 17, 31, .96);
+}
+
+/* ----- Home: voice first, compact and balanced ----- */
+.ai-screen {
+  height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+
+.ai-head {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 2px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-head .logo-mark {
+  box-shadow: 0 8px 22px rgba(79,124,255,.18);
+}
+
+.ai-head .logo-word {
+  letter-spacing: .16em;
+  font-weight: 760;
+}
+
+.ai-settings-btn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  background: var(--nora-panel);
+  box-shadow: 0 6px 18px rgba(0,0,0,.16);
+}
+
+.ai-hero {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0;
+}
+
+.ai-hero-greet {
+  margin: 10px 0 0;
+  font-size: 24px;
+  line-height: 29px;
+  font-weight: 760;
+  letter-spacing: -.03em;
+}
+
+.ai-hero-sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-2);
+}
+
+.ai-hero .voice {
+  margin: 1px 0 0;
+}
+
+.ai-hero .voice-stage {
+  width: 144px;
+  height: 144px;
+}
+
+.ai-hero .voice-btn {
+  width: 104px;
+  height: 104px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.30), transparent 20%),
+    linear-gradient(145deg, #37cfff 0%, #397dff 38%, #775cff 70%, #d84fc9 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.12),
+    0 0 26px rgba(79,124,255,.26),
+    0 12px 28px rgba(49,93,235,.24);
+}
+
+.ai-hero .voice-ring {
+  inset: 9px;
+}
+
+.ai-hero .voice-state {
+  display: none;
+}
+
+.ai-quick-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+/* Locked spec: Home's six quick actions (Reminder/Calendar/Activity/Note/
+   Message/More) in a 3x2 grid, not 4 in a single row. Dark rounded-square
+   cards, icon badge + label stacked inside - matches the approved reference. */
+.ai-quick-actions-6 {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  row-gap: 8px;
+}
+
+.ai-quick-actions button {
+  min-width: 0;
+  padding: 10px 8px;
+  border: 1px solid var(--nora-line);
+  border-radius: 16px;
+  background: var(--nora-panel);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.ai-quick-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, #4f7cff, #397dff);
+  box-shadow: 0 6px 14px rgba(79,124,255,.22);
+}
+
+.ai-screen .briefing {
+  flex: 0 0 auto;
+  padding: 11px 12px;
+  border: 1px solid var(--nora-line);
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--nora-panel), var(--nora-panel-2));
+  box-shadow: var(--nora-shadow);
+}
+
+.ai-screen .brief-label {
+  margin-bottom: 2px;
+  font-size: 11px;
+}
+
+.ai-screen .brief-summary {
+  margin: 0;
+  font-size: 17px;
+  line-height: 22px;
+}
+
+.ai-screen .brief-next {
+  margin-top: 7px;
+  padding: 9px 10px;
+  border-radius: 14px;
+  grid-template-columns: 32px minmax(0,1fr);
+  column-gap: 9px;
+  background: linear-gradient(135deg, #3978ff, #7b5cff);
+  box-shadow: 0 10px 22px rgba(79,124,255,.20);
+}
+
+.ai-screen .countdown {
+  width: 32px;
+  height: 32px;
+}
+
+.ai-screen .brief-next-label,
+.ai-screen .brief-next-when {
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.ai-screen .brief-next-title {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.ai-screen .ai-scroll {
+  flex: 1 1 auto;
+  min-height: 54px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.ai-screen .ai-scroll::-webkit-scrollbar { display: none; }
+
+.ai-screen .ai-empty {
+  min-height: 0;
+  margin: 0;
+  padding: 24px 0 4px;
+}
+
+/* No messages yet: the scroll area no longer needs to flex-grow and drag the
+   footer down to the true bottom of the screen (that's only needed so a real,
+   long conversation can scroll with the composer still pinned in view) - left
+   as flex:1 here too, the empty-state line ends up floating with a large dead
+   gap below it before the composer, instead of settling right under the
+   briefing card the way the premium reference layout does. */
+.ai-screen .ai-scroll.ai-scroll-empty {
+  flex: 0 1 auto;
+}
+
+.ai-screen .examples {
+  display: none;
+}
+
+.ai-screen .ai-footer {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.ai-screen .composer {
+  min-height: 46px;
+  border: 1px solid var(--nora-line);
+  border-radius: 16px;
+  background: var(--nora-panel);
+  box-shadow: 0 8px 22px rgba(0,0,0,.06);
+}
+
+.ai-screen .composer-send {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f7cff, #7c5cff);
+}
+
+/* ----- shared premium surfaces ----- */
+.activity-screen .day-card,
+.calendar-screen .cal-card,
+.memory-screen .section-body,
+.profile-screen .prof-card,
+.profile-screen .section-body {
+  border: 1px solid var(--nora-line);
+  background: var(--nora-panel);
+  box-shadow: var(--nora-shadow);
+}
+
+.activity-screen .task-list,
+.calendar-screen .task-list {
+  border-color: var(--nora-line);
+  background: var(--nora-panel);
+  box-shadow: var(--nora-shadow);
+}
+
+.calendar-screen .cal-day.selected {
+  background: linear-gradient(135deg, #4f7cff, #7c5cff);
+  color: #fff;
+  box-shadow: 0 7px 18px rgba(79,124,255,.22);
+}
+
+/* ----- Profile: compact native-style settings ----- */
+.profile-screen {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px);
+}
+
+.profile-screen .prof-card {
+  min-height: 82px;
+  margin-bottom: 20px;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.profile-screen .prof-avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
+  background: linear-gradient(145deg, #3dcfff, #4f7cff 45%, #8b5cf6 80%, #ec4899);
+  box-shadow: 0 8px 22px rgba(79,124,255,.20);
+}
+
+.profile-screen .prof-name {
+  font-size: 17px;
+  line-height: 22px;
+}
+
+.profile-screen .prof-stat {
+  font-size: 12px;
+}
+
+.profile-screen .section {
+  margin-bottom: 20px;
+}
+
+.profile-screen .section-title {
+  margin: 0 4px 7px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+  font-weight: 650;
+}
+
+.profile-screen .section-body {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.prof-account-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.prof-account-name,
+.prof-account-row,
+.prof-account-action {
+  min-height: 56px;
+  padding: 0 14px;
+  display: grid;
+  grid-template-columns: 104px minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--nora-line);
+  background: transparent;
+  text-align: left;
+}
+
+.prof-account-action {
+  grid-template-columns: 20px 1fr;
+  border-bottom: 0;
+  color: var(--blue);
+  font-weight: 650;
+}
+
+.prof-account-label {
+  color: var(--secondary-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.prof-account-value,
+.prof-account-inline-input {
+  min-width: 0;
+  width: 100%;
+  text-align: right;
+  font-size: 14px;
+}
+
+.prof-account-value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.prof-account-inline-input {
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.prof-account-inline-input:focus {
+  box-shadow: none;
+}
+
+.profile-screen .field,
+.profile-screen .toggle-row,
+.profile-screen .push-control > .row,
+.profile-screen .memory-link {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--nora-line);
+}
+
+.profile-screen .field:last-child,
+.profile-screen .toggle-row:last-child,
+.profile-screen .push-control > .row:last-child,
+.profile-screen .memory-link:last-child {
+  border-bottom: 0;
+}
+
+.profile-screen .input,
+.profile-screen select {
+  min-height: 44px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+
+.profile-screen .section-body > .btn {
+  margin: 12px 14px;
+}
+
+.profile-screen .voice-picker,
+.profile-screen .push-control {
+  width: 100%;
+  gap: 0;
+}
+
+.profile-screen .segmented {
+  min-height: 42px;
+}
+
+/* ----- small iPhones ----- */
+@media (max-height: 760px) {
+  .ai-screen { gap: 5px; }
+  .ai-hero-greet { font-size: 20px; line-height: 25px; }
+  .ai-hero .voice-stage { width: 112px; height: 112px; }
+  .ai-hero .voice-btn { width: 80px; height: 80px; }
+  .ai-quick-icon { width: 28px; height: 28px; }
+  .ai-screen .briefing { padding: 9px 10px; }
+  .ai-screen .brief-summary { font-size: 16px; line-height: 20px; }
+}
+
+@media (max-width: 390px) {
+  .screen { padding-left: 14px; padding-right: 14px; }
+  .prof-account-name,
+  .prof-account-row { grid-template-columns: 92px minmax(0,1fr); }
+}
+
+
+/* ==========================================================================
+   NORA Living Design System
+   Isolated interactive reference at ?design=1. No production screen depends on it.
+   ========================================================================== */
+.design-lab {
+  --dl-bg: #07101f;
+  --dl-panel: #0d1728;
+  --dl-panel-2: #111d31;
+  --dl-border: rgba(148, 163, 184, .14);
+  --dl-text: #f8fafc;
+  --dl-muted: #8f9bb0;
+  --dl-blue: #4f7cff;
+  --dl-cyan: #3cc9ff;
+  --dl-violet: #8b5cf6;
+  --dl-pink: #ec4899;
+  --dl-green: #34d399;
+  min-height: 100dvh;
+  color: var(--dl-text);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(79,124,255,.17), transparent 30%),
+    radial-gradient(circle at 92% 10%, rgba(139,92,246,.13), transparent 28%),
+    linear-gradient(180deg, #07101f 0%, #09111e 100%);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.design-lab.design-lab-light {
+  --dl-bg: #f4f7fb;
+  --dl-panel: #ffffff;
+  --dl-panel-2: #f8faff;
+  --dl-border: rgba(15,23,42,.09);
+  --dl-text: #0f172a;
+  --dl-muted: #6b7280;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(79,124,255,.10), transparent 30%),
+    radial-gradient(circle at 92% 8%, rgba(139,92,246,.08), transparent 30%),
+    #f4f7fb;
+}
+
+.design-lab button { font: inherit; }
+.design-lab-top {
+  height: 72px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--dl-border);
+  background: color-mix(in srgb, var(--dl-bg) 86%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.design-lab-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.design-lab-brand > span {
+  color: var(--dl-muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+.design-theme-toggle {
+  border: 1px solid var(--dl-border);
+  background: var(--dl-panel);
+  color: var(--dl-text);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.design-lab-shell {
+  display: grid;
+  grid-template-columns: 300px minmax(0,1fr);
+  min-height: calc(100dvh - 72px);
+}
+.design-lab-index {
+  padding: 34px 24px;
+  border-right: 1px solid var(--dl-border);
+}
+.design-kicker,
+.demo-kicker {
+  margin: 0 0 6px;
+  color: var(--dl-blue);
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  font-size: 10px;
+  font-weight: 800;
+}
+.design-lab-index h1 {
+  margin: 0;
+  font-size: 27px;
+  line-height: 32px;
+  letter-spacing: -.03em;
+}
+.design-copy {
+  color: var(--dl-muted);
+  font-size: 13px;
+  line-height: 20px;
+  margin: 12px 0 24px;
+}
+.design-lab-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.design-lab-tabs button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--dl-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+.design-lab-tabs button.active {
+  color: var(--dl-text);
+  background: linear-gradient(135deg, rgba(79,124,255,.16), rgba(139,92,246,.12));
+  border-color: rgba(79,124,255,.20);
+}
+.design-token-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 24px;
+}
+.design-token-note span {
+  padding: 6px 8px;
+  border: 1px solid var(--dl-border);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--dl-muted);
+}
+.design-stage {
+  padding: 28px 34px 54px;
+}
+.design-stage-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.design-stage-head h2 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -.03em;
+}
+.design-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--dl-muted);
+  font-size: 11px;
+}
+.design-status i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dl-green);
+  box-shadow: 0 0 14px rgba(52,211,153,.55);
+}
+.design-phone-wrap {
+  display: grid;
+  place-items: center;
+}
+.design-phone {
+  position: relative;
+  width: min(390px, calc(100vw - 40px));
+  height: 790px;
+  border-radius: 42px;
+  padding: 12px 12px 18px;
+  overflow: hidden;
+  background: #08111f;
+  border: 1px solid rgba(148,163,184,.20);
+  box-shadow:
+    0 36px 80px rgba(0,0,0,.35),
+    inset 0 0 0 2px rgba(255,255,255,.025);
+}
+.design-lab-light .design-phone {
+  background: #f6f8fc;
+  border-color: rgba(15,23,42,.10);
+  box-shadow: 0 30px 70px rgba(30,41,59,.18);
+}
+.design-phone-status {
+  height: 30px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+}
+.design-home-indicator {
+  position: absolute;
+  width: 124px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  bottom: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.design-lab-light .design-home-indicator { background: #111827; }
+.demo-screen {
+  position: absolute;
+  inset: 42px 12px 78px;
+  overflow: hidden auto;
+  padding: 10px 8px 20px;
+  scrollbar-width: none;
+}
+.demo-screen::-webkit-scrollbar { display: none; }
+.demo-app-head,
+.demo-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.demo-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(145deg, var(--dl-cyan), var(--dl-blue) 45%, var(--dl-violet) 78%, var(--dl-pink));
+  box-shadow: 0 8px 22px rgba(79,124,255,.26);
+}
+.demo-avatar.big {
+  width: 50px;
+  height: 50px;
+  font-size: 17px;
+}
+.demo-home-hero {
+  text-align: center;
+  padding-top: 18px;
+}
+.demo-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  color: var(--dl-muted);
+}
+.demo-home-hero h3 {
+  margin: 4px 0 10px;
+  font-size: 25px;
+  line-height: 29px;
+  letter-spacing: -.035em;
+}
+.demo-orb {
+  width: 126px;
+  height: 126px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 50%;
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.32), transparent 18%),
+    linear-gradient(145deg, #35ccff 0%, #3b80ff 39%, #745cff 69%, #dd52c9 100%);
+  box-shadow:
+    0 0 0 17px rgba(79,124,255,.10),
+    0 0 42px rgba(79,124,255,.26),
+    0 18px 34px rgba(0,0,0,.22);
+}
+.demo-orb.listening {
+  transform: scale(1.03);
+  box-shadow:
+    0 0 0 20px rgba(79,124,255,.12),
+    0 0 56px rgba(139,92,246,.42),
+    0 18px 36px rgba(0,0,0,.25);
+}
+.demo-orb-ring {
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  border: 1px solid rgba(107,194,255,.44);
+}
+.demo-orb-label {
+  margin: 14px 0 0;
+  color: var(--dl-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.demo-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 18px 0 16px;
+}
+.demo-quick {
+  border: 0;
+  background: transparent;
+  color: var(--dl-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.demo-quick > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, var(--dl-blue), var(--dl-violet));
+  box-shadow: 0 8px 18px rgba(79,124,255,.18);
+}
+.demo-quick small {
+  font-size: 9px;
+  white-space: nowrap;
+}
+.demo-focus-card {
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid var(--dl-border);
+  background: linear-gradient(145deg, var(--dl-panel), var(--dl-panel-2));
+  box-shadow: 0 14px 34px rgba(0,0,0,.16);
+}
+.demo-section-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #76a1ff;
+  font-size: 11px;
+  font-weight: 750;
+}
+.demo-focus-card h4 {
+  margin: 5px 0 10px;
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+.demo-next-card {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 54px 1fr 18px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  color: #fff;
+  background: linear-gradient(135deg, #3f78ff, #7c5cff 66%, #c54ed7);
+  box-shadow: 0 12px 26px rgba(79,124,255,.20);
+}
+.demo-next-time {
+  font-size: 13px;
+  font-weight: 800;
+}
+.demo-next-main {
+  display: flex;
+  flex-direction: column;
+}
+.demo-next-main small {
+  font-size: 9px;
+  opacity: .78;
+}
+.demo-next-main strong {
+  font-size: 13px;
+  margin: 2px 0;
+}
+.demo-next-main em {
+  font-size: 9px;
+  opacity: .72;
+  font-style: normal;
+}
+.demo-composer {
+  min-height: 46px;
+  margin-top: 10px;
+  padding: 0 7px 0 14px;
+  border: 1px solid var(--dl-border);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--dl-panel);
+  color: var(--dl-muted);
+  font-size: 12px;
+}
+.demo-composer button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, var(--dl-blue), var(--dl-violet));
+}
+.demo-bottom-nav {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 18px;
+  height: 58px;
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  border: 1px solid var(--dl-border);
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(10,18,32,.96);
+  z-index: 3;
+}
+.design-lab-light .demo-bottom-nav { background: rgba(255,255,255,.96); }
+.demo-bottom-nav button {
+  border: 0;
+  background: transparent;
+  color: #748097;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.demo-bottom-nav button span { font-size: 8px; font-weight: 700; }
+.demo-bottom-nav button.active {
+  color: #7aa0ff;
+  background: linear-gradient(180deg, rgba(79,124,255,.13), transparent);
+}
+.demo-title-row { margin-bottom: 14px; }
+.demo-title-row h3 {
+  margin: 0;
+  font-size: 25px;
+  letter-spacing: -.03em;
+}
+.demo-round-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--dl-border);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, var(--dl-blue), var(--dl-violet));
+}
+.demo-date-strip {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  gap: 5px;
+  margin-bottom: 16px;
+}
+.demo-date-strip button {
+  min-height: 46px;
+  padding: 6px 2px;
+  border: 1px solid var(--dl-border);
+  border-radius: 13px;
+  background: var(--dl-panel);
+  color: var(--dl-muted);
+  font-size: 9px;
+}
+.demo-date-strip button.active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(145deg, var(--dl-blue), var(--dl-violet));
+}
+.demo-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.demo-time-row {
+  position: relative;
+  min-height: 64px;
+  padding: 10px 12px 10px 18px;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  align-items: center;
+  border: 1px solid var(--dl-border);
+  border-radius: 16px;
+  background: var(--dl-panel);
+  overflow: hidden;
+}
+.demo-time-row::before {
+  content: '';
+  width: 4px;
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: #4f7cff;
+}
+.demo-time-row.violet::before { background: #9b5cff; }
+.demo-time-row.orange::before { background: #fb923c; }
+.demo-time-row.green::before { background: #34d399; }
+.demo-time-row.indigo::before { background: #6366f1; }
+.demo-time-row > span { font-size: 10px; color: var(--dl-muted); }
+.demo-time-row div { display: flex; flex-direction: column; }
+.demo-time-row strong { font-size: 12px; }
+.demo-time-row small { font-size: 9px; color: var(--dl-muted); margin-top: 3px; }
+.demo-segment {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border: 1px solid var(--dl-border);
+  border-radius: 14px;
+  background: var(--dl-panel);
+}
+.demo-segment button {
+  flex: 1;
+  min-height: 30px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--dl-muted);
+  font-size: 9px;
+}
+.demo-segment button.active {
+  color: #fff;
+  background: linear-gradient(145deg, var(--dl-blue), var(--dl-violet));
+}
+.demo-task-list,
+.demo-memory-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.demo-task-row,
+.demo-memory-card {
+  width: 100%;
+  min-height: 60px;
+  padding: 9px 10px;
+  border: 1px solid var(--dl-border);
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: 36px 1fr 18px;
+  gap: 9px;
+  align-items: center;
+  text-align: left;
+  color: var(--dl-text);
+  background: var(--dl-panel);
+}
+.demo-task-icon,
+.demo-memory-card > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #8fb0ff;
+  background: rgba(79,124,255,.13);
+}
+.demo-task-row > span:nth-child(2),
+.demo-memory-card > div {
+  display: flex;
+  flex-direction: column;
+}
+.demo-task-row strong,
+.demo-memory-card strong { font-size: 12px; }
+.demo-task-row small,
+.demo-memory-card small { font-size: 9px; color: var(--dl-muted); margin-top: 3px; }
+.demo-task-row.done { opacity: .58; }
+.demo-primary-cta {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--dl-blue), var(--dl-violet) 65%, var(--dl-pink));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 750;
+  font-size: 12px;
+  box-shadow: 0 10px 24px rgba(79,124,255,.20);
+}
+.demo-memory-count {
+  min-width: 34px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: #9db6ff;
+  background: rgba(79,124,255,.12);
+  font-size: 10px;
+  font-weight: 800;
+}
+.demo-search {
+  min-height: 44px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--dl-border);
+  border-radius: 14px;
+  color: var(--dl-muted);
+  background: var(--dl-panel);
+  font-size: 11px;
+}
+.demo-segment-short button { font-size: 8px; }
+.demo-profile-card {
+  min-height: 74px;
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--dl-border);
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--dl-panel), var(--dl-panel-2));
+}
+.demo-profile-card > div:last-child { display: flex; flex-direction: column; }
+.demo-profile-card strong { font-size: 14px; }
+.demo-profile-card small { margin-top: 4px; font-size: 10px; color: var(--dl-muted); }
+.demo-settings > p {
+  margin: 14px 3px 7px;
+  color: var(--dl-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.demo-settings > div {
+  overflow: hidden;
+  border: 1px solid var(--dl-border);
+  border-radius: 18px;
+  background: var(--dl-panel);
+}
+.demo-setting {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 12px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto 16px;
+  gap: 8px;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--dl-border);
+  color: var(--dl-text);
+  background: transparent;
+  text-align: left;
+}
+.demo-setting:last-child { border-bottom: 0; }
+.demo-setting-icon { color: #8eabff; display: grid; place-items: center; }
+.demo-setting strong { font-size: 11px; }
+.demo-setting small { font-size: 9px; color: var(--dl-muted); }
+.design-components-page {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 18px;
+}
+.design-components-page section {
+  min-height: 210px;
+  padding: 20px;
+  border: 1px solid var(--dl-border);
+  border-radius: 22px;
+  background: var(--dl-panel);
+}
+.design-components-page h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+.design-swatches {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 8px;
+}
+.design-swatches i {
+  height: 88px;
+  border-radius: 14px;
+  background: #07101f;
+}
+.design-swatches i:nth-child(2) { background: #111d31; }
+.design-swatches i:nth-child(3) { background: #4f7cff; }
+.design-swatches i:nth-child(4) { background: #8b5cf6; }
+.design-swatches i:nth-child(5) { background: #ec4899; }
+.design-type-ramp {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.design-type-ramp b { font-size: 32px; letter-spacing: -.04em; }
+.design-type-ramp strong { font-size: 24px; }
+.design-type-ramp span { font-size: 16px; }
+.design-type-ramp small { font-size: 12px; color: var(--dl-muted); }
+.design-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.design-secondary-btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--dl-border);
+  border-radius: 14px;
+  color: var(--dl-text);
+  background: var(--dl-panel-2);
+}
+.design-demo-field { margin-top: 12px; max-width: 340px; }
+.design-state-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.design-state-row span {
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 750;
+}
+.design-state-row .ok { color: #34d399; background: rgba(52,211,153,.12); }
+.design-state-row .wait { color: #7aa0ff; background: rgba(79,124,255,.12); }
+.design-state-row .warn { color: #fbbf24; background: rgba(251,191,36,.12); }
+.design-state-row .error { color: #fb7185; background: rgba(251,113,133,.12); }
+
+.notification-spec {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(330px,420px);
+  gap: 24px;
+  align-items: stretch;
+}
+.notification-copy,
+.notification-phone {
+  padding: 24px;
+  border: 1px solid var(--dl-border);
+  border-radius: 24px;
+  background: var(--dl-panel);
+}
+.notification-copy h3 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  letter-spacing: -.035em;
+}
+.notification-copy > p:not(.design-kicker) {
+  color: var(--dl-muted);
+  line-height: 22px;
+  max-width: 560px;
+}
+.notification-rule {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--dl-border);
+}
+.notification-rule span { color: var(--dl-muted); font-size: 11px; }
+.notification-rule strong,
+.notification-rule del { font-size: 14px; }
+.notification-rule del { color: #fb7185; }
+.notification-phone {
+  display: grid;
+  place-items: center;
+}
+.ios-lock {
+  width: 300px;
+  min-height: 510px;
+  padding: 40px 14px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(245,102,64,.30), transparent 26%),
+    linear-gradient(180deg,#151515,#060606);
+}
+.ios-time {
+  font-size: 60px;
+  text-align: center;
+  margin-bottom: 36px;
+  color: rgba(255,255,255,.86);
+  font-weight: 300;
+}
+.ios-push {
+  padding: 11px;
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  color: #fff;
+  background: rgba(58,58,60,.90);
+  box-shadow: 0 12px 30px rgba(0,0,0,.28);
+}
+.ios-app-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 850;
+  background: linear-gradient(145deg,#2563eb,#47d7ff);
+}
+.ios-push > div:nth-child(2) { display: flex; flex-direction: column; }
+.ios-push strong { font-size: 13px; }
+.ios-push span { margin-top: 2px; font-size: 12px; font-weight: 350; }
+.ios-push small { color: rgba(255,255,255,.65); font-size: 10px; align-self: start; }
+
+@media (max-width: 980px) {
+  .design-lab-shell { grid-template-columns: 1fr; }
+  .design-lab-index {
+    border-right: 0;
+    border-bottom: 1px solid var(--dl-border);
+    padding: 20px 18px;
+  }
+  .design-lab-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .design-lab-tabs button { flex: 0 0 auto; }
+  .design-token-note { display: none; }
+  .design-stage { padding: 22px 14px 40px; }
+  .design-stage-head { align-items: center; }
+  .design-status { display: none; }
+  .design-components-page,
+  .notification-spec { grid-template-columns: 1fr; }
+}
+
+
+/* ==========================================================================
+   NORA APPROVED REFERENCE — production v2
+   Built on latest main to avoid merge drift.
+   ========================================================================== */
+/* same system-vs-explicit-dark gap as the --approved-* block further down -
+   these only existed under the explicit attribute, never under the OS/browser
+   dark preference alone. Mirrored the same way. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --nora-approved-bg:#07101f;
+    --nora-approved-panel:#111a2a;
+    --nora-approved-panel2:#0d1626;
+    --nora-approved-line:rgba(141,162,199,.12);
+    --nora-approved-muted:#8e9ab0;
+    --nora-approved-blue:#4d7cff;
+    --nora-approved-violet:#7a5cff;
+    --nora-approved-cyan:#43ccff;
+  }
+}
+:root[data-theme='dark'] {
+  --nora-approved-bg:#07101f;
+  --nora-approved-panel:#111a2a;
+  --nora-approved-panel2:#0d1626;
+  --nora-approved-line:rgba(141,162,199,.12);
+  --nora-approved-muted:#8e9ab0;
+  --nora-approved-blue:#4d7cff;
+  --nora-approved-violet:#7a5cff;
+  --nora-approved-cyan:#43ccff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body,
+  :root:not([data-theme='light']) .app {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(35,74,160,.18), transparent 34%),
+      radial-gradient(circle at 90% 8%, rgba(89,48,154,.12), transparent 30%),
+      var(--nora-approved-bg);
+  }
+}
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] .app {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(35,74,160,.18), transparent 34%),
+    radial-gradient(circle at 90% 8%, rgba(89,48,154,.12), transparent 30%),
+    var(--nora-approved-bg);
+}
+
+.screen {
+  max-width:560px;
+  padding:calc(env(safe-area-inset-top) + 14px) 16px calc(68px + env(safe-area-inset-bottom) + 18px);
+}
+
+.nav {
+  position:fixed;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  z-index:60;
+  min-height:calc(68px + env(safe-area-inset-bottom));
+  padding:4px 12px env(safe-area-inset-bottom) !important;
+  border:0 !important;
+  border-top:1px solid var(--nora-approved-line) !important;
+  border-radius:0 !important;
+  background:rgba(7,16,31,.97) !important;
+  box-shadow:0 -10px 28px rgba(0,0,0,.24) !important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.nav-item{height:60px}
+.nav-pill{min-width:56px;padding:6px 8px;gap:4px;border-radius:14px;color:#748096}
+.nav-pill>span:last-child{font-size:9px;font-weight:650}
+.nav-item.active .nav-pill{
+  color:#7da3ff;
+  background:linear-gradient(180deg,rgba(79,124,255,.18),rgba(79,124,255,.04));
+  box-shadow:inset 0 0 0 1px rgba(79,124,255,.12)
+}
+
+/* Home */
+.ai-screen {
+  height:calc(100dvh - 68px - env(safe-area-inset-bottom));
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  padding-bottom:10px;
+}
+.approved-home-head{
+  flex:0 0 auto;
+  margin:0;
+  padding:0 2px 2px;
+  align-items:center;
+}
+.approved-home-head .logo-word{letter-spacing:.17em;font-weight:700}
+.approved-settings-btn{
+  width:36px;height:36px;padding:0;
+  border:0;
+  border-radius:50%;
+  display:grid;place-items:center;
+  color:#b7c2d6;
+  background:rgba(17,26,42,.82)
+}
+.approved-voice-home{
+  flex:0 0 auto;
+  text-align:center;
+  padding:20px 0 28px;
+}
+.approved-voice-home .voice{margin:0}
+.approved-voice-home .voice-stage{width:164px;height:164px;margin-inline:auto}
+.approved-voice-home .voice-btn{
+  width:118px;height:118px;
+  background:
+    radial-gradient(circle at 34% 28%,rgba(255,255,255,.30),transparent 18%),
+    linear-gradient(145deg,#38d0ff 0%,#3c80ff 38%,#745cff 68%,#c84ecf 100%);
+  box-shadow:
+    0 0 0 18px rgba(79,124,255,.10),
+    0 0 52px rgba(79,124,255,.34),
+    0 20px 38px rgba(0,0,0,.30)
+}
+.approved-voice-home .voice-ring{inset:7px;border-color:rgba(96,176,255,.46)}
+.approved-quick-grid{
+  flex:0 0 auto;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px
+}
+.approved-quick-grid button{
+  min-height:76px;
+  padding:10px 6px 8px;
+  border:1px solid var(--nora-approved-line);
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(17,26,42,.94),rgba(13,22,38,.94));
+  color:#d8e0ee;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  box-shadow:0 8px 18px rgba(0,0,0,.12)
+}
+.approved-quick-grid button>span{
+  width:31px;height:31px;
+  display:grid;place-items:center;
+  border-radius:10px;
+  color:#79a2ff;
+  background:rgba(79,124,255,.10)
+}
+.approved-quick-grid small{font-size:10px;font-weight:650;line-height:12px}
+.ai-screen .ai-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  margin-top:8px;
+  overflow-y:auto
+}
+.ai-screen .ai-empty{display:none}
+.ai-screen .ai-footer{
+  flex:0 0 auto;
+  margin:6px 0 0;
+  padding:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none
+}
+.ai-screen .composer{
+  min-height:46px;
+  border:1px solid var(--nora-approved-line);
+  border-radius:16px;
+  background:rgba(13,22,38,.96)
+}
+.ai-screen .composer-send{
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--nora-approved-blue, #4d7cff),var(--nora-approved-violet, #7a5cff))
+}
+
+/* Shared reference surfaces */
+.screen-head{margin:0 0 14px}
+.screen-head h1{font-size:28px;line-height:34px;font-weight:760;letter-spacing:-.035em}
+.calendar-screen .cal-card,
+.activity-screen .task-card,
+.calendar-screen .task-card,
+.memory-screen .memory-list li,
+.profile-screen .prof-card,
+.profile-screen .section-body{
+  border:1px solid var(--nora-approved-line) !important;
+  background:linear-gradient(145deg,rgba(17,26,42,.96),rgba(13,22,38,.96)) !important;
+  box-shadow:0 10px 26px rgba(0,0,0,.14) !important
+}
+.calendar-screen .cal-card,
+.profile-screen .prof-card,
+.profile-screen .section-body{border-radius:18px}
+.calendar-screen .cal-day.selected,
+.activity-screen .chip.selected,
+.memory-screen .chip.selected{
+  color:#fff;
+  background:linear-gradient(145deg,var(--nora-approved-blue, #4d7cff),var(--nora-approved-violet, #7a5cff));
+  border-color:transparent
+}
+.activity-screen .day-card,
+.activity-screen .act-stats{display:none}
+.activity-screen .task-list,
+.calendar-screen .task-list{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  gap:8px
+}
+.activity-screen .task-card,
+.calendar-screen .task-card{
+  border-radius:16px !important
+}
+.memory-screen .mem-hint{display:none}
+.memory-screen .mem-search{
+  min-height:44px;
+  margin:0 0 10px;
+  border-radius:14px;
+  border:1px solid var(--nora-approved-line);
+  background:rgba(17,26,42,.94)
+}
+.memory-screen .memory-list{display:flex;flex-direction:column;gap:8px}
+.memory-screen .memory-list li{
+  min-height:62px;
+  padding:10px 12px;
+  border-radius:16px !important
+}
+.profile-screen .prof-card{min-height:74px;padding:12px;margin-bottom:16px}
+.profile-screen .section{margin-bottom:14px}
+.profile-screen .section-title{
+  margin:0 4px 7px;
+  color:var(--nora-approved-muted);
+  font-size:11px;
+  line-height:16px;
+  font-weight:700
+}
+.profile-screen .section-body{padding:0;gap:0;overflow:hidden}
+.profile-screen .field,
+.profile-screen .toggle-row,
+.profile-screen .push-control>.row,
+.profile-screen .memory-link,
+.prof-account-name,
+.prof-account-row,
+.prof-account-action{
+  min-height:54px;
+  padding:10px 13px;
+  margin:0;
+  border-bottom:1px solid var(--nora-approved-line);
+  background:transparent
+}
+
+@media(max-height:760px){
+  .approved-voice-home{padding-top:10px}
+  .approved-voice-home .voice-stage{width:136px;height:136px}
+  .approved-voice-home .voice-btn{width:98px;height:98px}
+  .approved-quick-grid button{min-height:66px}
+}
+
+/* ==========================================================================
+   APPROVED NORA PRODUCTION UI — reference-locked implementation
+   Matches the founder-approved dark cinematic composite.
+   ========================================================================== */
+
+/* These tokens were previously only defined under :root[data-theme='dark'],
+   i.e. only once the person had explicitly picked Dark in Aspetto - the
+   far more common case, system colour scheme (no explicit choice, the
+   default), never got them, so every rule built on --approved-* (buttons,
+   card borders, etc.) silently fell through to an unstyled/invalid value
+   whenever the OS/browser was simply in dark mode. Mirrored here the same
+   way the base theme tokens above already are. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --approved-bg: #07101f;
+    --approved-panel: #111a2a;
+    --approved-panel-2: #0d1626;
+    --approved-line: rgba(141, 162, 199, .12);
+    --approved-muted: #8e9ab0;
+    --approved-blue: #4d7cff;
+    --approved-violet: #7a5cff;
+    --approved-cyan: #43ccff;
+    --approved-pink: #d852d0;
+  }
+}
+:root[data-theme='dark'] {
+  --approved-bg: #07101f;
+  --approved-panel: #111a2a;
+  --approved-panel-2: #0d1626;
+  --approved-line: rgba(141, 162, 199, .12);
+  --approved-muted: #8e9ab0;
+  --approved-blue: #4d7cff;
+  --approved-violet: #7a5cff;
+  --approved-cyan: #43ccff;
+  --approved-pink: #d852d0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body,
+  :root:not([data-theme='light']) .app {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(35, 74, 160, .18), transparent 34%),
+      radial-gradient(circle at 90% 8%, rgba(89, 48, 154, .12), transparent 30%),
+      #07101f;
+  }
+}
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] .app {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(35, 74, 160, .18), transparent 34%),
+    radial-gradient(circle at 90% 8%, rgba(89, 48, 154, .12), transparent 30%),
+    #07101f;
+}
+
+.screen {
+  max-width: 560px;
+  /* The bottom breathing room above the nav bar used to be 18px - plenty in
+     this dev environment, but a real iPhone's actual rendered content
+     (real San Francisco font metrics vs. this environment's Inter
+     fallback, compounded across Profilo's ~9 rows) runs measurably taller,
+     and the last row ("Versione…") ended up sitting right at - sometimes
+     under - the nav bar with nothing left to reveal it (the page is
+     deliberately locked from scrolling at all unless genuinely needed -
+     see main.tsx's updatePageScrollable). Widened well past what that
+     measured gap needs, same reasoning as that tolerance. */
+  padding: calc(env(safe-area-inset-top) + 14px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 56px);
+}
+
+.screen-head {
+  margin: 0 0 14px;
+  align-items: center;
+}
+
+/* The title + filter/mode bar at the top of Calendario, Attività and
+   Ricordi stays pinned while the list underneath scrolls - truly fixed,
+   the same way .nav at the bottom is: position:fixed, never part of the
+   scrolling flow at all, rather than position:sticky (which still moves
+   with the page until it reaches its resting point, and on a real device
+   that "until" was visibly not instant - flagged directly: "nu are partea
+   de sus blocata total fixa"). A translucent blur (like the nav bar
+   already uses) instead of a flat background color, since the dark body
+   behind it is a radial-gradient glow, not a flat fill - a flat color
+   patch would visibly cut that glow off right where it's strongest (near
+   the top edge). */
+:root {
+  --sticky-head-bg: rgba(247, 249, 252, .82);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --sticky-head-bg: rgba(7, 16, 31, .78);
+  }
+}
+:root[data-theme='dark'] {
+  --sticky-head-bg: rgba(7, 16, 31, .78);
+}
+
+.screen-sticky-head {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 10px;
+  background: var(--sticky-head-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.screen-sticky-head .screen-head {
+  margin-bottom: 14px;
+}
+
+/* .calendar-screen/.activity-screen/.memory-screen no longer reserve top
+   space via padding - .screen-sticky-head is fixed, out of flow entirely,
+   so it can't push anything down the way an in-flow element would. Each of
+   those screens instead pads its own post-header content by the header's
+   actual measured height (useStickyHeadHeight, hooks.ts) - a CSS constant
+   here would either clip under a taller header (e.g. Calendario's day
+   strip) or leave a gap under a shorter one. */
+.calendar-screen,
+.activity-screen,
+.memory-screen,
+.profile-screen {
+  padding-top: 0 !important;
+}
+
+.screen-head h1 {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 760;
+  letter-spacing: -.035em;
+}
+
+/* fixed production nav — exactly integrated, never floating above visible content */
+.nav {
+  position: fixed;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 60;
+  min-height: calc(68px + env(safe-area-inset-bottom));
+  padding: 4px 12px env(safe-area-inset-bottom) !important;
+  border: 0 !important;
+  border-top: 1px solid var(--approved-line) !important;
+  border-radius: 0 !important;
+  background: rgba(7, 16, 31, .97) !important;
+  box-shadow: 0 -10px 28px rgba(0, 0, 0, .24) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nav-item {
+  height: 60px;
+}
+
+.nav-pill {
+  min-width: 56px;
+  padding: 6px 8px;
+  gap: 4px;
+  border-radius: 14px;
+  color: #748096;
+}
+
+.nav-pill > span:last-child {
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.nav-item.active .nav-pill {
+  color: #7da3ff;
+  background: linear-gradient(180deg, rgba(79,124,255,.18), rgba(79,124,255,.04));
+  box-shadow: inset 0 0 0 1px rgba(79,124,255,.12);
+}
+
+/* HOME */
+.ai-screen {
+  height: calc(100dvh - 68px - env(safe-area-inset-bottom));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+
+.approved-home-head {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 2px 2px;
+}
+
+.approved-home-head .logo-word {
+  letter-spacing: .17em;
+  font-weight: 700;
+}
+
+.approved-settings-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #b7c2d6;
+  background: rgba(17, 26, 42, .82);
+}
+
+.approved-voice-home {
+  flex: 0 0 auto;
+  text-align: center;
+  padding: 22px 0 28px;
+}
+
+.approved-voice-home .voice {
+  margin: 0;
+}
+
+.approved-voice-home .voice-stage {
+  width: 164px;
+  height: 164px;
+  margin-inline: auto;
+}
+
+.approved-voice-home .voice-btn {
+  width: 118px;
+  height: 118px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.30), transparent 18%),
+    linear-gradient(145deg, #38d0ff 0%, #3c80ff 38%, #745cff 68%, #c84ecf 100%);
+  box-shadow:
+    0 0 0 18px rgba(79,124,255,.10),
+    0 0 52px rgba(79,124,255,.34),
+    0 20px 38px rgba(0,0,0,.30);
+}
+
+.approved-voice-home .voice-ring {
+  inset: 7px;
+  border-color: rgba(96, 176, 255, .46);
+}
+
+.approved-quick-grid {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+
+.approved-quick-grid button {
+  min-height: 76px;
+  padding: 10px 6px 8px;
+  border: 1px solid var(--approved-line);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(17,26,42,.94), rgba(13,22,38,.94));
+  color: #d8e0ee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.12);
+}
+
+.approved-quick-grid button > span {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #79a2ff;
+  background: rgba(79,124,255,.10);
+}
+
+.approved-quick-grid button:nth-child(4) > span,
+.approved-quick-grid button:nth-child(5) > span,
+.approved-quick-grid button:nth-child(6) > span {
+  color: #a892ff;
+  background: rgba(123,92,255,.10);
+}
+
+.approved-quick-grid small {
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 12px;
+}
+
+.approved-chat-layer {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: none;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.approved-chat-layer.open {
+  display: flex;
+}
+
+.approved-chat-layer .ai-scroll {
+  flex: 1 1 auto;
+  min-height: 40px;
+  overflow-y: auto;
+}
+
+.approved-chat-layer .ai-footer {
+  flex: 0 0 auto;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.approved-chat-layer .composer {
+  min-height: 46px;
+  border: 1px solid var(--approved-line);
+  border-radius: 16px;
+  background: rgba(13, 22, 38, .96);
+}
+
+.approved-chat-layer .composer-send {
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
+}
+
+/* CALENDAR */
+.calendar-screen .screen-head .btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
+}
+
+.calendar-screen .cal-card {
+  border: 1px solid var(--approved-line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(17,26,42,.96), rgba(13,22,38,.96));
+  box-shadow: 0 14px 34px rgba(0,0,0,.18);
+}
+
+.calendar-screen .cal-nav {
+  padding: 12px 12px 8px;
+}
+
+.calendar-screen .cal-month {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.calendar-screen .cal-grid {
+  gap: 5px;
+  padding: 0 10px 10px;
+}
+
+.calendar-screen .cal-day {
+  min-height: 38px;
+  border-radius: 12px;
+}
+
+.calendar-screen .cal-day.selected {
+  color: #fff;
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
+  box-shadow: 0 7px 18px rgba(79,124,255,.24);
+}
+
+.calendar-screen .task-list,
+.activity-screen .task-list {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 8px;
+}
+
+.calendar-screen .task-card,
+.activity-screen .task-card {
+  border: 1px solid rgba(141, 162, 199, .18);
+  border-radius: 16px;
+  background: rgba(17,26,42,.94);
+  box-shadow: 0 7px 18px rgba(0,0,0,.12);
+  /* the card stays dark cinematic in both themes (locked spec) - the page
+     around it switches, this chrome doesn't, so its text needs a color of
+     its own rather than inheriting --text (which goes near-black in light
+     mode and disappears against this dark card). */
+  color: #d8e0ee;
+}
+
+/* ACTIVITY */
+.activity-screen .act-range {
+  padding: 4px;
+  margin-bottom: 12px;
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
+  border-radius: 14px;
+  background: rgba(13,22,38,.94);
+}
+
+.activity-screen .chip {
+  border: 0;
+  background: transparent;
+  /* this pill stays dark cinematic in both themes - see the task-card
+     comment above, same reasoning, same fix. */
+  color: #9aa6bd;
+}
+
+.activity-screen .chip.selected {
+  color: #fff;
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
+  box-shadow: none;
+}
+
+.activity-screen .day-card,
+.activity-screen .act-stats {
+  display: none;
+}
+
+.activity-screen .group {
+  margin-top: 12px;
+}
+
+.activity-screen .group-title {
+  margin: 0 4px 7px;
+  font-size: 12px;
+  color: var(--approved-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+/* MEMORY */
+.memory-screen .mem-hint {
+  display: none;
+}
+
+.memory-screen .mem-search {
+  min-height: 44px;
+  padding: 0 13px 0 40px;
+  margin: 0 0 10px;
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
+  border-radius: 14px;
+  background: rgba(17,26,42,.94);
+  color: #d8e0ee;
+}
+.memory-screen .mem-search::placeholder {
+  color: #7c879c;
+}
+
+.memory-screen .mem-filter {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.memory-screen .mem-filter::-webkit-scrollbar { display: none; }
+
+.memory-screen .chip {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
+  border-radius: 999px;
+  background: rgba(13,22,38,.96);
+  color: #9aa6bd;
+}
+
+.memory-screen .chip.selected {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(145deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
+}
+
+.memory-screen .group {
+  margin-top: 10px;
+}
+
+.memory-screen .group-title {
+  margin: 0 4px 6px;
+  color: var(--approved-muted, #8e9ab0);
+  font-size: 11px;
+}
+
+.memory-screen .memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memory-screen .memory-list li {
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12)) !important;
+  border-radius: 16px;
+  background: rgba(17,26,42,.94);
+  box-shadow: 0 7px 18px rgba(0,0,0,.12);
+  color: #d8e0ee;
+}
+
+.memory-screen .icon-btn {
+  color: #9aa6bd;
+}
+
+.memory-screen .memory-text {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.memory-screen .memory-meta {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--approved-muted, #8e9ab0);
+}
+
+/* PROFILE */
+.profile-screen .prof-card {
+  min-height: 74px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(17,26,42,.96), rgba(13,22,38,.96));
+  box-shadow: 0 12px 28px rgba(0,0,0,.16);
+  color: #d8e0ee;
+}
+.profile-screen .prof-name {
+  color: #f2f5fb;
+}
+.profile-screen .prof-stat {
+  color: var(--approved-muted, #8e9ab0);
+}
+
+.profile-screen .prof-avatar {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(145deg, var(--approved-cyan, #43ccff), var(--approved-blue, #4d7cff) 45%, var(--approved-violet, #7a5cff) 78%, var(--approved-pink, #d852d0));
+}
+
+.profile-screen .section {
+  margin-bottom: 14px;
+}
+
+.profile-screen .section-title {
+  margin: 0 4px 7px;
+  color: var(--approved-muted);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+}
+
+.profile-screen .section-body {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--approved-line);
+  border-radius: 18px;
+  background: rgba(17,26,42,.94);
+  box-shadow: 0 10px 24px rgba(0,0,0,.12);
+}
+
+.profile-screen .field,
+.profile-screen .toggle-row,
+.profile-screen .push-control > .row,
+.profile-screen .memory-link,
+.prof-account-name,
+.prof-account-row,
+.prof-account-action {
+  min-height: 54px;
+  padding: 10px 13px;
+  margin: 0;
+  border-bottom: 1px solid var(--approved-line);
+  background: transparent;
+}
+
+.profile-screen .section-body > *:last-child {
+  border-bottom: 0;
+}
+
+.profile-screen .field > label,
+.profile-screen .prof-account-label,
+.profile-screen .row-label {
+  font-size: 12px;
+  color: #e6ebf4;
+  font-weight: 650;
+}
+
+.profile-screen .input,
+.profile-screen select {
+  min-height: 40px;
+  border-radius: 11px;
+  background: rgba(9,17,30,.80);
+  border-color: var(--approved-line);
+}
+
+.profile-screen .segmented {
+  min-height: 38px;
+  border-color: var(--approved-line);
+  background: rgba(9,17,30,.80);
+}
+
+/* shared compact premium surfaces - fallback values so this still resolves
+   when --approved-blue/-violet aren't defined (light theme), instead of the
+   whole background going invalid/transparent on a primary action button. */
+.btn-primary,
+.composer-send {
+  background: linear-gradient(135deg, var(--approved-blue, #4d7cff), var(--approved-violet, #7a5cff));
+}
+
+/* .composer-send:disabled (styles.css, ui.tsx's base button rules) sets a
+   muted grey color meant for a plain grey disabled background - but this
+   button's background always stays the vibrant blue/violet gradient above,
+   disabled or not (there's no separate "greyed out" look for it), so that
+   grey color just read as a low-contrast, washed-out arrow on top of a
+   colourful button in both themes. Keeps the icon white regardless of
+   disabled state, matching the background it's actually sitting on. */
+.composer-send,
+.composer-send:disabled {
+  color: #fff;
+}
+
+.sheet,
+.dialog {
+  border-color: var(--approved-line);
+  background: #0d1626;
+}
+
+.toast {
+  border-color: var(--approved-line);
+  background: rgba(17,26,42,.96);
+}
+
+@media (max-height: 760px) {
+  .approved-voice-home {
+    padding-top: 10px;
+  }
+
+  .approved-voice-home .voice-stage {
+    width: 136px;
+    height: 136px;
+  }
+
+  .approved-voice-home .voice-btn {
+    width: 98px;
+    height: 98px;
+  }
+
+  .approved-quick-grid button {
+    min-height: 66px;
+  }
+}
+
+/* ==========================================================================
+   APPROVED NORA PRODUCTION UI — explicit Light override
+   The two "approved" blocks above hardcode dark-cinematic literals (card
+   gradients, panels, text) with no light counterpart, so picking "Chiaro"
+   in Aspetto left every card/row on every screen dark regardless. Per the
+   locked spec, light mode keeps the same geometry/hierarchy and only swaps
+   surfaces + contrast. The nav bar and the header gear button both
+   follow the theme now (see the .nav and .approved-settings-btn rules
+   below) - their icons switched to the theme-reactive NoraKitIcon for
+   this, same pattern as everything else here.
+   ========================================================================== */
+:root[data-theme='light'] {
+  --approved-bg: var(--bg);
+  --approved-panel: var(--surface);
+  --approved-panel-2: var(--elevated);
+  --approved-line: var(--border);
+  --approved-muted: var(--text-2);
+  --nora-approved-bg: var(--bg);
+  --nora-approved-panel: var(--surface);
+  --nora-approved-panel2: var(--elevated);
+  --nora-approved-line: var(--border);
+  --nora-approved-muted: var(--text-2);
+}
+
+:root[data-theme='light'] body,
+:root[data-theme='light'] .app {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(79, 124, 255, .06), transparent 34%),
+    radial-gradient(circle at 90% 8%, rgba(123, 92, 255, .05), transparent 30%),
+    var(--bg) !important;
+}
+
+:root[data-theme='light'] .nav {
+  background: rgba(255, 255, 255, .92) !important;
+  border-top: 1px solid var(--border) !important;
+  box-shadow: 0 -8px 20px rgba(16, 24, 40, .06) !important;
+}
+
+:root[data-theme='light'] .nav-pill {
+  color: #8a93a6;
+}
+
+:root[data-theme='light'] .approved-settings-btn {
+  background: rgba(16, 24, 40, .06);
+}
+
+:root[data-theme='light'] .approved-quick-grid button,
+:root[data-theme='light'] .ai-screen .composer,
+:root[data-theme='light'] .approved-chat-layer .composer {
+  background: linear-gradient(145deg, #ffffff, #f3f6fb) !important;
+  color: var(--text);
+}
+
+:root[data-theme='light'] .calendar-screen .cal-card,
+:root[data-theme='light'] .activity-screen .task-card,
+:root[data-theme='light'] .calendar-screen .task-card,
+:root[data-theme='light'] .memory-screen .memory-list li,
+:root[data-theme='light'] .profile-screen .prof-card,
+:root[data-theme='light'] .profile-screen .section-body {
+  background: linear-gradient(145deg, #ffffff, #f3f6fb) !important;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, .07) !important;
+  color: var(--text) !important;
+}
+
+:root[data-theme='light'] .activity-screen .act-range,
+:root[data-theme='light'] .memory-screen .mem-search,
+:root[data-theme='light'] .memory-screen .chip:not(.selected),
+:root[data-theme='light'] .profile-screen .input,
+:root[data-theme='light'] .profile-screen select,
+:root[data-theme='light'] .profile-screen .segmented {
+  background: #ffffff !important;
+  color: var(--text);
+}
+
+:root[data-theme='light'] .memory-screen .mem-search::placeholder {
+  color: var(--muted);
+}
+
+:root[data-theme='light'] .activity-screen .chip:not(.selected),
+:root[data-theme='light'] .memory-screen .chip:not(.selected) {
+  color: var(--text-2);
+}
+
+:root[data-theme='light'] .profile-screen .prof-name,
+:root[data-theme='light'] .profile-screen .field > label,
+:root[data-theme='light'] .profile-screen .prof-account-label,
+:root[data-theme='light'] .profile-screen .row-label {
+  color: var(--text);
+}
+
+:root[data-theme='light'] .sheet,
+:root[data-theme='light'] .dialog,
+:root[data-theme='light'] .toast {
+  background: #ffffff;
+  color: var(--text);
 }

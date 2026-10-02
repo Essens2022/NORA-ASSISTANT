@@ -13,10 +13,10 @@ const rem = (kind: 'main' | 'followup' | 'nudge' | 'departure' | 'prep') => ({ k
 const at = new Date('2026-09-24T07:00:00Z'); // 09:00 Rome
 
 describe('notifications call the person', () => {
-  it('at the time: by name, one clear sentence, done/snooze', () => {
+  it('at the time: concise title + time, done/snooze', () => {
     const n = buildNotification(rem('main'), task(), 'ro', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at });
-    expect(n.title).toBe('Ion, e momentul: Sună contabilul');
-    expect(n.body).toBe('Acum, la 9. Atinge pentru opțiuni.');
+    expect(n.title).toBe('SUNĂ CONTABILUL');
+    expect(n.body).toBe('09:00');
     expect(n.actions.map((a) => a.action)).toEqual(['done', 'snooze']);
   });
   it('before the time: countdown', () => {
@@ -42,10 +42,16 @@ describe('notifications call the person', () => {
     expect(f.chat).toBe('Ai rezolvat: Sună contabilul?');
     expect(f.actions.map((a) => a.action)).toEqual(['done', 'notyet']);
   });
-  it('speaks every language', () => {
-    expect(buildNotification(rem('main'), task(), 'en', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at }).title).toBe("Ion, it's time: Sună contabilul");
-    expect(buildNotification(rem('main'), task(), 'it', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).body).toBe('Adesso, alle 9. Tocca per le opzioni.');
-    expect(buildNotification(rem('main'), task(), 'ru', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).title).toBe('Пора: Sună contabilul');
+  it('coffee reminder gets a concise visual cue', () => {
+    const n = buildNotification(rem('main'), task({ title: 'Bea cafeaua', due_time: '15:42' }), 'ro', DEFAULT_PREFERENCES, '2026-09-24', { now: at });
+    expect(n.title).toBe('BEA CAFEAUA ☕️');
+    expect(n.body).toBe('15:42');
+  });
+
+  it('keeps the main reminder concise in every language', () => {
+    expect(buildNotification(rem('main'), task(), 'en', DEFAULT_PREFERENCES, '2026-09-24', { name: 'Ion', now: at }).title).toBe('SUNĂ CONTABILUL');
+    expect(buildNotification(rem('main'), task(), 'it', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).body).toBe('09:00');
+    expect(buildNotification(rem('main'), task(), 'ru', DEFAULT_PREFERENCES, '2026-09-24', { now: at }).title).toBe('SUNĂ CONTABILUL');
   });
 });
 

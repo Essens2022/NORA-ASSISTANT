@@ -30,10 +30,10 @@ export interface NotificationPayload {
 type S = Record<string, string>;
 const STR: Record<Lang, S> = {
   ro: {
-    call_now: '{name}e momentul: {title}',
-    call_now_anon: 'E momentul: {title}',
-    main_body: 'Acum, {at}. Atinge pentru opțiuni.',
-    main_body_date: '{when}. Atinge pentru opțiuni.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}în {min} min: {title}',
     soon_title_anon: 'În {min} min: {title}',
     soon_body: '{at}{where}. Te anunț la timp.',
@@ -61,10 +61,10 @@ const STR: Record<Lang, S> = {
     at_nearby: ' · {loc}',
   },
   en: {
-    call_now: "{name}it's time: {title}",
-    call_now_anon: "It's time: {title}",
-    main_body: 'Now, {at}. Tap for options.',
-    main_body_date: '{when}. Tap for options.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}in {min} min: {title}',
     soon_title_anon: 'In {min} min: {title}',
     soon_body: '{at}{where}. I’ll keep you on time.',
@@ -92,10 +92,10 @@ const STR: Record<Lang, S> = {
     at_nearby: ' · {loc}',
   },
   it: {
-    call_now: '{name}è il momento: {title}',
-    call_now_anon: 'È il momento: {title}',
-    main_body: 'Adesso, {at}. Tocca per le opzioni.',
-    main_body_date: '{when}. Tocca per le opzioni.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}tra {min} min: {title}',
     soon_title_anon: 'Tra {min} min: {title}',
     soon_body: '{at}{where}. Ti avviso in tempo.',
@@ -123,10 +123,10 @@ const STR: Record<Lang, S> = {
     at_nearby: ' · {loc}',
   },
   ru: {
-    call_now: '{name}пора: {title}',
-    call_now_anon: 'Пора: {title}',
-    main_body: 'Сейчас, {at}. Нажми, чтобы увидеть варианты.',
-    main_body_date: '{when}. Нажми, чтобы увидеть варианты.',
+    call_now: '{title}',
+    call_now_anon: '{title}',
+    main_body: '{at}',
+    main_body_date: '{when}',
     soon_title: '{name}через {min} мин: {title}',
     soon_title_anon: 'Через {min} мин: {title}',
     soon_body: '{at}{where}. Предупрежу вовремя.',
@@ -157,6 +157,29 @@ const STR: Record<Lang, S> = {
 
 const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const cleanNotificationTitle = (s: string) =>
+  s
+    .replace(/\s+(?:from|de la|da|от)\s+nora\s*$/i, '')
+    .replace(/\s+[—–-]\s*nora\s*$/i, '')
+    .trim();
+
+const formatMainNotificationTitle = (s: string) => {
+  const clean = cleanNotificationTitle(s);
+  const coffee = /\b(cafea|cafeaua|caff[eè]|coffee|кофе)\b/i.test(clean);
+  const emoji = coffee && !/[☕️☕]/u.test(clean) ? ' ☕️' : '';
+  return `${clean.toLocaleUpperCase()}${emoji}`;
+};
+
+function compactClock(time: string | null | undefined, hour12: boolean | null): string {
+  if (!time) return '';
+  const [hh, mm] = time.split(':').map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return time;
+  if (hour12) {
+    const h = hh % 12 || 12;
+    return `${h}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'}`;
+  }
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
 
 /** Title that calls the person by name when we know it: "Ion, e momentul: …". */
 function called(s: S, key: string, name: string | null, v: Record<string, string | number>): string {
@@ -207,12 +230,12 @@ export function buildNotification(
         return { ...base, sticky: important, title: called(s, 'soon_title', name, { ...v, min: minsLeft }), body: cap(fill(s.soon_body, { ...v, where })), actions: [{ action: 'open', title: s.a_open }, { action: 'done', title: s.a_done }] };
       }
       const when = task.due_date && task.due_date !== today ? formatWhen(task.due_date, task.due_time, today, lang, hour12) : '';
-      const body = task.due_time && !when ? fill(s.main_body, v) : when ? fill(s.main_body_date, { when: cap(when) }) : fill(s.main_body_date, { when: cap(formatWhen(today, null, today, lang)) });
+      const body = task.due_time && !when ? compactClock(task.due_time, hour12) : when ? cap(when) : cap(formatWhen(today, null, today, lang));
       return {
         ...base,
         sticky: important,
-        title: called(s, 'call_now', name, v),
-        body: task.notes ? `${body} · ${task.notes}`.slice(0, 180) : body,
+        title: formatMainNotificationTitle(task.title),
+        body,
         actions: [{ action: 'done', title: s.a_done }, { action: 'snooze', title: s.a_snooze }],
       };
     }

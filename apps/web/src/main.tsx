@@ -6,7 +6,7 @@ import { Browser } from '@capacitor/browser';
 import { completeHandoff, isStandalone, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
-import { getState, setState, type Tab } from './state/store.ts';
+import { getState, setState, subscribe, type Tab } from './state/store.ts';
 import { applyTheme } from './utils/theme.ts';
 import { playChime } from './utils/chime.ts';
 import { tr } from './i18n/index.ts';
@@ -136,6 +136,187 @@ const holdScrollAtTop = () => {
   if (document.documentElement.classList.contains('kb-open') && (window.scrollX !== 0 || window.scrollY !== 0)) window.scrollTo(0, 0);
 };
 window.addEventListener('scroll', holdScrollAtTop, { passive: true });
+
+// A page whose content fits the viewport shouldn't be scrollable at all (see
+// the .page-scrollable comment in styles.css for why overscroll-behavior
+// alone doesn't cover this). Re-checked on every layout change that could
+// make the fit change - a tab switch, data loading in, the keyboard opening/
+// closing, rotating the device - via a ResizeObserver on <body> rather than
+// hooking every one of those individually.
+// This ONLY ever toggles the class - it must never itself call scrollTo (an
+// earlier version did, "to guarantee landing at the top"): calling it from
+// a ResizeObserver callback risks a feedback loop (the call's own knock-on
+// layout effects re-trigger the observer), which is exactly what a real
+// recording caught - the page snapping up and down repeatedly on its own,
+// not from any touch at all. The actual touch-lock is the touchmove guard
+// below; this class is just what it reads to decide whether to engage.
+// The actual root cause, finally confirmed with real numbers from the
+// person's own device (the ?debug=1 overlay below): window.innerHeight
+// shrinks whenever Safari's own chrome (address bar, and - visible in their
+// screenshot - the bottom toolbar too) is showing, by however much that
+// chrome currently occupies - on their device, caught with both bars
+// visible, innerHeight read 631 while the device's real usable height is
+// ~852 (a 221px difference, dwarfing every tolerance tried here: +8, +16,
+// +40, none of them were ever going to be enough, because this was never
+// about a small per-device measurement slop in the first place). Profilo's
+// real content (their own reading: bodyScrollH 816) fits completely inside
+// the *real* 852px screen - it only ever looked like it didn't because the
+// comparison was against the chrome-shrunk 631.
+// window.screen.height is the fix: unlike innerHeight, it reports the
+// device's actual screen height in CSS px and does not change as Safari's
+// chrome shows or hides - unaffected by the exact problem that broke every
+// previous attempt here, including the "largest innerHeight seen all
+// session" tracking (which still starts from the chrome-expanded value on
+// a fresh load with nothing larger seen yet, as happened in their reading).
+const usableHeight = () => Math.max(window.innerHeight, window.screen.height || 0);
+const updatePageScrollable = () => {
+  // A real device's safe-area insets and actual font metrics can still
+  // measure a little taller than this dev environment ever does - +40 is
+  // comfortable headroom for that genuinely small slop, while staying far
+  // below what any actual scrollable list overflows by. It is deliberately
+  // not doing the heavy lifting anymore; usableHeight() is.
+  // document.body.scrollHeight, not documentElement's: once locked, body
+  // itself goes position:fixed (styles.css) to fully kill Safari's own
+  // address-bar-collapse gesture - a fixed element is taken out of its
+  // parent's normal flow, so documentElement's own scrollHeight would
+  // collapse to just the viewport height regardless of body's actual
+  // content the moment that happens, permanently reporting "fits" even as
+  // real content kept growing. scrollHeight is still a true read of body's
+  // own content height either way - position only changes where body is
+  // placed, not how it measures what's inside it.
+  const scrollable = document.body.scrollHeight > usableHeight() + 40;
+  document.documentElement.classList.toggle('page-scrollable', scrollable);
+  updateDebugOverlay?.();
+};
+
+// Temporary, opt-in (?debug=1) on-screen readout - pinpointing the exact
+// source of Profilo's real device overflow (frame-by-frame video analysis
+// found a genuine, repeatable 31px CSS gap, but this dev environment can't
+// reproduce the real safe-area/font conditions that cause it) needs the
+// real device's own numbers, not another guess from here. Remove once that's
+// found.
+let updateDebugOverlay: (() => void) | null = null;
+if (new URLSearchParams(location.search).has('debug')) {
+  const box = document.createElement('div');
+  box.style.cssText =
+    'position:fixed;left:4px;top:4px;z-index:99999;background:rgba(0,0,0,.85);color:#0f0;font:10px/1.4 monospace;padding:6px 8px;border-radius:6px;max-width:92vw;white-space:pre;pointer-events:none;';
+  document.body.appendChild(box);
+  // probe element: the only reliable way to read env(safe-area-inset-*) as a number from JS
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;inset:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none;';
+  document.body.appendChild(probe);
+  updateDebugOverlay = () => {
+    const probeCs = getComputedStyle(probe);
+    const screenEl = [...document.querySelectorAll<HTMLElement>('.screen')].find((el) => el.offsetParent !== null);
+    const headEl = screenEl?.querySelector<HTMLElement>('.screen-sticky-head');
+    const padEl = screenEl?.querySelector<HTMLElement>(':scope > div[style]');
+    box.textContent = [
+      `dpr=${window.devicePixelRatio} innerH=${window.innerHeight} screenH=${window.screen.height} usableH=${usableHeight()}`,
+      `bodyScrollH=${document.body.scrollHeight} gap=${document.body.scrollHeight - usableHeight()}`,
+      `safe-top=${probeCs.paddingTop} safe-bottom=${probeCs.paddingBottom}`,
+      `screen=${screenEl?.className ?? '?'} screenOuterH=${screenEl?.offsetHeight ?? '?'} screenPB=${screenEl ? getComputedStyle(screenEl).paddingBottom : '?'}`,
+      `head=${headEl?.offsetHeight ?? '?'} headPad=${headEl ? getComputedStyle(headEl).padding : '?'}`,
+      `padWrap=${padEl?.offsetHeight ?? '?'} padWrapStyle=${padEl?.getAttribute('style') ?? '?'}`,
+      `pageScrollable=${document.documentElement.classList.contains('page-scrollable')} bodyPos=${getComputedStyle(document.body).position}`,
+    ].join('\n');
+  };
+  updateDebugOverlay();
+}
+// Observing document.body itself here would miss every later content change:
+// once locked, body is position:fixed with inset:0 (styles.css), which pins
+// its own box to exactly the viewport size regardless of its content - so
+// its box never resizes again even as real content (e.g. completed tasks
+// loading in) keeps growing underneath it, and a ResizeObserver only fires
+// on the observed element's own box changing. #app (render()'s mount point,
+// from index.html - always in the DOM, unlike its child .app which App.tsx
+// only renders once setLang() resolves) isn't position:fixed and does still
+// grow with its content, the same content body.scrollHeight above is reading.
+new ResizeObserver(updatePageScrollable).observe(document.getElementById('app')!);
+window.addEventListener('resize', updatePageScrollable);
+updatePageScrollable();
+
+// page-scrollable is one class shared by the whole app, not per-screen - so
+// switching tabs (Home/Calendario/Attività/... all stay mounted; App.tsx
+// just toggles which one is display:none) can leave it reading true from
+// whichever tab was open a moment ago until the ResizeObserver above gets
+// around to re-measuring the new one, which happens asynchronously (next
+// paint) rather than in the same tick as the tab switch itself. A fast
+// tap-the-nav-then-immediately-drag on a real device can land inside that
+// gap: a genuinely real native scroll starts on the stale "yes, scrollable"
+// state, and unlike this file's own locked-page correction (touchend
+// snapping back to 0,0), a scroll already in motion under the finger before
+// that fires isn't something a single, later scrollTo can reliably stop
+// (iOS's own momentum phase can keep carrying it afterward) - reported on
+// device as the page staying scrolled permanently, not bouncing back.
+// Force the lock back on the instant a tab change happens, synchronously,
+// before the new screen has even painted - the ResizeObserver then lifts it
+// again moments later if the new tab genuinely needs to scroll. A screen
+// that does need scrolling is very briefly (one frame) not scrollable right
+// after switching to it; that's imperceptible. A screen that doesn't is
+// never incorrectly scrollable even for an instant.
+let lastTab = getState().tab;
+subscribe(() => {
+  const tab = getState().tab;
+  if (tab === lastTab) return;
+  lastTab = tab;
+  // This callback can run before the tab panels have actually re-rendered
+  // (subscribers fire synchronously, in registration order - this one was
+  // registered before the component tree even mounts) - if the outgoing
+  // tab was scrolled (e.g. a long Attività list at scrollY 300) when body
+  // flips to position:fixed (below) a moment later, fixed positioning
+  // ignores scroll entirely and snaps straight to the top - visibly,
+  // mid-switch, while the old tab's content is still what's painted.
+  // Reported on device as "a different copy flashes underneath for a
+  // moment, then it jumps to the real one". Zeroing scroll *before* the
+  // flip means there's nothing left to snap away from.
+  window.scrollTo(0, 0);
+  document.documentElement.classList.remove('page-scrollable');
+  // let the new tab's panel actually paint (display:none -> block) before
+  // re-measuring - doing it in the very same tick would still see the old
+  // layout.
+  requestAnimationFrame(() => requestAnimationFrame(updatePageScrollable));
+});
+
+// .nav never moves because it's position:fixed - never a scroll target to
+// begin with. Cancel a drag outright the instant it starts whenever the
+// page isn't marked .page-scrollable, the same guarantee for everything
+// else: a non-scrollable screen is exactly that from the very first pixel
+// of the gesture. Lets a drag through untouched when it's actually inside
+// its own scrollable element (the chat on Home, a sheet's body, a
+// horizontally-scrollable chip row) - those still work normally even while
+// the outer page itself is locked.
+const hasOwnScroll = (el: Element) => {
+  const cs = getComputedStyle(el);
+  return (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight) || (/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth);
+};
+document.addEventListener(
+  'touchmove',
+  (e) => {
+    if (document.documentElement.classList.contains('page-scrollable')) return;
+    for (let el = e.target as Element | null; el && el !== document.body; el = el.parentElement) {
+      if (hasOwnScroll(el)) return;
+    }
+    e.preventDefault();
+  },
+  { passive: false },
+);
+// Belt and braces for the above: a real device's safe-area insets, actual
+// font metrics etc. can measure a few px taller than this dev environment
+// ever does, which would make updatePageScrollable wrongly call a screen
+// scrollable and let a drag nudge it those few px (reported on device: "still
+// moves, just less" after the .main double-padding fix). Rather than chase
+// an exact px source per device, land it back on zero the instant any touch
+// gesture ends on a page that isn't meant to scroll at all - instant, not
+// smooth, so it reads as "never moved" rather than a visible snap-back.
+for (const type of ['touchend', 'touchcancel'] as const)
+  document.addEventListener(
+    type,
+    () => {
+      if (document.documentElement.classList.contains('page-scrollable')) return;
+      if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+    },
+    { passive: true },
+  );
 
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 // Tapping anywhere outside the field you're typing in dismisses the keyboard - the

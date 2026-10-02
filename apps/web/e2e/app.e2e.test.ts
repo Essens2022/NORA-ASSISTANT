@@ -182,6 +182,8 @@ describe('NORA web – end to end', () => {
   }, 30_000);
 
   it('spec test A in the UI: "Mâine am o întâlnire." → "La ce oră?" → "9"', async () => {
+    // the composer is always on screen now (it's the only way in besides voice,
+    // since the quick-action grid - which duplicated the bottom nav - is gone)
     const input = page.getByLabel('Scrie-i Norei…');
     await input.fill('Mâine am o întâlnire.');
     await input.press('Enter');
@@ -191,7 +193,6 @@ describe('NORA web – end to end', () => {
     await page.getByText('Perfect. Îți amintesc mâine la 9.').waitFor();
     const t = [...store.tasks.values()][0];
     expect(t.due_time).toBe('09:00');
-    await page.getByText('Următorul').waitFor();
     await shot('04-conversation');
   }, 30_000);
 
@@ -211,7 +212,7 @@ describe('NORA web – end to end', () => {
   }, 30_000);
 
   it('activity shows sections; task persists after reload', async () => {
-    await page.getByRole('button', { name: 'Activitate' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Activitate' }).click();
     await page.getByRole('heading', { name: /Urmează/ }).waitFor();
     await page.getByRole('heading', { name: /Fără dată/ }).waitFor();
     await activeScreen().getByText('Întâlnire').first().waitFor();
@@ -248,14 +249,14 @@ describe('NORA web – end to end', () => {
 
   it('checkbox completes a task; completed section loads', async () => {
     await page.getByRole('checkbox', { name: 'Marchează „Cumpără lapte” ca făcut' }).click();
-    await page.getByRole('button', { name: 'Arată finalizatele' }).click();
-    await page.getByRole('heading', { name: 'Finalizate' }).waitFor();
+    await page.getByRole('button', { name: 'Finalizate', exact: true }).click();
+    await activeScreen().getByText('Cumpără lapte').waitFor();
     await expect.poll(() => [...store.tasks.values()].find((x) => x.title === 'Cumpără lapte')!.status).toBe('completed');
   }, 20_000);
 
   it('manual task creation', async () => {
-    await page.getByRole('button', { name: 'Calendar' }).click();
-    await page.getByRole('button', { name: 'Task nou' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Calendar' }).click();
+    await page.getByRole('button', { name: 'Adaugă eveniment' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Titlu').fill('Plătește asigurarea');
     await dialog.getByLabel('Data').fill(toZoned(new Date(Date.now() + 3 * 86400000), 'Europe/Rome').date);
@@ -271,34 +272,55 @@ describe('NORA web – end to end', () => {
     await page.getByRole('heading', { name: 'Profil' }).waitFor();
     await shot('07-profile');
 
-    await page.getByRole('switch', { name: 'Amintește-mi cu o seară înainte de programări' }).click();
+    // each settings group now opens in its own sheet from a compact row,
+    // matching the approved reference's native-list-rows Profile screen
+    await page.getByRole('button', { name: 'Preferințe remindere', exact: true }).click();
+    const remindersSheet = page.getByRole('dialog');
+    await remindersSheet.getByRole('switch', { name: 'Amintește-mi cu o seară înainte de programări' }).click();
     await expect.poll(() => profile.prefs.day_before).toBe(false);
-    await page.getByLabel('Amintește-mi cu', { exact: true }).selectOption('60');
+    await remindersSheet.getByLabel('Amintește-mi cu', { exact: true }).selectOption('60');
     await expect.poll(() => profile.prefs.reminder_lead_min).toBe(60);
-    await page.getByRole('radio', { name: '12 ore' }).click();
-    await expect.poll(() => profile.prefs.hour12).toBe(true);
+    await remindersSheet.getByRole('button', { name: 'Închide' }).click();
 
-    await page.getByRole('button', { name: 'Amintirile mele' }).click();
+    // hour format now lives in the Lingua sheet, next to locale/region
+    await page.getByRole('button', { name: /^Limbă/ }).click();
+    const langSheet = page.getByRole('dialog');
+    await langSheet.getByRole('radio', { name: '12 ore' }).click();
+    await expect.poll(() => profile.prefs.hour12).toBe(true);
+    await langSheet.getByRole('button', { name: 'Închide' }).click();
+
+    // "Amintirile mele" now lives inside the Account sheet, reached by tapping
+    // the NORA identity card at the top of Profile
+    await page.getByRole('button', { name: /^NORA/ }).click();
+    const accountSheet = page.getByRole('dialog');
+    await accountSheet.getByRole('button', { name: 'Amintirile mele' }).click();
     await page.getByRole('heading', { name: 'Amintirile mele' }).waitFor();
     await page.getByText('Preferă remindere cu 30 de minute înainte').waitFor();
     await page.getByRole('button', { name: 'Profil' }).click();
     await page.getByRole('heading', { name: 'Profil' }).waitFor();
 
-    await page.getByLabel('Limba aplicației').selectOption('it');
+    // the row's accessible name also includes its current value (e.g. "Limbă Română")
+    await page.getByRole('button', { name: /^Limbă/ }).click();
+    await page.getByRole('dialog').getByLabel('Limba aplicației').selectOption('it');
     await page.getByRole('heading', { name: 'Profilo' }).waitFor();
     expect(profile.ui_lang).toBe('it');
     await page.reload();
     await page.getByRole('heading', { name: 'Profilo' }).waitFor();
-    await page.getByRole('button', { name: 'Attività' }).waitFor();
-    expect(await page.getByRole('switch', { name: /sera prima/ }).getAttribute('aria-checked')).toBe('false');
+    await page.getByRole('navigation').getByRole('button', { name: 'Attività' }).waitFor();
+    await page.getByRole('button', { name: 'Preferenze promemoria', exact: true }).click();
+    const finalSheet = page.getByRole('dialog');
+    expect(await finalSheet.getByRole('switch', { name: /sera prima/ }).getAttribute('aria-checked')).toBe('false');
+    await finalSheet.getByRole('button', { name: 'Chiudi' }).click();
   }, 40_000);
 
   it('dark mode renders and no runtime errors happened', async () => {
-    await page.getByRole('radio', { name: 'Scuro' }).click();
+    await page.getByRole('button', { name: /^Aspetto/ }).click();
+    await page.getByRole('dialog').getByRole('radio', { name: 'Scuro' }).click();
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark');
-    await page.getByRole('button', { name: 'NORA', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Chiudi' }).click();
+    await page.getByRole('button', { name: 'Home', exact: true }).click();
     await shot('08-home-dark');
-    await page.getByRole('button', { name: 'Attività' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Attività' }).click();
     await shot('09-activity-dark');
     expect(errors.filter((e) => !e.includes('favicon'))).toEqual([]);
   }, 20_000);

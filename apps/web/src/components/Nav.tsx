@@ -1,13 +1,14 @@
 import { tr } from '../i18n/index.ts';
 import { setState, useStore, type Tab } from '../state/store.ts';
-import { Icon, type IconName } from './Icon.tsx';
+import { Icon } from './Icon.tsx';
+import { NoraKitIcon } from './NoraKitIcon.tsx';
 
-const TABS: Array<{ id: Tab; icon: IconName; key: 'nav.ai' | 'nav.activity' | 'nav.calendar' | 'nav.memory' | 'nav.profile' }> = [
-  { id: 'ai', icon: 'spark', key: 'nav.ai' },
-  { id: 'activity', icon: 'list', key: 'nav.activity' },
+const TABS: Array<{ id: Tab; icon: string; key: 'nav.ai' | 'nav.activity' | 'nav.calendar' | 'nav.memory' | 'nav.profile' }> = [
+  { id: 'ai', icon: 'home', key: 'nav.ai' },
   { id: 'calendar', icon: 'calendar', key: 'nav.calendar' },
-  { id: 'memory', icon: 'bookmark', key: 'nav.memory' },
-  { id: 'profile', icon: 'user', key: 'nav.profile' },
+  { id: 'activity', icon: 'activity', key: 'nav.activity' },
+  { id: 'memory', icon: 'memory', key: 'nav.memory' },
+  { id: 'profile', icon: 'profile', key: 'nav.profile' },
 ];
 
 export function Nav() {
@@ -37,7 +38,7 @@ export function Nav() {
         >
           <span class="nav-pill">
             <span class="nav-icon">
-              <Icon name={t.icon} size={20} />
+              <NoraKitIcon path={`${tab === t.id ? 'icons-active' : 'icons'}/${t.icon}.svg`} size={24} />
               {t.id === 'activity' && attention > 0 && (
                 <span class="badge" aria-label={`${attention}`}>
                   {attention}
