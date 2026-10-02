@@ -2860,10 +2860,18 @@ html.kb-open .main {
 
 .app {
   min-height: 100dvh;
-  background:
-    radial-gradient(circle at 12% -6%, rgba(79,124,255,.10), transparent 34%),
-    radial-gradient(circle at 92% 8%, rgba(139,92,246,.08), transparent 30%),
-    var(--bg);
+  /* No background here - .app is a normal-flow element whose actual
+     rendered height depends on its content (Calendario's Oggi agenda vs.
+     Mese's full month grid; Attività's Tutte/Oggi vs. Completate), and a
+     percentage-anchored radial-gradient ("circle at 12% -6%") stretches or
+     compresses with the box it's painted on - on a short view you're
+     zoomed into the glow's center, on a tall one the same gradient is
+     diluted over far more height, visibly different background "colour"
+     between modes/filters despite being the exact same gradient. body's
+     own flat var(--bg) (styles.css, near the top) and body::before's
+     glow (position:fixed, genuinely viewport-sized - see its own comment)
+     already paint the identical background everywhere beneath this; this
+     rule was a leftover duplicate of the pre-body::before approach. */
 }
 
 /* No padding-bottom here - every .screen already reserves its own bottom
@@ -4200,16 +4208,18 @@ html.kb-open .main {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) body,
-  :root:not([data-theme='light']) .app {
+  /* .app deliberately excluded - see the .app rule's own comment (~line 2861):
+     it's a normal-flow element whose height varies with content, and a
+     percentage-anchored gradient painted on it stretches/compresses visibly
+     between views. Only body (and body::before, position:fixed) carry this. */
+  :root:not([data-theme='light']) body {
     background:
       radial-gradient(circle at 18% 0%, rgba(35,74,160,.18), transparent 34%),
       radial-gradient(circle at 90% 8%, rgba(89,48,154,.12), transparent 30%),
       var(--nora-approved-bg);
   }
 }
-:root[data-theme='dark'] body,
-:root[data-theme='dark'] .app {
+:root[data-theme='dark'] body {
   background:
     radial-gradient(circle at 18% 0%, rgba(35,74,160,.18), transparent 34%),
     radial-gradient(circle at 90% 8%, rgba(89,48,154,.12), transparent 30%),
@@ -4464,16 +4474,18 @@ html.kb-open .main {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) body,
-  :root:not([data-theme='light']) .app {
+  /* .app deliberately excluded - see the .app rule's own comment (~line 2861):
+     it's a normal-flow element whose height varies with content, and a
+     percentage-anchored gradient painted on it stretches/compresses visibly
+     between views. Only body (and body::before, position:fixed) carry this. */
+  :root:not([data-theme='light']) body {
     background:
       radial-gradient(circle at 18% 0%, rgba(35, 74, 160, .18), transparent 34%),
       radial-gradient(circle at 90% 8%, rgba(89, 48, 154, .12), transparent 30%),
       #07101f;
   }
 }
-:root[data-theme='dark'] body,
-:root[data-theme='dark'] .app {
+:root[data-theme='dark'] body {
   background:
     radial-gradient(circle at 18% 0%, rgba(35, 74, 160, .18), transparent 34%),
     radial-gradient(circle at 90% 8%, rgba(89, 48, 154, .12), transparent 30%),
@@ -5103,8 +5115,11 @@ html.kb-open .main {
   --nora-approved-muted: var(--text-2);
 }
 
-:root[data-theme='light'] body,
-:root[data-theme='light'] .app {
+/* .app deliberately excluded - see the .app rule's own comment (~line 2861):
+   it's a normal-flow element whose height varies with content, and a
+   percentage-anchored gradient painted on it stretches/compresses visibly
+   between views. Only body (and body::before, position:fixed) carry this. */
+:root[data-theme='light'] body {
   background:
     radial-gradient(circle at 18% 0%, rgba(79, 124, 255, .06), transparent 34%),
     radial-gradient(circle at 90% 8%, rgba(123, 92, 255, .05), transparent 30%),
