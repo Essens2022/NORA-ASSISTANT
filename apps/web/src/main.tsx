@@ -182,7 +182,42 @@ const updatePageScrollable = () => {
   // placed, not how it measures what's inside it.
   const scrollable = document.body.scrollHeight > maxInnerHeight + 40;
   document.documentElement.classList.toggle('page-scrollable', scrollable);
+  updateDebugOverlay?.();
 };
+
+// Temporary, opt-in (?debug=1) on-screen readout - pinpointing the exact
+// source of Profilo's real device overflow (frame-by-frame video analysis
+// found a genuine, repeatable 31px CSS gap, but this dev environment can't
+// reproduce the real safe-area/font conditions that cause it) needs the
+// real device's own numbers, not another guess from here. Remove once that's
+// found.
+let updateDebugOverlay: (() => void) | null = null;
+if (new URLSearchParams(location.search).has('debug')) {
+  const box = document.createElement('div');
+  box.style.cssText =
+    'position:fixed;left:4px;top:4px;z-index:99999;background:rgba(0,0,0,.85);color:#0f0;font:10px/1.4 monospace;padding:6px 8px;border-radius:6px;max-width:92vw;white-space:pre;pointer-events:none;';
+  document.body.appendChild(box);
+  // probe element: the only reliable way to read env(safe-area-inset-*) as a number from JS
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;inset:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none;';
+  document.body.appendChild(probe);
+  updateDebugOverlay = () => {
+    const probeCs = getComputedStyle(probe);
+    const screenEl = [...document.querySelectorAll<HTMLElement>('.screen')].find((el) => el.offsetParent !== null);
+    const headEl = screenEl?.querySelector<HTMLElement>('.screen-sticky-head');
+    const padEl = screenEl?.querySelector<HTMLElement>(':scope > div[style]');
+    box.textContent = [
+      `dpr=${window.devicePixelRatio} innerH=${window.innerHeight} maxInnerH=${maxInnerHeight}`,
+      `bodyScrollH=${document.body.scrollHeight} gap=${document.body.scrollHeight - maxInnerHeight}`,
+      `safe-top=${probeCs.paddingTop} safe-bottom=${probeCs.paddingBottom}`,
+      `screen=${screenEl?.className ?? '?'} screenOuterH=${screenEl?.offsetHeight ?? '?'} screenPB=${screenEl ? getComputedStyle(screenEl).paddingBottom : '?'}`,
+      `head=${headEl?.offsetHeight ?? '?'} headPad=${headEl ? getComputedStyle(headEl).padding : '?'}`,
+      `padWrap=${padEl?.offsetHeight ?? '?'} padWrapStyle=${padEl?.getAttribute('style') ?? '?'}`,
+      `pageScrollable=${document.documentElement.classList.contains('page-scrollable')} bodyPos=${getComputedStyle(document.body).position}`,
+    ].join('\n');
+  };
+  updateDebugOverlay();
+}
 // Observing document.body itself here would miss every later content change:
 // once locked, body is position:fixed with inset:0 (styles.css), which pins
 // its own box to exactly the viewport size regardless of its content - so
@@ -221,6 +256,10 @@ subscribe(() => {
   if (tab === lastTab) return;
   lastTab = tab;
   document.documentElement.classList.remove('page-scrollable');
+  // let the new tab's panel actually paint (display:none -> block) before
+  // re-measuring - doing it in the very same tick would still see the old
+  // layout.
+  requestAnimationFrame(() => requestAnimationFrame(updatePageScrollable));
 });
 
 // .nav never moves because it's position:fixed - never a scroll target to
