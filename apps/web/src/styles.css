@@ -2456,12 +2456,6 @@ html.kb-open .main {
   text-align: center;
   font-size: 12px;
   line-height: 16px;
-  /* zero the UA default <p> margin (1em each side, ~12px here) and set a
-     smaller, explicit one - Profilo is meant to never scroll at all, so
-     every bit of vertical space this row doesn't need is space a real
-     device's taller real-font rendering could otherwise push it under the
-     nav bar with no way left to reveal it. */
-  margin: 8px 0 0;
 }
 
 /* ---------- auth / onboarding / splash ---------- */
@@ -4942,7 +4936,7 @@ html.kb-open .main {
 .profile-screen .prof-card {
   min-height: 74px;
   padding: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   border: 1px solid var(--approved-line, rgba(141, 162, 199, .12));
   border-radius: 18px;
   background: linear-gradient(145deg, rgba(17,26,42,.96), rgba(13,22,38,.96));
@@ -4991,8 +4985,8 @@ html.kb-open .main {
 .prof-account-name,
 .prof-account-row,
 .prof-account-action {
-  min-height: 48px;
-  padding: 7px 13px;
+  min-height: 54px;
+  padding: 10px 13px;
   margin: 0;
   border-bottom: 1px solid var(--approved-line);
   background: transparent;
