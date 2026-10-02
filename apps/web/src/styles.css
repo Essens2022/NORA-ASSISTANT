@@ -330,22 +330,6 @@ h3 {
 }
 .main {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.tab-panel {
-  /* A percentage height chain (.main height:100% -> .tab-panel height:100%
-     -> ...) turned out NOT to resolve reliably here: .app only has a
-     min-height (100dvh), not an explicit height, and per spec a percentage
-     height only resolves against an ancestor's height when that height
-     counts as "explicitly specified" - a min-height floor plus flexbox's
-     own sizing doesn't reliably qualify a few levels deep, verified by it
-     actually failing (computed height stayed content-sized, not 100%).
-     flex:1 all the way down sidesteps that: a flex item's resolved size is
-     always definite for its own children to flex against, regardless. */
-  flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 .tab-hidden {
   display: none;
@@ -3235,15 +3219,23 @@ html.kb-open .main {
   /* Profilo is deliberately locked from ever scrolling (see main.tsx's
      updatePageScrollable), with its content pinned to the top - on a taller
      screen than this was tuned against, that left a dead empty gap between
-     "Aiuto e supporto" and the nav bar instead of using the room. Letting
-     the screen stretch to the full available height and centering its one
-     content block within it fills that space on a tall screen; it's a
-     no-op on a screen where the content already reaches close to the nav
-     (nothing to redistribute), and never adds height (so the scroll lock's
-     own body.scrollHeight measurement is unaffected). */
+     "Aiuto e supporto" and the nav bar instead of using the room. Centering
+     the one content block within the full viewport height fills that space
+     on a tall screen; it's a no-op on a screen where the content already
+     reaches close to the nav (nothing to redistribute).
+     This used to reach up through .main/.tab-panel (flex:1 at every level)
+     to get a definite height to center within - reverted: making EVERY
+     tab-panel a flex container changed how its one child (.screen) sizes
+     inside it, since a flex item's default flex-shrink:1 lets it shrink
+     below its natural content height to fit the container - exactly wrong
+     for a screen like Attività that's SUPPOSED to overflow and scroll when
+     it has enough tasks (shrinking squashed/clipped it instead). box-sizing
+     is border-box app-wide, and 100dvh is the same viewport unit .app
+     already anchors to - using it directly here needs no ancestor height
+     chain at all, so it can't leak into any other screen's sizing. */
   display: flex;
   flex-direction: column;
-  flex: 1;
+  min-height: 100dvh;
 }
 .profile-screen-body {
   flex: 1;
