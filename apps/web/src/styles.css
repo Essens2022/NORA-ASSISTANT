@@ -2239,6 +2239,8 @@ html.kb-open .main {
 }
 .cal-timeline-hour {
   display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
   gap: 12px;
   padding: 8px 4px;
   border-bottom: 1px solid var(--border);
@@ -4465,7 +4467,8 @@ html.kb-open .main {
    strip) or leave a gap under a shorter one. */
 .calendar-screen,
 .activity-screen,
-.memory-screen {
+.memory-screen,
+.profile-screen {
   padding-top: 0 !important;
 }
 

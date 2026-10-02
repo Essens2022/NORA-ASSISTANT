@@ -11,7 +11,11 @@ export function useStickyHeadHeight() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
+    // contentRect excludes the header's own padding (~24px of its vertical
+    // padding), which under-reserved space below it and let the day-head/
+    // view-toggle poke up under the fixed header - offsetHeight is the full
+    // border-box (padding + border included), matching what's actually fixed.
+    const ro = new ResizeObserver(() => setHeight(el.offsetHeight));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);

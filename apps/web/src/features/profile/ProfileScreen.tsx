@@ -5,6 +5,7 @@ import { Icon } from '../../components/Icon.tsx';
 import { Logo } from '../../components/Logo.tsx';
 import { KitGlyph } from '../../components/NoraKitIcon.tsx';
 import { Button, Confirm, Input, Sheet, Segmented, Select, Toggle } from '../../components/ui.tsx';
+import { useStickyHeadHeight } from '../../hooks.ts';
 import { DEFAULT_LOCALE, formatDate, formatTime, getLang, LANG_NAMES, tp, tr, trIn } from '../../i18n/index.ts';
 import { api, deviceTimezone, isManualTimezone, setManualTimezone } from '../../services/api.ts';
 import { signOut } from '../../services/auth.ts';
@@ -26,16 +27,20 @@ const THEME_LABEL: Record<Theme, 'prof.theme_system' | 'prof.theme_light' | 'pro
 export function ProfileScreen() {
   const { profile, email } = useStore((s) => ({ profile: s.profile, email: s.email }));
   const [open, setOpen] = useState<string | null>(null);
+  const [headRef, headH] = useStickyHeadHeight();
   if (!profile) return <div class="screen" />;
   const p = profile.prefs;
   const setPref = <K extends keyof Preferences>(k: K, v: Preferences[K]) => updateProfile({ prefs: { [k]: v } as Partial<Preferences> });
 
   return (
     <div class="screen profile-screen">
-      <header class="screen-head">
-        <h1>{tr('prof.title')}</h1>
-      </header>
+      <div class="screen-sticky-head" ref={headRef}>
+        <header class="screen-head">
+          <h1>{tr('prof.title')}</h1>
+        </header>
+      </div>
 
+      <div style={{ paddingTop: headH }}>
       <button type="button" class="prof-card" onClick={() => setOpen('account')}>
         <div class="prof-avatar" aria-hidden="true">
           <Logo size={28} />
@@ -186,6 +191,7 @@ export function ProfileScreen() {
       <Sheet open={open === 'privacy'} onClose={() => setOpen(null)} title={tr('prof.privacy')}>
         <PrivacyControls />
       </Sheet>
+      </div>
     </div>
   );
 }
