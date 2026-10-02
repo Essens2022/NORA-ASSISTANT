@@ -40,7 +40,7 @@ export function ProfileScreen() {
         </header>
       </div>
 
-      <div style={{ paddingTop: headH }}>
+      <div class="profile-screen-body" style={{ paddingTop: headH }}>
       <button type="button" class="prof-card" onClick={() => setOpen('account')}>
         <div class="prof-avatar" aria-hidden="true">
           <Logo size={28} />
