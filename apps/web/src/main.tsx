@@ -147,7 +147,13 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 // not from any touch at all. The actual touch-lock is the touchmove guard
 // below; this class is just what it reads to decide whether to engage.
 const updatePageScrollable = () => {
-  const scrollable = document.documentElement.scrollHeight > window.innerHeight + 1;
+  // A real device's safe-area insets and actual font metrics can measure a
+  // few px taller than this dev environment ever does - a +1 tolerance (fine
+  // here) wasn't enough there, and even that little bit of genuine overflow
+  // was enough to let a drag move the page before snapping back. +8 absorbs
+  // that device slop while still being nowhere near what any real scrollable
+  // list overflows by.
+  const scrollable = document.documentElement.scrollHeight > window.innerHeight + 8;
   document.documentElement.classList.toggle('page-scrollable', scrollable);
 };
 new ResizeObserver(updatePageScrollable).observe(document.body);
@@ -177,6 +183,23 @@ document.addEventListener(
   },
   { passive: false },
 );
+// Belt and braces for the above: a real device's safe-area insets, actual
+// font metrics etc. can measure a few px taller than this dev environment
+// ever does, which would make updatePageScrollable wrongly call a screen
+// scrollable and let a drag nudge it those few px (reported on device: "still
+// moves, just less" after the .main double-padding fix). Rather than chase
+// an exact px source per device, land it back on zero the instant any touch
+// gesture ends on a page that isn't meant to scroll at all - instant, not
+// smooth, so it reads as "never moved" rather than a visible snap-back.
+for (const type of ['touchend', 'touchcancel'] as const)
+  document.addEventListener(
+    type,
+    () => {
+      if (document.documentElement.classList.contains('page-scrollable')) return;
+      if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+    },
+    { passive: true },
+  );
 
 const isTextField = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 // Tapping anywhere outside the field you're typing in dismisses the keyboard - the
