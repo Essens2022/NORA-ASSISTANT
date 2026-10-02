@@ -261,6 +261,19 @@ textarea {
 button {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* The reset above never zeroed out the UA's own button chrome (background,
+     border, padding) - every component that styles its own buttons (.btn,
+     .nav-pill, …) overrides these anyway, so this was invisible almost
+     everywhere. But a few rows (e.g. Profilo's settings rows) only ever set
+     border-bottom, leaving top/left/right as Chrome's default button border
+     ("2px outset ButtonBorder") - a stark white line Chrome renders but
+     Safari doesn't (different UA default), which is why this only ever
+     showed up on Android Chrome. */
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: inherit;
 }
 :focus-visible {
   outline: none;
