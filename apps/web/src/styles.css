@@ -4472,7 +4472,16 @@ html.kb-open .main {
 
 .screen {
   max-width: 560px;
-  padding: calc(env(safe-area-inset-top) + 14px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+  /* The bottom breathing room above the nav bar used to be 18px - plenty in
+     this dev environment, but a real iPhone's actual rendered content
+     (real San Francisco font metrics vs. this environment's Inter
+     fallback, compounded across Profilo's ~9 rows) runs measurably taller,
+     and the last row ("Versione…") ended up sitting right at - sometimes
+     under - the nav bar with nothing left to reveal it (the page is
+     deliberately locked from scrolling at all unless genuinely needed -
+     see main.tsx's updatePageScrollable). Widened well past what that
+     measured gap needs, same reasoning as that tolerance. */
+  padding: calc(env(safe-area-inset-top) + 14px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 56px);
 }
 
 .screen-head {
