@@ -5,7 +5,7 @@ import { flushQueue, track } from './services/api.ts';
 import { completeHandoff, watchHandoff } from './services/auth.ts';
 import { registerServiceWorker } from './services/push.ts';
 import { bootstrap, completeTask, initAuth, refreshTasks, snoozeTask } from './state/actions.ts';
-import { getState, setState, type Tab } from './state/store.ts';
+import { getState, setState, subscribe, type Tab } from './state/store.ts';
 import { applyTheme } from './utils/theme.ts';
 import { playChime } from './utils/chime.ts';
 import { tr } from './i18n/index.ts';
@@ -188,6 +188,33 @@ const updatePageScrollable = () => {
 new ResizeObserver(updatePageScrollable).observe(document.getElementById('app')!);
 window.addEventListener('resize', updatePageScrollable);
 updatePageScrollable();
+
+// page-scrollable is one class shared by the whole app, not per-screen - so
+// switching tabs (Home/Calendario/Attività/... all stay mounted; App.tsx
+// just toggles which one is display:none) can leave it reading true from
+// whichever tab was open a moment ago until the ResizeObserver above gets
+// around to re-measuring the new one, which happens asynchronously (next
+// paint) rather than in the same tick as the tab switch itself. A fast
+// tap-the-nav-then-immediately-drag on a real device can land inside that
+// gap: a genuinely real native scroll starts on the stale "yes, scrollable"
+// state, and unlike this file's own locked-page correction (touchend
+// snapping back to 0,0), a scroll already in motion under the finger before
+// that fires isn't something a single, later scrollTo can reliably stop
+// (iOS's own momentum phase can keep carrying it afterward) - reported on
+// device as the page staying scrolled permanently, not bouncing back.
+// Force the lock back on the instant a tab change happens, synchronously,
+// before the new screen has even painted - the ResizeObserver then lifts it
+// again moments later if the new tab genuinely needs to scroll. A screen
+// that does need scrolling is very briefly (one frame) not scrollable right
+// after switching to it; that's imperceptible. A screen that doesn't is
+// never incorrectly scrollable even for an instant.
+let lastTab = getState().tab;
+subscribe(() => {
+  const tab = getState().tab;
+  if (tab === lastTab) return;
+  lastTab = tab;
+  document.documentElement.classList.remove('page-scrollable');
+});
 
 // .nav never moves because it's position:fixed - never a scroll target to
 // begin with. Cancel a drag outright the instant it starts whenever the
