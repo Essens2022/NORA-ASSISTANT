@@ -146,38 +146,31 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 // recording caught - the page snapping up and down repeatedly on its own,
 // not from any touch at all. The actual touch-lock is the touchmove guard
 // below; this class is just what it reads to decide whether to engage.
-// Real Safari's address bar is often still expanded (full height, eating
-// into window.innerHeight) right when a screen first mounts, and only
-// collapses once the person actually scrolls or drags - comparing against
-// the *current* innerHeight at that moment can read a page as needing to
-// scroll by however much the address bar happens to be eating at the time,
-// even though the page would fit fine once it collapses. innerHeight only
-// ever grows when the address bar collapses, never on its own otherwise, so
-// the largest value seen so far in this session is the real, stable usable
-// height to size against.
-let maxInnerHeight = window.innerHeight;
+// The actual root cause, finally confirmed with real numbers from the
+// person's own device (the ?debug=1 overlay below): window.innerHeight
+// shrinks whenever Safari's own chrome (address bar, and - visible in their
+// screenshot - the bottom toolbar too) is showing, by however much that
+// chrome currently occupies - on their device, caught with both bars
+// visible, innerHeight read 631 while the device's real usable height is
+// ~852 (a 221px difference, dwarfing every tolerance tried here: +8, +16,
+// +40, none of them were ever going to be enough, because this was never
+// about a small per-device measurement slop in the first place). Profilo's
+// real content (their own reading: bodyScrollH 816) fits completely inside
+// the *real* 852px screen - it only ever looked like it didn't because the
+// comparison was against the chrome-shrunk 631.
+// window.screen.height is the fix: unlike innerHeight, it reports the
+// device's actual screen height in CSS px and does not change as Safari's
+// chrome shows or hides - unaffected by the exact problem that broke every
+// previous attempt here, including the "largest innerHeight seen all
+// session" tracking (which still starts from the chrome-expanded value on
+// a fresh load with nothing larger seen yet, as happened in their reading).
+const usableHeight = () => Math.max(window.innerHeight, window.screen.height || 0);
 const updatePageScrollable = () => {
-  maxInnerHeight = Math.max(maxInnerHeight, window.innerHeight);
-  // A real device's safe-area insets and actual font metrics can measure
-  // taller than this dev environment ever does - frame-by-frame video
-  // analysis of the actual bug on a real iPhone measured a real, held-
-  // steady ~31px CSS overflow there that this environment has no way to
-  // reproduce (no real Dynamic Island/home-indicator safe-area, and Linux
-  // Chromium substitutes its own font for -apple-system). +40 clears that
-  // with real margin to spare while staying far below what any actual
-  // scrollable list overflows by.
-  // Tried lowering this to +16 once, on the theory that a screen with
-  // genuinely more content than fits should just scroll normally now that
-  // the bugs making scrolling itself misbehave were fixed at the root (the
-  // stale page-scrollable class surviving a fast tab switch; Safari's own
-  // address-bar-drag riding along whenever scrolling was allowed at all).
-  // Confirmed on device that was wrong: letting Profilo cross back into
-  // "scrollable" reopened the exact movement this tolerance exists to
-  // prevent - this person wants Profilo genuinely immovable, full stop,
-  // not "movable only when there's a reason". The real fix for content
-  // that's tight against the nav bar is making it take less vertical space
-  // in the first place (ProfileScreen.tsx/styles.css's row heights and
-  // margins), not loosening this lock.
+  // A real device's safe-area insets and actual font metrics can still
+  // measure a little taller than this dev environment ever does - +40 is
+  // comfortable headroom for that genuinely small slop, while staying far
+  // below what any actual scrollable list overflows by. It is deliberately
+  // not doing the heavy lifting anymore; usableHeight() is.
   // document.body.scrollHeight, not documentElement's: once locked, body
   // itself goes position:fixed (styles.css) to fully kill Safari's own
   // address-bar-collapse gesture - a fixed element is taken out of its
@@ -187,7 +180,7 @@ const updatePageScrollable = () => {
   // real content kept growing. scrollHeight is still a true read of body's
   // own content height either way - position only changes where body is
   // placed, not how it measures what's inside it.
-  const scrollable = document.body.scrollHeight > maxInnerHeight + 40;
+  const scrollable = document.body.scrollHeight > usableHeight() + 40;
   document.documentElement.classList.toggle('page-scrollable', scrollable);
   updateDebugOverlay?.();
 };
@@ -214,8 +207,8 @@ if (new URLSearchParams(location.search).has('debug')) {
     const headEl = screenEl?.querySelector<HTMLElement>('.screen-sticky-head');
     const padEl = screenEl?.querySelector<HTMLElement>(':scope > div[style]');
     box.textContent = [
-      `dpr=${window.devicePixelRatio} innerH=${window.innerHeight} maxInnerH=${maxInnerHeight}`,
-      `bodyScrollH=${document.body.scrollHeight} gap=${document.body.scrollHeight - maxInnerHeight}`,
+      `dpr=${window.devicePixelRatio} innerH=${window.innerHeight} screenH=${window.screen.height} usableH=${usableHeight()}`,
+      `bodyScrollH=${document.body.scrollHeight} gap=${document.body.scrollHeight - usableHeight()}`,
       `safe-top=${probeCs.paddingTop} safe-bottom=${probeCs.paddingBottom}`,
       `screen=${screenEl?.className ?? '?'} screenOuterH=${screenEl?.offsetHeight ?? '?'} screenPB=${screenEl ? getComputedStyle(screenEl).paddingBottom : '?'}`,
       `head=${headEl?.offsetHeight ?? '?'} headPad=${headEl ? getComputedStyle(headEl).padding : '?'}`,
