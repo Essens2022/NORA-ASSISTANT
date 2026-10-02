@@ -159,22 +159,25 @@ let maxInnerHeight = window.innerHeight;
 const updatePageScrollable = () => {
   maxInnerHeight = Math.max(maxInnerHeight, window.innerHeight);
   // A real device's safe-area insets and actual font metrics can measure
-  // taller than this dev environment ever does - a real iPhone's genuine
-  // overflow on Profilo turned out bigger than first measured (a +40
-  // tolerance, chosen from an earlier reading, was itself hiding real
-  // content: "Versione…" ended up sitting under the nav bar with no way
-  // left to reach it, since the page was locked out of scrolling at all).
-  // The actual fix for that was giving the content more real breathing
-  // room at the bottom (styles.css's .screen padding), not raising this
-  // tolerance further - a big tolerance only ever hides overflow, it can't
-  // shrink it. +16 stays here only for genuinely tiny device/font slop
-  // (a handful of px), not as a way to paper over real missing content;
-  // once the real gap is more than that, the page *should* read as
-  // scrollable and let the person reach it, now that the bugs that made
-  // scrolling itself misbehave (the stale page-scrollable class surviving
-  // a fast tab switch, and Safari's own address-bar-drag riding along
-  // whenever scrolling was allowed at all) are fixed at the root instead
-  // of merely hidden behind a wide tolerance.
+  // taller than this dev environment ever does - frame-by-frame video
+  // analysis of the actual bug on a real iPhone measured a real, held-
+  // steady ~31px CSS overflow there that this environment has no way to
+  // reproduce (no real Dynamic Island/home-indicator safe-area, and Linux
+  // Chromium substitutes its own font for -apple-system). +40 clears that
+  // with real margin to spare while staying far below what any actual
+  // scrollable list overflows by.
+  // Tried lowering this to +16 once, on the theory that a screen with
+  // genuinely more content than fits should just scroll normally now that
+  // the bugs making scrolling itself misbehave were fixed at the root (the
+  // stale page-scrollable class surviving a fast tab switch; Safari's own
+  // address-bar-drag riding along whenever scrolling was allowed at all).
+  // Confirmed on device that was wrong: letting Profilo cross back into
+  // "scrollable" reopened the exact movement this tolerance exists to
+  // prevent - this person wants Profilo genuinely immovable, full stop,
+  // not "movable only when there's a reason". The real fix for content
+  // that's tight against the nav bar is making it take less vertical space
+  // in the first place (ProfileScreen.tsx/styles.css's row heights and
+  // margins), not loosening this lock.
   // document.body.scrollHeight, not documentElement's: once locked, body
   // itself goes position:fixed (styles.css) to fully kill Safari's own
   // address-bar-collapse gesture - a fixed element is taken out of its
@@ -184,7 +187,7 @@ const updatePageScrollable = () => {
   // real content kept growing. scrollHeight is still a true read of body's
   // own content height either way - position only changes where body is
   // placed, not how it measures what's inside it.
-  const scrollable = document.body.scrollHeight > maxInnerHeight + 16;
+  const scrollable = document.body.scrollHeight > maxInnerHeight + 40;
   document.documentElement.classList.toggle('page-scrollable', scrollable);
   updateDebugOverlay?.();
 };
