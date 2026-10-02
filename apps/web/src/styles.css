@@ -1871,8 +1871,23 @@ html.kb-open .main {
   justify-content: center;
   margin: 8px 0 16px;
 }
+/* Fixed above the nav bar (like .cal-fab), out of the scrolling flow, so
+   only the task list scrolls underneath it - matching Calendario's
+   always-reachable add button instead of one that scrolls away with the
+   list. ActivityScreen reserves space for it below the list via its own
+   measured height (useMeasuredHeight, hooks.ts). */
 .act-add {
-  margin: 20px 0 8px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  z-index: 40;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--sticky-head-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 /* ---------- task detail ---------- */
