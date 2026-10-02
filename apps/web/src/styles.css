@@ -266,7 +266,6 @@ h3 {
 }
 .main {
   flex: 1;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 .tab-hidden {
   display: none;
@@ -2816,9 +2815,17 @@ html.kb-open .main {
     var(--bg);
 }
 
+/* No padding-bottom here - every .screen already reserves its own bottom
+   clearance for the fixed nav bar (nav-h + safe-area + 18px breathing room),
+   and .ai-screen sizes its own height around the nav directly. A second,
+   redundant reservation here used to stack on top of that, inflating the
+   page by ~64px beyond the viewport - invisible on a tall, already-
+   scrollable list, but on a short screen (e.g. Profilo, whose content
+   nearly exactly fills one viewport) it pushed scrollHeight just past
+   innerHeight, letting the "page shouldn't scroll at all" page-scrollable
+   check (main.tsx) wrongly conclude it should. */
 .main {
   min-height: 100dvh;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
 }
 
 .screen {
