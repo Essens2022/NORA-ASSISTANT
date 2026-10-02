@@ -255,6 +255,17 @@ subscribe(() => {
   const tab = getState().tab;
   if (tab === lastTab) return;
   lastTab = tab;
+  // This callback can run before the tab panels have actually re-rendered
+  // (subscribers fire synchronously, in registration order - this one was
+  // registered before the component tree even mounts) - if the outgoing
+  // tab was scrolled (e.g. a long Attività list at scrollY 300) when body
+  // flips to position:fixed (below) a moment later, fixed positioning
+  // ignores scroll entirely and snaps straight to the top - visibly,
+  // mid-switch, while the old tab's content is still what's painted.
+  // Reported on device as "a different copy flashes underneath for a
+  // moment, then it jumps to the real one". Zeroing scroll *before* the
+  // flip means there's nothing left to snap away from.
+  window.scrollTo(0, 0);
   document.documentElement.classList.remove('page-scrollable');
   // let the new tab's panel actually paint (display:none -> block) before
   // re-measuring - doing it in the very same tick would still see the old
