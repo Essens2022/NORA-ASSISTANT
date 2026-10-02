@@ -27,7 +27,7 @@ const THEME_LABEL: Record<Theme, 'prof.theme_system' | 'prof.theme_light' | 'pro
 export function ProfileScreen() {
   const { profile, email } = useStore((s) => ({ profile: s.profile, email: s.email }));
   const [open, setOpen] = useState<string | null>(null);
-  const [headRef, headH] = useStickyHeadHeight();
+  const [headRef, headH] = useStickyHeadHeight(4);
   if (!profile) return <div class="screen" />;
   const p = profile.prefs;
   const setPref = <K extends keyof Preferences>(k: K, v: Preferences[K]) => updateProfile({ prefs: { [k]: v } as Partial<Preferences> });
