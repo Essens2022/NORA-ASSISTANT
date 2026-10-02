@@ -176,6 +176,16 @@ html {
      recognized as a pan at all, which does reach that layer. */
   overflow-y: hidden;
   touch-action: none;
+  /* Every other scrollable region in the app (.ai-scroll, .mem-filter, …)
+     already hides its native scrollbar for this look-like-a-native-app feel
+     - the page's own outer scroll (html.page-scrollable below) was the one
+     left unstyled, and Chrome (unlike Safari, which never shows one here)
+     paints its plain default track/thumb for it: a stark, unstyled bar
+     right against the dark theme. */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
 }
 html.page-scrollable {
   overflow-y: auto;
