@@ -158,12 +158,19 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 let maxInnerHeight = window.innerHeight;
 const updatePageScrollable = () => {
   maxInnerHeight = Math.max(maxInnerHeight, window.innerHeight);
-  // A real device's safe-area insets and actual font metrics can measure a
-  // few px taller than this dev environment ever does - a +1 tolerance (fine
-  // here) wasn't enough there, and even that little bit of genuine overflow
-  // was enough to let a drag move the page before snapping back. +8 absorbs
-  // that device slop while still being nowhere near what any real scrollable
-  // list overflows by.
+  // A real device's safe-area insets and actual font metrics can measure
+  // taller than this dev environment ever does - frame-by-frame analysis of
+  // a screen recording of the actual bug (Profilo on a real iPhone) measured
+  // a real, held-steady 31px CSS overflow there (93 device px at the
+  // recording's 3x scale) that this environment has no way to reproduce
+  // exactly (no real Dynamic Island/home-indicator safe-area, and Linux
+  // Chromium substitutes its own font for -apple-system, which can render a
+  // row or two taller than real San Francisco does) - the first tolerance
+  // tried here, +8, wasn't nearly enough, and that genuine a gap was enough
+  // for the OS to treat the page as really scrollable and hand it fully off
+  // to native momentum scrolling, not just a px or two of slop. +40 clears
+  // that with real margin to spare while staying far below what any actual
+  // scrollable list overflows by.
   // document.body.scrollHeight, not documentElement's: once locked, body
   // itself goes position:fixed (styles.css) to fully kill Safari's own
   // address-bar-collapse gesture - a fixed element is taken out of its
@@ -173,7 +180,7 @@ const updatePageScrollable = () => {
   // real content kept growing. scrollHeight is still a true read of body's
   // own content height either way - position only changes where body is
   // placed, not how it measures what's inside it.
-  const scrollable = document.body.scrollHeight > maxInnerHeight + 8;
+  const scrollable = document.body.scrollHeight > maxInnerHeight + 40;
   document.documentElement.classList.toggle('page-scrollable', scrollable);
 };
 // Observing document.body itself here would miss every later content change:
