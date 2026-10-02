@@ -210,6 +210,20 @@ body {
 html.page-scrollable body {
   touch-action: pan-y;
 }
+/* The most reliable way to stop a real iPhone's Safari (not installed/
+   standalone) from moving a page at all - overflow:hidden and touch-action:
+   none (above) stop the page's own scroll and its gesture recognition, but
+   real Safari's top-level "page" scroll position is partly owned by its own
+   chrome (the address-bar collapse animation rides on it) in a way neither
+   of those fully reaches on every iOS version. A position:fixed body has no
+   scroll position for anything to grab onto in the first place - nothing
+   for Safari's own gesture handling to move, not just nothing left for ours
+   to prevent. */
+html:not(.page-scrollable) body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}
 /* the ambient wash used to be a `background-attachment: fixed` on body, but that's
    positioned relative to the whole scrollable page on many mobile browsers, not the
    viewport - so on a tall page (e.g. a day with lots of tasks) it landed somewhere

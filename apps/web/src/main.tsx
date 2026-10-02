@@ -146,17 +146,46 @@ window.addEventListener('scroll', holdScrollAtTop, { passive: true });
 // recording caught - the page snapping up and down repeatedly on its own,
 // not from any touch at all. The actual touch-lock is the touchmove guard
 // below; this class is just what it reads to decide whether to engage.
+// Real Safari's address bar is often still expanded (full height, eating
+// into window.innerHeight) right when a screen first mounts, and only
+// collapses once the person actually scrolls or drags - comparing against
+// the *current* innerHeight at that moment can read a page as needing to
+// scroll by however much the address bar happens to be eating at the time,
+// even though the page would fit fine once it collapses. innerHeight only
+// ever grows when the address bar collapses, never on its own otherwise, so
+// the largest value seen so far in this session is the real, stable usable
+// height to size against.
+let maxInnerHeight = window.innerHeight;
 const updatePageScrollable = () => {
+  maxInnerHeight = Math.max(maxInnerHeight, window.innerHeight);
   // A real device's safe-area insets and actual font metrics can measure a
   // few px taller than this dev environment ever does - a +1 tolerance (fine
   // here) wasn't enough there, and even that little bit of genuine overflow
   // was enough to let a drag move the page before snapping back. +8 absorbs
   // that device slop while still being nowhere near what any real scrollable
   // list overflows by.
-  const scrollable = document.documentElement.scrollHeight > window.innerHeight + 8;
+  // document.body.scrollHeight, not documentElement's: once locked, body
+  // itself goes position:fixed (styles.css) to fully kill Safari's own
+  // address-bar-collapse gesture - a fixed element is taken out of its
+  // parent's normal flow, so documentElement's own scrollHeight would
+  // collapse to just the viewport height regardless of body's actual
+  // content the moment that happens, permanently reporting "fits" even as
+  // real content kept growing. scrollHeight is still a true read of body's
+  // own content height either way - position only changes where body is
+  // placed, not how it measures what's inside it.
+  const scrollable = document.body.scrollHeight > maxInnerHeight + 8;
   document.documentElement.classList.toggle('page-scrollable', scrollable);
 };
-new ResizeObserver(updatePageScrollable).observe(document.body);
+// Observing document.body itself here would miss every later content change:
+// once locked, body is position:fixed with inset:0 (styles.css), which pins
+// its own box to exactly the viewport size regardless of its content - so
+// its box never resizes again even as real content (e.g. completed tasks
+// loading in) keeps growing underneath it, and a ResizeObserver only fires
+// on the observed element's own box changing. #app (render()'s mount point,
+// from index.html - always in the DOM, unlike its child .app which App.tsx
+// only renders once setLang() resolves) isn't position:fixed and does still
+// grow with its content, the same content body.scrollHeight above is reading.
+new ResizeObserver(updatePageScrollable).observe(document.getElementById('app')!);
 window.addEventListener('resize', updatePageScrollable);
 updatePageScrollable();
 
