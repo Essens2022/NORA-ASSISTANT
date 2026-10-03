@@ -119,7 +119,16 @@ export function CalendarScreen() {
                 type="button"
                 key={d}
                 class={`cal-strip-day${d === selected ? ' selected' : ''}${d === today ? ' today' : ''}${byDate[d]?.length ? ' has-tasks' : ''}`}
-                onClick={() => setSelected(d)}
+                onClick={() => {
+                  setSelected(d);
+                  // Settimana stacks every day of the week as one agenda, instead of
+                  // switching screens per day - tapping a day in the strip otherwise
+                  // only moved the strip's own highlight pill, with nothing visibly
+                  // reacting if that day's section wasn't already on screen (and
+                  // nothing at all if that day has no tasks, since empty days are
+                  // left out of the stack entirely). Scroll straight to it.
+                  if (mode === 'week') requestAnimationFrame(() => document.getElementById(`week-day-${d}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+                }}
               >
                 <span class="cal-strip-label">{stripLabels[i]}</span>
                 <span class="cal-strip-num">{Number(d.slice(8, 10))}</span>
@@ -172,7 +181,7 @@ export function CalendarScreen() {
         <section class="group cal-week-agenda">
           {weekTasks.map(({ date, tasks: dt }) =>
             dt.length ? (
-              <div key={date}>
+              <div key={date} id={`week-day-${date}`}>
                 <h2 class="group-title">{date === today ? tr('cal.today') : dayTitle(date, locale)}</h2>
                 <ul class="task-list">
                   {dt.map((t) => (
@@ -180,9 +189,16 @@ export function CalendarScreen() {
                   ))}
                 </ul>
               </div>
+            ) : date === selected ? (
+              // The tapped day has nothing - still give it a section (instead of
+              // just leaving it out like any other empty day) so tapping always
+              // scrolls to something that visibly answers "what's on this day".
+              <div key={date} id={`week-day-${date}`}>
+                <h2 class="group-title">{date === today ? tr('cal.today') : dayTitle(date, locale)}</h2>
+                <EmptyState title={tr('cal.empty_title')} text={tr('cal.empty_hint')} />
+              </div>
             ) : null,
           )}
-          {weekTasks.every(({ tasks: dt }) => dt.length === 0) && <EmptyState title={tr('cal.empty_title')} text={tr('cal.empty_hint')} />}
         </section>
       ) : (
         <section class="group">
