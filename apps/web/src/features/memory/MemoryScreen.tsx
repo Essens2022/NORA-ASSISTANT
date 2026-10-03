@@ -53,6 +53,18 @@ export function MemoryScreen() {
 
   const filtered = (items ?? []).filter((m) => m.value.toLowerCase().includes(query.trim().toLowerCase()) && (!filter || m.kind === filter));
   const present = useMemo(() => new Set((items ?? []).map((m) => m.kind)), [items]);
+  // This screen never unmounts (every tab stays mounted, just hidden - see
+  // App.tsx), so a filter chip tapped earlier stays selected even after its
+  // category's last item is deleted (or edited to a different kind). Once
+  // present.size drops to 1, the chip row itself stops rendering (nothing
+  // left to choose between) - leaving that stale filter neither visible nor
+  // reachable to clear, silently hiding every item with no explanation (no
+  // "no match" message either, since that only shows when query/filter are
+  // truthy from the user's own current action). Clear it the moment it no
+  // longer corresponds to a real, currently-chosen-worthy category.
+  useEffect(() => {
+    if (filter && !present.has(filter)) setFilter(null);
+  }, [filter, present]);
   const [headRef, headH] = useStickyHeadHeight();
 
   return (
