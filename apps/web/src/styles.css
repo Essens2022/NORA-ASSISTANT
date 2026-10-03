@@ -2181,6 +2181,26 @@ html.kb-open .main {
 .cal-strip-day.selected.has-tasks::after {
   background: #fff;
 }
+.cal-day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.cal-day-nav-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.cal-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.cal-week-nav .cal-strip {
+  flex: 1;
+  margin-bottom: 0;
+}
 .cal-fab {
   position: fixed;
   right: 16px;
