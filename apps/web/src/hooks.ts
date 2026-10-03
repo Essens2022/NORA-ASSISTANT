@@ -21,21 +21,33 @@ import { useLayoutEffect, useRef, useState } from 'preact/hooks';
  * exactly - a late padding change there visibly shifts the whole block,
  * where a scrollable screen just loses a few px off the top, unnoticed.
  *
+ * It isn't only the tab-switch case, either: Calendario's own header grows
+ * and shrinks in place as you switch Azi/Settimana/Mese (the day/week strip
+ * shows under the mode chips in Azi/Settimana, not in Mese) - a real
+ * recording of just that, no tab switching at all, caught the exact same
+ * one-frame-stale padding (confirmed: headH already at its new value, pad
+ * still reading the old one, for a single frame, every time). Any render of
+ * this component can change what its own measured element looks like, not
+ * just a tab becoming visible - so the catch-up below runs after every
+ * render (no dependency array), not just when `active` flips.
+ *
  * `active`: true whenever THIS screen's own tab is the current one - pass
- * `tab === 'profile'` (etc.), not the raw `tab` string itself. Catching up
- * synchronously (useLayoutEffect, after DOM mutations but before paint)
- * the instant this flips to true gets the real height the same frame this
- * screen's `display: none` lifts, before anything is ever painted at the
- * wrong 0. It has to be this boolean and not the raw tab value: a caller
- * selecting the raw `tab` via useStore re-renders on literally every nav
- * tap anywhere in the app, for all five screens that use this hook at
- * once, not just the one actually becoming visible - on a quick string of
- * taps that's four wasted full-screen re-renders for every one that
- * matters, competing with the real work for the same frame budget and
- * showing up as exactly the kind of "catches up a beat late" jank this was
- * meant to fix in the first place. A boolean selector only flips (and only
- * then re-renders) for the one screen whose own visibility actually
- * changed. */
+ * `tab === 'profile'` (etc.), not the raw `tab` string itself. This is what
+ * gets a HIDDEN screen's own component to re-render (hence re-measure) at
+ * all the instant its `display: none` lifts - a component that never
+ * subscribes to anything about its own visibility has no reason to
+ * re-render just because an ancestor's CSS class changed. It has to be this
+ * boolean and not the raw tab value: a caller selecting the raw `tab` via
+ * useStore re-renders on literally every nav tap anywhere in the app, for
+ * all five screens that use this hook at once, not just the one actually
+ * becoming visible - on a quick string of taps that's four wasted
+ * full-screen re-renders for every one that matters, fighting the real work
+ * for the same frame budget. A boolean selector only flips (and only then
+ * re-renders) for the one screen whose own visibility actually changed;
+ * every OTHER re-render this catch-up also needs (Calendario's own mode
+ * switch, Amintiri's own filter, etc.) already happens on its own, driven by
+ * that screen's own state - this hook doesn't need to know about any of it
+ * by name, just to re-check on every render regardless of cause. */
 export function useMeasuredHeight(active = true) {
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
@@ -52,7 +64,7 @@ export function useMeasuredHeight(active = true) {
     if (!el) return;
     const h = el.offsetHeight;
     if (h > 0) setHeight((prev) => (prev === h ? prev : h));
-  }, [active]);
+  });
   return [ref, height] as const;
 }
 
