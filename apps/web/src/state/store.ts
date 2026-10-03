@@ -127,6 +127,31 @@ export function useStore<T>(select: (s: AppState) => T): T {
   return valRef.current;
 }
 
+/**
+ * Keeps the OLD object reference for any item whose content hasn't actually
+ * changed. bootstrap() re-fetches tasks/messages on every resume (reminders
+ * may have changed status meanwhile) and naively builds brand new objects
+ * from the response even when nothing changed server-side - and because
+ * useStore's shallowEqual only compares one level deep, a map/array full of
+ * new-but-identical-looking objects still reads as "changed", forcing every
+ * screen that reads it to re-render (the visible flash/tick on every resume).
+ * Reusing the old reference when an item is byte-for-byte the same lets
+ * shallowEqual see through the refresh and skip re-rendering what didn't
+ * change.
+ */
+export function mergeById<T extends { id: string }>(prev: T[], next: T[]): T[] {
+  const byId = new Map(prev.map((x) => [x.id, x]));
+  const merged = next.map((n) => {
+    const old = byId.get(n.id);
+    return old && JSON.stringify(old) === JSON.stringify(n) ? old : n;
+  });
+  // Nothing actually changed (same items, same order) - hand back the exact same
+  // array the caller passed in, so a selector that wraps this list inside another
+  // object (e.g. `useStore(s => ({ tasks: s.tasks, ... }))`) also sees no change,
+  // not just a consumer that reads the list directly.
+  return merged.length === prev.length && merged.every((x, i) => Object.is(x, prev[i])) ? prev : merged;
+}
+
 function shallowEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
   if (typeof a !== 'object' || typeof b !== 'object' || !a || !b) return false;

@@ -9,7 +9,7 @@ import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.t
 import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
 import { clearMemoryCache, prefetchMemory } from '../features/memory/MemoryScreen.tsx';
 import { clearDetailCache } from '../features/task/TaskDetail.tsx';
-import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
+import { getState, loadCachedTasks, mergeById, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 
 // ----------------------------------------------------------------------------
 // Session & bootstrap
@@ -93,6 +93,14 @@ export async function bootstrap() {
     const b = await api<Bootstrap>('/v1/bootstrap');
     tts.setCloudEnabled(b.features.tts);
     await applyProfile(b.profile);
+    const prev = getState();
+    const messages = mergeById(
+      prev.messages,
+      b.messages.map((m) => ({ id: `m${m.id}`, role: m.role, text: m.content, results: m.meta?.reply?.results, task_ids: m.meta?.reply?.task_ids })),
+    );
+    const prevTasksList = Object.values(prev.tasks);
+    const mergedTasksList = mergeById(prevTasksList, b.tasks);
+    const tasks = mergedTasksList === prevTasksList ? prev.tasks : Object.fromEntries(mergedTasksList.map((t) => [t.id, t]));
     setState({
       profile: b.profile,
       onboardedAt: b.onboarded_at,
@@ -100,8 +108,8 @@ export async function bootstrap() {
       awaiting: b.awaiting,
       features: b.features,
       bootstrapped: true,
-      messages: b.messages.map((m) => ({ id: `m${m.id}`, role: m.role, text: m.content, results: m.meta?.reply?.results, task_ids: m.meta?.reply?.task_ids })),
-      tasks: Object.fromEntries(b.tasks.map((t) => [t.id, t])),
+      messages,
+      tasks,
     });
     upsertTasks([]);
     surfaceUnanswered();
