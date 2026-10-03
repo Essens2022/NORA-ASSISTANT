@@ -9,7 +9,7 @@ import { MicUnavailableError, VoiceRecorder } from '../services/voice/recorder.t
 import { primeSpeech, savedVoice, tts } from '../services/voice/tts.ts';
 import { clearMemoryCache, prefetchMemory } from '../features/memory/MemoryScreen.tsx';
 import { clearDetailCache } from '../features/task/TaskDetail.tsx';
-import { getState, loadCachedTasks, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
+import { getState, loadCachedTasks, mergeById, patchTaskLocal, removeTask, resetState, setState, toast, upsertTasks, type ChatItem, toastError, toastInfo } from './store.ts';
 
 // ----------------------------------------------------------------------------
 // Session & bootstrap
@@ -87,12 +87,62 @@ interface Bootstrap {
   features: { ai: boolean; stt: boolean; tts: boolean; push: boolean };
 }
 
-export async function bootstrap() {
+// Root-caused and fixed in push.ts (registerServiceWorker: a stray reload on
+// the FIRST-ever service worker install, not just a real update, was
+// restarting the whole app - including this - moments after it had already
+// started, which is what actually produced the double call this guards
+// against). Kept anyway as cheap insurance: nothing about bootstrap() being
+// called twice back-to-back is ever correct - it re-fetches /v1/bootstrap,
+// re-applies profile/task/message state and re-runs prefetchMemory() for no
+// reason the second time - so share one in-flight call across every caller
+// instead of letting a second one start its own: whoever calls bootstrap()
+// while one is already running gets the exact same promise, and a fresh call
+// only actually starts once the previous one has fully finished.
+let bootstrapInFlight: Promise<void> | null = null;
+export function bootstrap(): Promise<void> {
+  if (bootstrapInFlight) return bootstrapInFlight;
+  bootstrapInFlight = bootstrapOnce().finally(() => {
+    bootstrapInFlight = null;
+  });
+  return bootstrapInFlight;
+}
+
+async function bootstrapOnce() {
   const started = performance.now();
   try {
     const b = await api<Bootstrap>('/v1/bootstrap');
     tts.setCloudEnabled(b.features.tts);
     await applyProfile(b.profile);
+    const prev = getState();
+    const messages = mergeById(
+      prev.messages,
+      b.messages.map((m) => ({ id: `m${m.id}`, role: m.role, text: m.content, results: m.meta?.reply?.results, task_ids: m.meta?.reply?.task_ids })),
+    );
+    // /v1/bootstrap only ever returns the OPEN tasks (scope=active server-side,
+    // see supabase/functions/api/index.ts's listTasks/OPEN_STATUSES) - it was
+    // never meant to be authoritative over completed/cancelled ones, which
+    // Attività only loads lazily via loadCompleted() when its own "Completate"
+    // filter is opened. But replacing the WHOLE tasks map with just b.tasks
+    // (as this used to do) silently dropped every completed task the moment
+    // bootstrap() ran again for any other reason - including the automatic
+    // resume refresh after returning from the background (main.tsx), which is
+    // exactly when a completed task is most likely to already be sitting in
+    // state. completedLoaded (store.ts) stays true across that wipe, so
+    // Attività never re-fetches to notice anything's missing - reported on
+    // device as "Completate" turning up empty right after switching back to
+    // the app. Keep any non-open task already in state untouched; only the
+    // open portion gets replaced by this fresh fetch.
+    const prevTasksList = Object.values(prev.tasks);
+    const prevOpenList = prevTasksList.filter((t) => t.status !== 'completed' && t.status !== 'cancelled');
+    const mergedOpenList = mergeById(prevOpenList, b.tasks);
+    let tasks: typeof prev.tasks;
+    if (mergedOpenList === prevOpenList) {
+      tasks = prev.tasks;
+    } else {
+      tasks = {};
+      for (const t of prevTasksList) if (t.status === 'completed' || t.status === 'cancelled') tasks[t.id] = t;
+      for (const t of mergedOpenList) tasks[t.id] = t;
+    }
     setState({
       profile: b.profile,
       onboardedAt: b.onboarded_at,
@@ -100,8 +150,8 @@ export async function bootstrap() {
       awaiting: b.awaiting,
       features: b.features,
       bootstrapped: true,
-      messages: b.messages.map((m) => ({ id: `m${m.id}`, role: m.role, text: m.content, results: m.meta?.reply?.results, task_ids: m.meta?.reply?.task_ids })),
-      tasks: Object.fromEntries(b.tasks.map((t) => [t.id, t])),
+      messages,
+      tasks,
     });
     upsertTasks([]);
     surfaceUnanswered();

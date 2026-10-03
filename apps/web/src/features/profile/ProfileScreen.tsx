@@ -25,9 +25,9 @@ const THEME_LABEL: Record<Theme, 'prof.theme_system' | 'prof.theme_light' | 'pro
 };
 
 export function ProfileScreen() {
-  const { profile, email } = useStore((s) => ({ profile: s.profile, email: s.email }));
+  const { profile, email, active } = useStore((s) => ({ profile: s.profile, email: s.email, active: s.tab === 'profile' }));
   const [open, setOpen] = useState<string | null>(null);
-  const [headRef, headH] = useStickyHeadHeight(4);
+  const [headRef, headH] = useStickyHeadHeight(4, active);
   if (!profile) return <div class="screen" />;
   const p = profile.prefs;
   const setPref = <K extends keyof Preferences>(k: K, v: Preferences[K]) => updateProfile({ prefs: { [k]: v } as Partial<Preferences> });
@@ -40,7 +40,7 @@ export function ProfileScreen() {
         </header>
       </div>
 
-      <div style={{ paddingTop: headH }}>
+      <div class="profile-screen-body" style={{ paddingTop: headH }}>
       <button type="button" class="prof-card" onClick={() => setOpen('account')}>
         <div class="prof-avatar" aria-hidden="true">
           <Logo size={28} />

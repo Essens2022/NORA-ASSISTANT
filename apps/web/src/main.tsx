@@ -11,7 +11,7 @@ import { applyTheme } from './utils/theme.ts';
 import { playChime } from './utils/chime.ts';
 import { tr } from './i18n/index.ts';
 import { toast } from './state/store.ts';
-import '@fontsource-variable/inter/wght.css';
+import './styles/inter-stable.css';
 import './styles.css';
 
 applyTheme();
@@ -132,10 +132,11 @@ window.addEventListener('orientationchange', setKbOffset);
 // before/around that straight back to zero, every time, until focus is lost.
 let kbHideAt = 0;
 let kbPollTimer = 0;
+// body, not window/html, is the scroll container now - see body's own CSS comment.
 const holdScrollAtTop = () => {
-  if (document.documentElement.classList.contains('kb-open') && (window.scrollX !== 0 || window.scrollY !== 0)) window.scrollTo(0, 0);
+  if (document.documentElement.classList.contains('kb-open') && (document.body.scrollLeft !== 0 || document.body.scrollTop !== 0)) document.body.scrollTo(0, 0);
 };
-window.addEventListener('scroll', holdScrollAtTop, { passive: true });
+document.body.addEventListener('scroll', holdScrollAtTop, { passive: true });
 
 // A page whose content fits the viewport shouldn't be scrollable at all (see
 // the .page-scrollable comment in styles.css for why overscroll-behavior
@@ -255,6 +256,16 @@ updatePageScrollable();
 // after switching to it; that's imperceptible. A screen that doesn't is
 // never incorrectly scrollable even for an instant.
 let lastTab = getState().tab;
+// Bumped on every switch, read back inside the scheduled re-measure below -
+// without it, switching tabs again before a previous switch's own double-rAF
+// had fired yet (not even fast: one dropped/delayed frame on a loaded device
+// is enough) lets that stale callback apply a measurement taken for a tab
+// that isn't current anymore on top of whatever tab actually is now, flipping
+// page-scrollable to a value that doesn't belong to anything on screen. The
+// very first switch in a session can't collide with anything (nothing
+// pending yet) - exactly why this only ever showed up after a few tab
+// changes, never on the first one.
+let scrollableGen = 0;
 subscribe(() => {
   const tab = getState().tab;
   if (tab === lastTab) return;
@@ -262,19 +273,27 @@ subscribe(() => {
   // This callback can run before the tab panels have actually re-rendered
   // (subscribers fire synchronously, in registration order - this one was
   // registered before the component tree even mounts) - if the outgoing
-  // tab was scrolled (e.g. a long Attività list at scrollY 300) when body
-  // flips to position:fixed (below) a moment later, fixed positioning
-  // ignores scroll entirely and snaps straight to the top - visibly,
-  // mid-switch, while the old tab's content is still what's painted.
-  // Reported on device as "a different copy flashes underneath for a
-  // moment, then it jumps to the real one". Zeroing scroll *before* the
-  // flip means there's nothing left to snap away from.
-  window.scrollTo(0, 0);
+  // tab was scrolled (e.g. a long Attività list at scrollTop 300) when the
+  // lock engages (overflow-y:hidden, below) a moment later, the old scroll
+  // position stays retained internally (just not interactive) and can pop
+  // back the instant a later screen re-enables scrolling - and even before
+  // that, snaps straight to the top the moment it locks, visibly, mid-
+  // switch, while the old tab's content is still what's painted. Reported
+  // on device as "a different copy flashes underneath for a moment, then it
+  // jumps to the real one". Zeroing scroll *before* the lock engages means
+  // there's nothing left to snap away from or pop back to.
+  document.body.scrollTo(0, 0);
   document.documentElement.classList.remove('page-scrollable');
   // let the new tab's panel actually paint (display:none -> block) before
   // re-measuring - doing it in the very same tick would still see the old
   // layout.
-  requestAnimationFrame(() => requestAnimationFrame(updatePageScrollable));
+  const gen = ++scrollableGen;
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      if (gen !== scrollableGen) return; // superseded by a later tab switch - that one's own callback is the one that gets to apply
+      updatePageScrollable();
+    }),
+  );
 });
 
 // .nav never moves because it's position:fixed - never a scroll target to
@@ -313,7 +332,7 @@ for (const type of ['touchend', 'touchcancel'] as const)
     type,
     () => {
       if (document.documentElement.classList.contains('page-scrollable')) return;
-      if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+      if (document.body.scrollLeft !== 0 || document.body.scrollTop !== 0) document.body.scrollTo(0, 0);
     },
     { passive: true },
   );

@@ -1,20 +1,70 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 
 /** Measures a fixed-position element's real rendered height (border-box,
  * padding included), so other content can reserve exactly that much space
  * instead of a CSS constant that would either clip under a taller element
  * or leave a gap under a shorter one. Used for both the fixed header above
- * content and a fixed action bar below it. */
-export function useMeasuredHeight() {
+ * content and a fixed action bar below it.
+ *
+ * Every tab stays mounted at all times (see App.tsx) and the inactive ones
+ * are hidden with plain `display: none` - which means their offsetHeight is
+ * 0 the whole time they're hidden, ResizeObserver included (there's no box
+ * to observe). The moment you switch to a hidden tab, its real height
+ * becomes available again, but a plain mount-only measurement would only
+ * have measured it once, back when it first mounted still hidden behind
+ * another tab, and gotten 0 - then rendered that wrong 0 for one frame
+ * before ResizeObserver's own (always-async) callback caught up and
+ * corrected it. That's the "tick"/flash reported on every tab switch and
+ * every app restart (the very first tab shown hits the same gap), and it's
+ * most visible on Profilo/Ricordi: they're the two screens locked out of
+ * scrolling entirely, so their content is centered to fit the viewport
+ * exactly - a late padding change there visibly shifts the whole block,
+ * where a scrollable screen just loses a few px off the top, unnoticed.
+ *
+ * It isn't only the tab-switch case, either: Calendario's own header grows
+ * and shrinks in place as you switch Azi/Settimana/Mese (the day/week strip
+ * shows under the mode chips in Azi/Settimana, not in Mese) - a real
+ * recording of just that, no tab switching at all, caught the exact same
+ * one-frame-stale padding (confirmed: headH already at its new value, pad
+ * still reading the old one, for a single frame, every time). Any render of
+ * this component can change what its own measured element looks like, not
+ * just a tab becoming visible - so the catch-up below runs after every
+ * render (no dependency array), not just when `active` flips.
+ *
+ * `active`: true whenever THIS screen's own tab is the current one - pass
+ * `tab === 'profile'` (etc.), not the raw `tab` string itself. This is what
+ * gets a HIDDEN screen's own component to re-render (hence re-measure) at
+ * all the instant its `display: none` lifts - a component that never
+ * subscribes to anything about its own visibility has no reason to
+ * re-render just because an ancestor's CSS class changed. It has to be this
+ * boolean and not the raw tab value: a caller selecting the raw `tab` via
+ * useStore re-renders on literally every nav tap anywhere in the app, for
+ * all five screens that use this hook at once, not just the one actually
+ * becoming visible - on a quick string of taps that's four wasted
+ * full-screen re-renders for every one that matters, fighting the real work
+ * for the same frame budget. A boolean selector only flips (and only then
+ * re-renders) for the one screen whose own visibility actually changed;
+ * every OTHER re-render this catch-up also needs (Calendario's own mode
+ * switch, Amintiri's own filter, etc.) already happens on its own, driven by
+ * that screen's own state - this hook doesn't need to know about any of it
+ * by name, just to re-check on every render regardless of cause. */
+export function useMeasuredHeight(active = true) {
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    setHeight(el.offsetHeight);
     const ro = new ResizeObserver(() => setHeight(el.offsetHeight));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const h = el.offsetHeight;
+    if (h > 0) setHeight((prev) => (prev === h ? prev : h));
+  });
   return [ref, height] as const;
 }
 
@@ -27,7 +77,7 @@ export function useMeasuredHeight() {
  * all costs, so every px reclaimed here is a px less likely to push its last
  * row ("Versione…") under the nav bar on a real device's taller real-font
  * rendering. */
-export function useStickyHeadHeight(gap = 16) {
-  const [ref, height] = useMeasuredHeight();
+export function useStickyHeadHeight(gap = 16, active = true) {
+  const [ref, height] = useMeasuredHeight(active);
   return [ref, height ? height + gap : 0] as const;
 }

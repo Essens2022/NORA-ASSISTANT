@@ -39,6 +39,10 @@ function dayTitle(date: string, locale: string): string {
   const s = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+function dayNavLabel(date: string, locale: string): string {
+  const s = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 function hourOf(time: string): number {
@@ -51,6 +55,7 @@ function hourLabel(h: number): string {
 export function CalendarScreen() {
   const tasks = useStore((s) => s.tasks);
   const focusDate = useStore((s) => s.calendarFocusDate);
+  const active = useStore((s) => s.tab === 'calendar');
   const today = todayLocal();
   const [month, setMonth] = useState(() => monthOf(focusDate ?? today));
   const [selected, setSelected] = useState(focusDate ?? today);
@@ -94,8 +99,7 @@ export function CalendarScreen() {
   const stripStart = addDays(selected, -mondayFirst(selected));
   const stripDays = Array.from({ length: 7 }, (_, i) => addDays(stripStart, i));
   const stripLabels = weekdayLabels(locale);
-  const weekTasks = useMemo(() => stripDays.map((d) => ({ date: d, tasks: (byDate[d] ?? []).slice().sort(order) })), [byDate, stripStart]);
-  const [headRef, headH] = useStickyHeadHeight();
+  const [headRef, headH] = useStickyHeadHeight(16, active);
 
   return (
     <div class="screen calendar-screen">
@@ -106,25 +110,67 @@ export function CalendarScreen() {
 
         <div class="chips cal-mode" role="group" aria-label={tr('cal.view')}>
           {(['day', 'week', 'month'] as const).map((m) => (
-            <button type="button" key={m} class={`chip${mode === m ? ' selected' : ''}`} onClick={() => setMode(m)}>
+            <button
+              type="button"
+              key={m}
+              class={`chip${mode === m ? ' selected' : ''}`}
+              onClick={() => {
+                setMode(m);
+                // "Oggi" literally means "today" - the selected day carries over
+                // between modes everywhere else (so picking a day in Mese/Settimana
+                // and then switching modes doesn't lose your pick), but this one
+                // chip's own label is a promise to land on today, not wherever
+                // Mese/Settimana last left `selected`.
+                if (m === 'day') setSelected(today);
+              }}
+            >
               {tr(m === 'day' ? 'cal.mode_day' : m === 'week' ? 'cal.mode_week' : 'cal.mode_month')}
             </button>
           ))}
         </div>
 
-        {mode !== 'month' && (
-          <div class="cal-strip" role="group" aria-label={tr('cal.view')}>
-            {stripDays.map((d, i) => (
-              <button
-                type="button"
-                key={d}
-                class={`cal-strip-day${d === selected ? ' selected' : ''}${d === today ? ' today' : ''}${byDate[d]?.length ? ' has-tasks' : ''}`}
-                onClick={() => setSelected(d)}
-              >
-                <span class="cal-strip-label">{stripLabels[i]}</span>
-                <span class="cal-strip-num">{Number(d.slice(8, 10))}</span>
-              </button>
-            ))}
+        {
+          // Oggi and Settimana now render the same single-day content below (see
+          // the note further down), so their difference has to live entirely up
+          // here, in how you MOVE between days - otherwise they'd be the exact
+          // same screen twice. Oggi is for stepping through days one at a time
+          // (prev/next day arrows, no need to see the whole week to do that).
+          // Settimana is for picking any day within a given week at a glance
+          // (the 7-day strip), with prev/next now moving a whole week.
+        }
+        {mode === 'day' && (
+          <div class="cal-day-nav">
+            <button type="button" class="icon-btn" aria-label={tr('cal.prev_day')} onClick={() => setSelected(addDays(selected, -1))}>
+              <Icon name="back" size={18} />
+            </button>
+            <span class="cal-day-nav-title">{dayNavLabel(selected, locale)}</span>
+            <button type="button" class="icon-btn" aria-label={tr('cal.next_day')} onClick={() => setSelected(addDays(selected, 1))}>
+              <Icon name="chevron" size={18} />
+            </button>
+          </div>
+        )}
+
+        {mode === 'week' && (
+          <div class="cal-week-nav">
+            <button type="button" class="icon-btn" aria-label={tr('cal.prev_week')} onClick={() => setSelected(addDays(selected, -7))}>
+              <Icon name="back" size={18} />
+            </button>
+            <div class="cal-strip" role="group" aria-label={tr('cal.view')}>
+              {stripDays.map((d, i) => (
+                <button
+                  type="button"
+                  key={d}
+                  class={`cal-strip-day${d === selected ? ' selected' : ''}${d === today ? ' today' : ''}${byDate[d]?.length ? ' has-tasks' : ''}`}
+                  onClick={() => setSelected(d)}
+                >
+                  <span class="cal-strip-label">{stripLabels[i]}</span>
+                  <span class="cal-strip-num">{Number(d.slice(8, 10))}</span>
+                </button>
+              ))}
+            </div>
+            <button type="button" class="icon-btn" aria-label={tr('cal.next_week')} onClick={() => setSelected(addDays(selected, 7))}>
+              <Icon name="chevron" size={18} />
+            </button>
           </div>
         )}
       </div>
@@ -168,24 +214,19 @@ export function CalendarScreen() {
         </div>
       )}
 
-      {mode === 'week' ? (
-        <section class="group cal-week-agenda">
-          {weekTasks.map(({ date, tasks: dt }) =>
-            dt.length ? (
-              <div key={date}>
-                <h2 class="group-title">{date === today ? tr('cal.today') : dayTitle(date, locale)}</h2>
-                <ul class="task-list">
-                  {dt.map((t) => (
-                    <TaskCard key={t.id} task={t} today={today} />
-                  ))}
-                </ul>
-              </div>
-            ) : null,
-          )}
-          {weekTasks.every(({ tasks: dt }) => dt.length === 0) && <EmptyState title={tr('cal.empty_title')} text={tr('cal.empty_hint')} />}
-        </section>
-      ) : (
-        <section class="group">
+      {
+        // Day and Settimana show the exact same thing below the strip: the one
+        // selected day's own content, swapped instantly when a different day is
+        // tapped - no scrolling involved, ever, so it can't ever look or feel
+        // different between the two (Settimana used to stack the whole week as
+        // one long agenda instead, with tapping a day scrolling to its section -
+        // reported as looking "harsh"/jarring compared to Oggi's clean instant
+        // swap, especially scrolling a long distance to reach a day near the end
+        // of the week). The week strip above still does exactly what it's for:
+        // picking a day without leaving the screen - it just no longer changes
+        // what's rendered below it beyond which day that is.
+      }
+      <section class="group">
           <div class="cal-day-head">
             <h2 class="group-title">
               {selected === today ? tr('cal.today') : dayTitle(selected, locale)} <span class="count">{dayTasks.length}</span>
@@ -240,8 +281,7 @@ export function CalendarScreen() {
               </div>
             </>
           )}
-        </section>
-      )}
+      </section>
 
       <button type="button" class="cal-fab" aria-label={tr('cal.add')} onClick={() => setCreating(true)}>
         <Icon name="plus" size={22} />
