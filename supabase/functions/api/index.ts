@@ -508,8 +508,22 @@ Deno.serve(async (req) => {
     } else if (path === '/v1/voice' && m === 'POST') result = await voice(ctx);
     else if (path === '/v1/bootstrap' && m === 'GET') {
       const [tasks, conv, { data: prow }] = await Promise.all([listTasks(ctx), conversationId(ctx, url.searchParams.get('conversation_id')), ctx.db.from('profiles').select('onboarded_at').eq('id', ctx.userId).single()]);
+      // Not scoped to `conv`: conversationId() above starts a brand new, empty
+      // conversation row whenever the previous one went 12h+ without an update
+      // (a deliberate reset of the AI's own context window after a real gap) -
+      // but that's an internal detail of what the ASSISTANT sees, not a promise
+      // that the PERSON'S own visible history should restart too. Scoping this
+      // query to the new (empty) `conv` made every return visit after 12h+ look
+      // like "all history from the past days disappeared" - the old messages
+      // were never deleted, just orphaned under a conversation_id bootstrap no
+      // longer asked for. RLS on `messages` (user_id = auth.uid()) already
+      // limits this to the signed-in user, so dropping the conversation filter
+      // here simply shows their own most recent messages across every
+      // conversation they've ever had, the way a normal chat history should
+      // read, while chat()/conversationId() keep deciding the AI's own context
+      // exactly as before.
       const [{ data: messages }, state] = await Promise.all([
-        ctx.db.from('messages').select('id, role, content, meta, created_at').eq('conversation_id', conv).order('id', { ascending: false }).limit(20),
+        ctx.db.from('messages').select('id, role, content, meta, created_at').order('id', { ascending: false }).limit(30),
         ctx.store.getState(conv),
       ]);
       result = { profile: ctx.profile, onboarded_at: prow?.onboarded_at ?? null, conversation_id: conv, awaiting: state.pending?.field ?? null, messages: (messages ?? []).reverse(), ...tasks, features: { ai: !!(await getAI(admin)), stt: !!(await getSTT(admin)), tts: !!(await getTTS(admin)), push: true } };
