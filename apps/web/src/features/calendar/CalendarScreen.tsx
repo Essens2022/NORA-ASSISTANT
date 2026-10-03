@@ -126,7 +126,8 @@ export function CalendarScreen() {
                   // only moved the strip's own highlight pill, with nothing visibly
                   // reacting if that day's section wasn't already on screen (and
                   // nothing at all if that day has no tasks, since empty days are
-                  // left out of the stack entirely). Scroll straight to it.
+                  // left out of the stack entirely). Scroll straight to it, once this
+                  // render's new .cal-strip-day classes have actually painted.
                   if (mode === 'week') requestAnimationFrame(() => document.getElementById(`week-day-${d}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
                 }}
               >
