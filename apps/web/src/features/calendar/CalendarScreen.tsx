@@ -94,7 +94,6 @@ export function CalendarScreen() {
   const stripStart = addDays(selected, -mondayFirst(selected));
   const stripDays = Array.from({ length: 7 }, (_, i) => addDays(stripStart, i));
   const stripLabels = weekdayLabels(locale);
-  const weekTasks = useMemo(() => stripDays.map((d) => ({ date: d, tasks: (byDate[d] ?? []).slice().sort(order) })), [byDate, stripStart]);
   const [headRef, headH] = useStickyHeadHeight();
 
   return (
@@ -119,17 +118,7 @@ export function CalendarScreen() {
                 type="button"
                 key={d}
                 class={`cal-strip-day${d === selected ? ' selected' : ''}${d === today ? ' today' : ''}${byDate[d]?.length ? ' has-tasks' : ''}`}
-                onClick={() => {
-                  setSelected(d);
-                  // Settimana stacks every day of the week as one agenda, instead of
-                  // switching screens per day - tapping a day in the strip otherwise
-                  // only moved the strip's own highlight pill, with nothing visibly
-                  // reacting if that day's section wasn't already on screen (and
-                  // nothing at all if that day has no tasks, since empty days are
-                  // left out of the stack entirely). Scroll straight to it, once this
-                  // render's new .cal-strip-day classes have actually painted.
-                  if (mode === 'week') requestAnimationFrame(() => document.getElementById(`week-day-${d}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-                }}
+                onClick={() => setSelected(d)}
               >
                 <span class="cal-strip-label">{stripLabels[i]}</span>
                 <span class="cal-strip-num">{Number(d.slice(8, 10))}</span>
@@ -178,31 +167,19 @@ export function CalendarScreen() {
         </div>
       )}
 
-      {mode === 'week' ? (
-        <section class="group cal-week-agenda">
-          {weekTasks.map(({ date, tasks: dt }) =>
-            dt.length ? (
-              <div key={date} id={`week-day-${date}`}>
-                <h2 class="group-title">{date === today ? tr('cal.today') : dayTitle(date, locale)}</h2>
-                <ul class="task-list">
-                  {dt.map((t) => (
-                    <TaskCard key={t.id} task={t} today={today} />
-                  ))}
-                </ul>
-              </div>
-            ) : date === selected ? (
-              // The tapped day has nothing - still give it a section (instead of
-              // just leaving it out like any other empty day) so tapping always
-              // scrolls to something that visibly answers "what's on this day".
-              <div key={date} id={`week-day-${date}`}>
-                <h2 class="group-title">{date === today ? tr('cal.today') : dayTitle(date, locale)}</h2>
-                <EmptyState title={tr('cal.empty_title')} text={tr('cal.empty_hint')} />
-              </div>
-            ) : null,
-          )}
-        </section>
-      ) : (
-        <section class="group">
+      {
+        // Day and Settimana show the exact same thing below the strip: the one
+        // selected day's own content, swapped instantly when a different day is
+        // tapped - no scrolling involved, ever, so it can't ever look or feel
+        // different between the two (Settimana used to stack the whole week as
+        // one long agenda instead, with tapping a day scrolling to its section -
+        // reported as looking "harsh"/jarring compared to Oggi's clean instant
+        // swap, especially scrolling a long distance to reach a day near the end
+        // of the week). The week strip above still does exactly what it's for:
+        // picking a day without leaving the screen - it just no longer changes
+        // what's rendered below it beyond which day that is.
+      }
+      <section class="group">
           <div class="cal-day-head">
             <h2 class="group-title">
               {selected === today ? tr('cal.today') : dayTitle(selected, locale)} <span class="count">{dayTasks.length}</span>
@@ -257,8 +234,7 @@ export function CalendarScreen() {
               </div>
             </>
           )}
-        </section>
-      )}
+      </section>
 
       <button type="button" class="cal-fab" aria-label={tr('cal.add')} onClick={() => setCreating(true)}>
         <Icon name="plus" size={22} />

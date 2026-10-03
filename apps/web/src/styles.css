@@ -2181,24 +2181,6 @@ html.kb-open .main {
 .cal-strip-day.selected.has-tasks::after {
   background: #fff;
 }
-.cal-week-agenda .group-title {
-  margin-top: 16px;
-}
-/* Tapping a day in the strip scrolls that day's section to the top of the
-   screen (CalendarScreen.tsx) - scrollIntoView can only ever align an
-   element flush with the top if there's enough content *below* it left to
-   scroll through; a day near the end of the week (especially the last one)
-   often doesn't have enough trailing content for that, so the scroll simply
-   stops short at its own maximum, landing with the tapped day only
-   partway down the screen - or, if an earlier day's own section is tall
-   enough, the view can still be showing mostly *that* day's content instead,
-   reported as "it jumps back to the start of the list, not to where I
-   tapped". Reserving a viewport's worth of empty space at the very end
-   guarantees any day's section - including the last one - always has
-   enough room below it to be scrolled all the way to the top. */
-.cal-week-agenda {
-  padding-bottom: 100vh;
-}
 .cal-fab {
   position: fixed;
   right: 16px;
