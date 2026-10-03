@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.norakeep.app",
+      "sha256_cert_fingerprints": [
+        "BD:8F:92:80:1C:51:46:01:CB:D4:F7:DA:CC:A2:BA:D1:FA:1B:FA:E3:64:23:BF:B4:78:E6:38:FD:E0:4E:F1:EF"
+      ]
+    }
+  }
+]
