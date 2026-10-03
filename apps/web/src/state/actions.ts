@@ -118,9 +118,31 @@ async function bootstrapOnce() {
       prev.messages,
       b.messages.map((m) => ({ id: `m${m.id}`, role: m.role, text: m.content, results: m.meta?.reply?.results, task_ids: m.meta?.reply?.task_ids })),
     );
+    // /v1/bootstrap only ever returns the OPEN tasks (scope=active server-side,
+    // see supabase/functions/api/index.ts's listTasks/OPEN_STATUSES) - it was
+    // never meant to be authoritative over completed/cancelled ones, which
+    // Attività only loads lazily via loadCompleted() when its own "Completate"
+    // filter is opened. But replacing the WHOLE tasks map with just b.tasks
+    // (as this used to do) silently dropped every completed task the moment
+    // bootstrap() ran again for any other reason - including the automatic
+    // resume refresh after returning from the background (main.tsx), which is
+    // exactly when a completed task is most likely to already be sitting in
+    // state. completedLoaded (store.ts) stays true across that wipe, so
+    // Attività never re-fetches to notice anything's missing - reported on
+    // device as "Completate" turning up empty right after switching back to
+    // the app. Keep any non-open task already in state untouched; only the
+    // open portion gets replaced by this fresh fetch.
     const prevTasksList = Object.values(prev.tasks);
-    const mergedTasksList = mergeById(prevTasksList, b.tasks);
-    const tasks = mergedTasksList === prevTasksList ? prev.tasks : Object.fromEntries(mergedTasksList.map((t) => [t.id, t]));
+    const prevOpenList = prevTasksList.filter((t) => t.status !== 'completed' && t.status !== 'cancelled');
+    const mergedOpenList = mergeById(prevOpenList, b.tasks);
+    let tasks: typeof prev.tasks;
+    if (mergedOpenList === prevOpenList) {
+      tasks = prev.tasks;
+    } else {
+      tasks = {};
+      for (const t of prevTasksList) if (t.status === 'completed' || t.status === 'cancelled') tasks[t.id] = t;
+      for (const t of mergedOpenList) tasks[t.id] = t;
+    }
     setState({
       profile: b.profile,
       onboardedAt: b.onboarded_at,
