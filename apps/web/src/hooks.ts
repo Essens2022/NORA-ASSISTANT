@@ -21,12 +21,30 @@ import { useStore } from './state/store.ts';
  * of scrolling entirely, so their content is centered to fit the viewport
  * exactly - a late padding change there visibly shifts the whole block,
  * where a scrollable screen just loses a few px off the top, unnoticed.
- * Re-running this measurement in useLayoutEffect (after DOM mutations,
- * before paint) every time `tab` changes catches the real height the same
- * instant this screen's `display: none` lifts, before anything is ever
- * painted at the wrong 0. ResizeObserver stays on top for changes that
- * aren't a tab switch (language switch changing header text length, font
- * swap, orientation). */
+ * Catching up synchronously (useLayoutEffect, after DOM mutations but
+ * before paint) the instant `tab` changes gets the real height the same
+ * frame this screen's `display: none` lifts, before anything is ever
+ * painted at the wrong 0 - that's the "tick"/flash reported on every tab
+ * switch and every app restart (the very first tab shown hits the same
+ * gap), and it's most visible on Profilo/Ricordi: they're the two screens
+ * locked out of scrolling entirely, so their content is centered to fit
+ * the viewport exactly - a late padding change there visibly shifts the
+ * whole block, where a scrollable screen just loses a few px off the top,
+ * unnoticed.
+ *
+ * This catch-up is its own effect, deliberately NOT the one owning the
+ * ResizeObserver: `tab` changes on every single nav tap anywhere in the
+ * app, for all five screens at once (this hook has no way to know which
+ * one just became visible), so tying the observer's own create/destroy to
+ * it would tear down and recreate a fresh ResizeObserver, for every mounted
+ * screen, on every tab switch in the app - pure repeated churn for the four
+ * screens that aren't the one changing, and worth avoiding since repeated
+ * observer churn is exactly the kind of thing that can compound into real
+ * jank over a long session on a weaker device. The observer itself mounts
+ * once and stays for the screen's entire lifetime (screens never unmount -
+ * see App.tsx); it's still what catches every OTHER reason this height can
+ * change (language switch altering header text length, font swap,
+ * orientation). */
 export function useMeasuredHeight() {
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
@@ -38,6 +56,12 @@ export function useMeasuredHeight() {
     const ro = new ResizeObserver(() => setHeight(el.offsetHeight));
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const h = el.offsetHeight;
+    if (h > 0) setHeight((prev) => (prev === h ? prev : h));
   }, [tab]);
   return [ref, height] as const;
 }

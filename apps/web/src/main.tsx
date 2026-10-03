@@ -252,6 +252,16 @@ updatePageScrollable();
 // after switching to it; that's imperceptible. A screen that doesn't is
 // never incorrectly scrollable even for an instant.
 let lastTab = getState().tab;
+// Bumped on every switch, read back inside the scheduled re-measure below -
+// without it, switching tabs again before a previous switch's own double-rAF
+// had fired yet (not even fast: one dropped/delayed frame on a loaded device
+// is enough) lets that stale callback apply a measurement taken for a tab
+// that isn't current anymore on top of whatever tab actually is now, flipping
+// page-scrollable to a value that doesn't belong to anything on screen. The
+// very first switch in a session can't collide with anything (nothing
+// pending yet) - exactly why this only ever showed up after a few tab
+// changes, never on the first one.
+let scrollableGen = 0;
 subscribe(() => {
   const tab = getState().tab;
   if (tab === lastTab) return;
@@ -273,7 +283,13 @@ subscribe(() => {
   // let the new tab's panel actually paint (display:none -> block) before
   // re-measuring - doing it in the very same tick would still see the old
   // layout.
-  requestAnimationFrame(() => requestAnimationFrame(updatePageScrollable));
+  const gen = ++scrollableGen;
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      if (gen !== scrollableGen) return; // superseded by a later tab switch - that one's own callback is the one that gets to apply
+      updatePageScrollable();
+    }),
+  );
 });
 
 // .nav never moves because it's position:fixed - never a scroll target to
