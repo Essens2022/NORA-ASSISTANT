@@ -87,7 +87,27 @@ interface Bootstrap {
   features: { ai: boolean; stt: boolean; tts: boolean; push: boolean };
 }
 
-export async function bootstrap() {
+// Root-caused and fixed in push.ts (registerServiceWorker: a stray reload on
+// the FIRST-ever service worker install, not just a real update, was
+// restarting the whole app - including this - moments after it had already
+// started, which is what actually produced the double call this guards
+// against). Kept anyway as cheap insurance: nothing about bootstrap() being
+// called twice back-to-back is ever correct - it re-fetches /v1/bootstrap,
+// re-applies profile/task/message state and re-runs prefetchMemory() for no
+// reason the second time - so share one in-flight call across every caller
+// instead of letting a second one start its own: whoever calls bootstrap()
+// while one is already running gets the exact same promise, and a fresh call
+// only actually starts once the previous one has fully finished.
+let bootstrapInFlight: Promise<void> | null = null;
+export function bootstrap(): Promise<void> {
+  if (bootstrapInFlight) return bootstrapInFlight;
+  bootstrapInFlight = bootstrapOnce().finally(() => {
+    bootstrapInFlight = null;
+  });
+  return bootstrapInFlight;
+}
+
+async function bootstrapOnce() {
   const started = performance.now();
   try {
     const b = await api<Bootstrap>('/v1/bootstrap');

@@ -72,9 +72,29 @@ export function registerServiceWorker(): Promise<ServiceWorkerRegistration | nul
     // background does nothing for an app the person never force-quits, so a fix can
     // ship and still never reach them. Reload once the moment a new one takes over,
     // and prod it to check for one every time the app comes back to the foreground.
+    //
+    // 'controllerchange' also fires on the very FIRST install, going from no
+    // controller at all to this page's first-ever service worker - that's not an
+    // update (nothing to pick up - this page's own JS is already current), so
+    // reloading there achieves nothing except restarting the whole app a moment
+    // after it already started: a real device recording caught it happening ~200ms
+    // in, mid-navigation, as a page reload wiping auth/bootstrap/memory state right
+    // under the person's fingers - reported as content going blank for a beat on
+    // Profilo/Ricordi, exactly while switching tabs. Only reload when a controller
+    // is actually being REPLACED (this page was already running under one SW and a
+    // different one just took over) - that's the genuine "a new build shipped"
+    // case this was meant for.
+    let sawController = !!navigator.serviceWorker.controller;
     let reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloaded) return;
+      // only the very first controllerchange of this page load can be the
+      // harmless no-controller -> first-ever-controller case; from here on,
+      // sawController is already true, so any later one is a genuine swap.
+      if (!sawController) {
+        sawController = true;
+        return;
+      }
       reloaded = true;
       // Reloading mid-handoff (Google/Apple sign-in returning through an in-app
       // browser, see auth.ts) wipes the in-memory state that was about to show
