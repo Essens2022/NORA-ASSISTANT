@@ -5248,3 +5248,110 @@ html.kb-open .main {
   background: #ffffff;
   color: var(--text);
 }
+
+/* ==========================================================================
+   APPROVED NORA PRODUCTION UI — Light applied when the SYSTEM prefers light
+   too, not just when "Luminos" is picked explicitly. The whole block above
+   only ever matched the explicit [data-theme='light'] attribute - "Aspetto:
+   Sistema" (the default, untouched by most people) never sets that
+   attribute at all, it just relies on the OS/browser's own preference via
+   @media. So on a light-preference device with the default "System"
+   setting, every card above rendered with its unconditional dark literal
+   (the ".calendar-screen .cal-card, ... .profile-screen .section-body"
+   rule, further up) against this screen's actual light page background -
+   a floating-dark-card-on-light-page look, not a deliberate one. Same
+   system-vs-explicit gap the dark tokens already had fixed above (the
+   "--nora-approved-*" block, ~line 4245) - mirrored the same way here for
+   light, by duplicating the whole explicit-light block under this media
+   query with :not([data-theme='dark']) in place of [data-theme='light'].
+   ========================================================================== */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --approved-bg: var(--bg);
+    --approved-panel: var(--surface);
+    --approved-panel-2: var(--elevated);
+    --approved-line: var(--border);
+    --approved-muted: var(--text-2);
+    --nora-approved-bg: var(--bg);
+    --nora-approved-panel: var(--surface);
+    --nora-approved-panel2: var(--elevated);
+    --nora-approved-line: var(--border);
+    --nora-approved-muted: var(--text-2);
+  }
+
+  /* .app deliberately excluded - see the .app rule's own comment (~line 2861):
+     it's a normal-flow element whose height varies with content, and a
+     percentage-anchored gradient painted on it stretches/compresses visibly
+     between views. Only body (and body::before, position:fixed) carry this. */
+  :root:not([data-theme='dark']) body {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(79, 124, 255, .06), transparent 34%),
+      radial-gradient(circle at 90% 8%, rgba(123, 92, 255, .05), transparent 30%),
+      var(--bg) !important;
+  }
+
+  :root:not([data-theme='dark']) .nav {
+    background: rgba(255, 255, 255, .92) !important;
+    border-top: 1px solid var(--border) !important;
+    box-shadow: 0 -8px 20px rgba(16, 24, 40, .06) !important;
+  }
+
+  :root:not([data-theme='dark']) .nav-pill {
+    color: #8a93a6;
+  }
+
+  :root:not([data-theme='dark']) .approved-settings-btn {
+    background: rgba(16, 24, 40, .06);
+  }
+
+  :root:not([data-theme='dark']) .approved-quick-grid button,
+  :root:not([data-theme='dark']) .ai-screen .composer,
+  :root:not([data-theme='dark']) .approved-chat-layer .composer {
+    background: linear-gradient(145deg, #ffffff, #f3f6fb) !important;
+    color: var(--text);
+  }
+
+  :root:not([data-theme='dark']) .calendar-screen .cal-card,
+  :root:not([data-theme='dark']) .activity-screen .task-card,
+  :root:not([data-theme='dark']) .calendar-screen .task-card,
+  :root:not([data-theme='dark']) .memory-screen .memory-list li,
+  :root:not([data-theme='dark']) .profile-screen .prof-card,
+  :root:not([data-theme='dark']) .profile-screen .section-body {
+    background: linear-gradient(145deg, #ffffff, #f3f6fb) !important;
+    box-shadow: 0 6px 18px rgba(16, 24, 40, .07) !important;
+    color: var(--text) !important;
+  }
+
+  :root:not([data-theme='dark']) .activity-screen .act-range,
+  :root:not([data-theme='dark']) .memory-screen .mem-search,
+  :root:not([data-theme='dark']) .memory-screen .chip:not(.selected),
+  :root:not([data-theme='dark']) .profile-screen .input,
+  :root:not([data-theme='dark']) .profile-screen select,
+  :root:not([data-theme='dark']) .profile-screen .segmented {
+    background: #ffffff !important;
+    color: var(--text);
+  }
+
+  :root:not([data-theme='dark']) .memory-screen .mem-search::placeholder {
+    color: var(--muted);
+  }
+
+  :root:not([data-theme='dark']) .activity-screen .chip:not(.selected),
+  :root:not([data-theme='dark']) .memory-screen .chip:not(.selected) {
+    color: var(--text-2);
+  }
+
+  :root:not([data-theme='dark']) .profile-screen .prof-name,
+  :root:not([data-theme='dark']) .profile-screen .field > label,
+  :root:not([data-theme='dark']) .profile-screen .prof-account-label,
+  :root:not([data-theme='dark']) .profile-screen .row-label {
+    color: var(--text);
+  }
+
+  :root:not([data-theme='dark']) .sheet,
+  :root:not([data-theme='dark']) .dialog,
+  :root:not([data-theme='dark']) .toast {
+    background: #ffffff;
+    color: var(--text);
+  }
+}
