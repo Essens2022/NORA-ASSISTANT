@@ -157,45 +157,19 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* no rubber-band / pull-to-refresh: the app stays put like a native one */
   overscroll-behavior: none;
   background: var(--bg);
-  /* A page whose content fits the viewport shouldn't be scrollable at all -
-     iOS's elastic bounce on drag can still trigger even with the page
-     genuinely non-overflowing (overscroll-behavior above only stops the
-     bounce from chaining into a pull-to-refresh/reveal, not the bounce
-     itself), so there's nothing to grab onto unless main.tsx's
-     ResizeObserver (updatePageScrollable) finds the content actually taller
-     than the viewport and adds .page-scrollable. overflow-y:hidden alone
-     turned out not to be enough on a real iPhone in Safari (not installed/
-     standalone): real Safari ties a drag anywhere on the page to its own
-     address-bar collapse animation at the native gesture-recognizer level,
-     underneath the DOM entirely - overflow and even this file's own
-     touchmove preventDefault (main.tsx) only ever stop the *page's own*
-     scroll, not that. touch-action:none stops the gesture from being
-     recognized as a pan at all, which does reach that layer. */
-  overflow-y: hidden;
+  /* body (below) is now the one and only scroll container, always - html
+     itself never scrolls at all any more, so there's nothing here to toggle
+     between locked/scrollable. See body's own comment for why. */
+  overflow: hidden;
   touch-action: none;
-  /* Every other scrollable region in the app (.ai-scroll, .mem-filter, …)
-     already hides its native scrollbar for this look-like-a-native-app feel
-     - the page's own outer scroll (html.page-scrollable below) was the one
-     left unstyled, and Chrome (unlike Safari, which never shows one here)
-     paints its plain default track/thumb for it: a stark, unstyled bar
-     right against the dark theme. */
-  scrollbar-width: none;
 }
-html::-webkit-scrollbar {
-  display: none;
-}
-html.page-scrollable {
-  overflow-y: auto;
-  touch-action: pan-y;
-}
-/* html/body's touch-action:none (above) would otherwise reach these too -
-   each of the app's actually-scrollable regions needs its own explicit
-   touch-action to keep panning inside itself regardless of the outer page's
-   lock state (confirmed: without this, dragging the Home chat did nothing
-   at all - .ai-scroll's scrollTop never moved). */
+/* html/body's touch-action:none would otherwise reach these too - each of
+   the app's actually-scrollable regions needs its own explicit touch-action
+   to keep panning inside itself regardless of the outer page's lock state
+   (confirmed: without this, dragging the Home chat did nothing at all -
+   .ai-scroll's scrollTop never moved). */
 .sheet,
 .ai-scroll,
 .cal-timeline,
@@ -214,25 +188,53 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
-  touch-action: none; /* see html's touch-action comment above */
   -webkit-tap-highlight-color: transparent;
-}
-html.page-scrollable body {
-  touch-action: pan-y;
-}
-/* The most reliable way to stop a real iPhone's Safari (not installed/
-   standalone) from moving a page at all - overflow:hidden and touch-action:
-   none (above) stop the page's own scroll and its gesture recognition, but
-   real Safari's top-level "page" scroll position is partly owned by its own
-   chrome (the address-bar collapse animation rides on it) in a way neither
-   of those fully reaches on every iOS version. A position:fixed body has no
-   scroll position for anything to grab onto in the first place - nothing
-   for Safari's own gesture handling to move, not just nothing left for ours
-   to prevent. */
-html:not(.page-scrollable) body {
+  /* body used to switch between position:static (scrollable screens) and
+     position:fixed (screens locked from ever scrolling, e.g. Profilo) -
+     reported on a real Android phone as a brief visual hiccup switching to
+     a locked screen, never caught in any recording or in a direct capture
+     of the browser's own compositor frames here (tried repeatedly) -
+     consistent with something that happens at the GPU/driver level, between
+     the frames the compositor reports, not a wrong DOM/CSS state at any
+     single point in time. Switching an element's `position` forces the
+     browser to tear down and rebuild its compositing layer from scratch,
+     where only moving within an *already-existing* layer is typically
+     cheap - body is now unconditionally position:fixed, inset:0, so that
+     switch never happens, on any screen, ever.
+     Importantly this is safe for .nav/.screen-sticky-head/body::before
+     (all position:fixed, meant to stay pinned to the true viewport): a
+     plain position:fixed ancestor does NOT, by itself, become a new
+     containing block for its own fixed-position descendants - only an
+     ancestor with transform/filter/perspective/will-change-of-those does
+     that (confirmed the hard way: an earlier attempt here added
+     will-change:transform to get the same "never rebuild the layer"
+     benefit, and that - specifically the transform/will-change, not the
+     position:fixed itself - broke the nav bar and every sticky header,
+     scrolling them away with the page instead of staying pinned - reverted
+     immediately, verified before ever being this comment). Since body is
+     always exactly viewport-sized here (inset:0), its fixed descendants
+     read as pinned to the viewport either way.
+     Actual scrolling now happens on body itself (overflow-y, below) rather
+     than on html - main.tsx's lock logic targets document.body's own
+     scrollTop/scrollTo accordingly. */
   position: fixed;
   inset: 0;
   width: 100%;
+  overflow-y: hidden;
+  touch-action: none; /* see html's touch-action comment above */
+}
+html.page-scrollable body {
+  overflow-y: auto;
+  touch-action: pan-y;
+  /* Every other scrollable region in the app (.ai-scroll, .mem-filter, …)
+     already hides its native scrollbar for this look-like-a-native-app feel
+     - the page's own outer scroll was the one left unstyled, and Chrome
+     (unlike Safari, which never shows one here) paints its plain default
+     track/thumb for it: a stark, unstyled bar right against the dark theme. */
+  scrollbar-width: none;
+}
+html.page-scrollable body::-webkit-scrollbar {
+  display: none;
 }
 /* the ambient wash used to be a `background-attachment: fixed` on body, but that's
    positioned relative to the whole scrollable page on many mobile browsers, not the

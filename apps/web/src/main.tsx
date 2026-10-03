@@ -128,10 +128,11 @@ window.addEventListener('orientationchange', setKbOffset);
 // before/around that straight back to zero, every time, until focus is lost.
 let kbHideAt = 0;
 let kbPollTimer = 0;
+// body, not window/html, is the scroll container now - see body's own CSS comment.
 const holdScrollAtTop = () => {
-  if (document.documentElement.classList.contains('kb-open') && (window.scrollX !== 0 || window.scrollY !== 0)) window.scrollTo(0, 0);
+  if (document.documentElement.classList.contains('kb-open') && (document.body.scrollLeft !== 0 || document.body.scrollTop !== 0)) document.body.scrollTo(0, 0);
 };
-window.addEventListener('scroll', holdScrollAtTop, { passive: true });
+document.body.addEventListener('scroll', holdScrollAtTop, { passive: true });
 
 // A page whose content fits the viewport shouldn't be scrollable at all (see
 // the .page-scrollable comment in styles.css for why overscroll-behavior
@@ -258,14 +259,16 @@ subscribe(() => {
   // This callback can run before the tab panels have actually re-rendered
   // (subscribers fire synchronously, in registration order - this one was
   // registered before the component tree even mounts) - if the outgoing
-  // tab was scrolled (e.g. a long Attività list at scrollY 300) when body
-  // flips to position:fixed (below) a moment later, fixed positioning
-  // ignores scroll entirely and snaps straight to the top - visibly,
-  // mid-switch, while the old tab's content is still what's painted.
-  // Reported on device as "a different copy flashes underneath for a
-  // moment, then it jumps to the real one". Zeroing scroll *before* the
-  // flip means there's nothing left to snap away from.
-  window.scrollTo(0, 0);
+  // tab was scrolled (e.g. a long Attività list at scrollTop 300) when the
+  // lock engages (overflow-y:hidden, below) a moment later, the old scroll
+  // position stays retained internally (just not interactive) and can pop
+  // back the instant a later screen re-enables scrolling - and even before
+  // that, snaps straight to the top the moment it locks, visibly, mid-
+  // switch, while the old tab's content is still what's painted. Reported
+  // on device as "a different copy flashes underneath for a moment, then it
+  // jumps to the real one". Zeroing scroll *before* the lock engages means
+  // there's nothing left to snap away from or pop back to.
+  document.body.scrollTo(0, 0);
   document.documentElement.classList.remove('page-scrollable');
   // let the new tab's panel actually paint (display:none -> block) before
   // re-measuring - doing it in the very same tick would still see the old
@@ -309,7 +312,7 @@ for (const type of ['touchend', 'touchcancel'] as const)
     type,
     () => {
       if (document.documentElement.classList.contains('page-scrollable')) return;
-      if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+      if (document.body.scrollLeft !== 0 || document.body.scrollTop !== 0) document.body.scrollTo(0, 0);
     },
     { passive: true },
   );
