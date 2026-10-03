@@ -10,7 +10,7 @@ import { applyTheme } from './utils/theme.ts';
 import { playChime } from './utils/chime.ts';
 import { tr } from './i18n/index.ts';
 import { toast } from './state/store.ts';
-import '@fontsource-variable/inter/wght.css';
+import './styles/inter-stable.css';
 import './styles.css';
 
 applyTheme();
