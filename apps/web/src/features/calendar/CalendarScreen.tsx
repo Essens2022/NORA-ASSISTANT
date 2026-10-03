@@ -109,7 +109,20 @@ export function CalendarScreen() {
 
         <div class="chips cal-mode" role="group" aria-label={tr('cal.view')}>
           {(['day', 'week', 'month'] as const).map((m) => (
-            <button type="button" key={m} class={`chip${mode === m ? ' selected' : ''}`} onClick={() => setMode(m)}>
+            <button
+              type="button"
+              key={m}
+              class={`chip${mode === m ? ' selected' : ''}`}
+              onClick={() => {
+                setMode(m);
+                // "Oggi" literally means "today" - the selected day carries over
+                // between modes everywhere else (so picking a day in Mese/Settimana
+                // and then switching modes doesn't lose your pick), but this one
+                // chip's own label is a promise to land on today, not wherever
+                // Mese/Settimana last left `selected`.
+                if (m === 'day') setSelected(today);
+              }}
+            >
               {tr(m === 'day' ? 'cal.mode_day' : m === 'week' ? 'cal.mode_week' : 'cal.mode_month')}
             </button>
           ))}
