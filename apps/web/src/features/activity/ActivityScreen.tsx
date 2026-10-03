@@ -12,13 +12,13 @@ import { NewTaskSheet } from '../task/TaskDetail.tsx';
 const order = (a: Task, b: Task) => `${a.due_date ?? '9999'}${a.due_time ?? '99'}${a.created_at}`.localeCompare(`${b.due_date ?? '9999'}${b.due_time ?? '99'}${b.created_at}`);
 
 export function ActivityScreen() {
-  const { tasks, completedLoaded, bootstrapped } = useStore((s) => ({ tasks: s.tasks, completedLoaded: s.completedLoaded, bootstrapped: s.bootstrapped }));
+  const { tasks, completedLoaded, bootstrapped, active } = useStore((s) => ({ tasks: s.tasks, completedLoaded: s.completedLoaded, bootstrapped: s.bootstrapped, active: s.tab === 'activity' }));
   const [filter, setFilter] = useState<'all' | 'today' | 'completed'>('all');
   const [loadingDone, setLoadingDone] = useState(false);
   const [creating, setCreating] = useState(false);
   const today = todayLocal();
-  const [headRef, headH] = useStickyHeadHeight();
-  const [addRef, addH] = useMeasuredHeight();
+  const [headRef, headH] = useStickyHeadHeight(16, active);
+  const [addRef, addH] = useMeasuredHeight(active);
 
   const groups = useMemo(() => {
     const g: Record<'today' | 'upcoming' | 'attention' | 'inbox' | 'completed', Task[]> = { today: [], upcoming: [], attention: [], inbox: [], completed: [] };

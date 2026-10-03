@@ -55,6 +55,7 @@ function hourLabel(h: number): string {
 export function CalendarScreen() {
   const tasks = useStore((s) => s.tasks);
   const focusDate = useStore((s) => s.calendarFocusDate);
+  const active = useStore((s) => s.tab === 'calendar');
   const today = todayLocal();
   const [month, setMonth] = useState(() => monthOf(focusDate ?? today));
   const [selected, setSelected] = useState(focusDate ?? today);
@@ -98,7 +99,7 @@ export function CalendarScreen() {
   const stripStart = addDays(selected, -mondayFirst(selected));
   const stripDays = Array.from({ length: 7 }, (_, i) => addDays(stripStart, i));
   const stripLabels = weekdayLabels(locale);
-  const [headRef, headH] = useStickyHeadHeight();
+  const [headRef, headH] = useStickyHeadHeight(16, active);
 
   return (
     <div class="screen calendar-screen">

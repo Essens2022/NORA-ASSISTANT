@@ -10,7 +10,7 @@ import { Button, Confirm, EmptyState, IconButton, Input, Sheet } from '../../com
 import { useStickyHeadHeight } from '../../hooks.ts';
 import { relativeFromNow, tr, type MessageKey } from '../../i18n/index.ts';
 import { api } from '../../services/api.ts';
-import { toast, toastError } from '../../state/store.ts';
+import { toast, toastError, useStore } from '../../state/store.ts';
 
 // kept between visits and prefetched after start-up, so the list shows instantly
 let memoryCache: MemoryItem[] | null = null;
@@ -65,7 +65,8 @@ export function MemoryScreen() {
   useEffect(() => {
     if (filter && !present.has(filter)) setFilter(null);
   }, [filter, present]);
-  const [headRef, headH] = useStickyHeadHeight();
+  const active = useStore((s) => s.tab === 'memory');
+  const [headRef, headH] = useStickyHeadHeight(16, active);
 
   return (
     <div class="screen memory-screen">
